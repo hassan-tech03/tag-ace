@@ -1,0 +1,246 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Love Edition For Her",
+      "price": 30.00,
+      "originalPrice": 60.00,
+      "description": "A romantic fragrance for her",
+      "category": "women",
+      "fragrance_family": "Floral",
+      "size": "50ml",
+      "brand": "Arome",
+      "image": "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop",
+      "isHotDeal": true,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 2,
+      "discount": 50,
+      "notes": {
+        "top": ["Rose", "Bergamot"],
+        "middle": ["Jasmine", "Peony"],
+        "base": ["Musk", "Vanilla"]
+      }
+    },
+    {
+      "id": 2,
+      "name": "Arome Le Parfum",
+      "price": 79.00,
+      "originalPrice": 79.00,
+      "description": "Premium fragrance collection",
+      "category": "unisex",
+      "fragrance_family": "Oriental",
+      "size": "75ml",
+      "brand": "Arome",
+      "image": "https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 2,
+      "discount": 0,
+      "notes": {
+        "top": ["Bergamot", "Lemon"],
+        "middle": ["Rose", "Jasmine"],
+        "base": ["Sandalwood", "Musk"]
+      }
+    },
+    {
+      "id": 3,
+      "name": "Aersace For Men",
+      "price": 50.99,
+      "originalPrice": 50.99,
+      "description": "Masculine fragrance for men",
+      "category": "men",
+      "fragrance_family": "Woody",
+      "size": "50ml",
+      "brand": "Aersace",
+      "image": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 1,
+      "discount": 0,
+      "notes": {
+        "top": ["Bergamot", "Lemon"],
+        "middle": ["Lavender", "Geranium"],
+        "base": ["Cedar", "Vetiver"]
+      }
+    },
+    {
+      "id": 4,
+      "name": "Million Gold for Her",
+      "price": 50.00,
+      "originalPrice": 50.00,
+      "description": "Luxurious golden fragrance",
+      "category": "women",
+      "fragrance_family": "Oriental",
+      "size": "50ml",
+      "brand": "Million",
+      "image": "https://images.unsplash.com/photo-1563170351-be82bc888aa4?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 2,
+      "discount": 0,
+      "notes": {
+        "top": ["Orange", "Neroli"],
+        "middle": ["Jasmine", "Rose"],
+        "base": ["Patchouli", "White Musk"]
+      }
+    },
+    {
+      "id": 5,
+      "name": "Arome Virtual Flower",
+      "price": 200.00,
+      "originalPrice": 300.00,
+      "description": "Virtual floral experience",
+      "category": "women",
+      "fragrance_family": "Floral",
+      "size": "75ml",
+      "brand": "Arome",
+      "image": "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=400&h=400&fit=crop",
+      "isHotDeal": true,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 1,
+      "discount": 11,
+      "notes": {
+        "top": ["Peach", "Bergamot"],
+        "middle": ["Rose", "Lily"],
+        "base": ["Sandalwood", "Musk"]
+      }
+    },
+    {
+      "id": 6,
+      "name": "Black Wild Fragrance",
+      "price": 30.00,
+      "originalPrice": 60.00,
+      "description": "Wild and mysterious fragrance",
+      "category": "unisex",
+      "fragrance_family": "Oriental",
+      "size": "100ml",
+      "brand": "Black Wild",
+      "image": "https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=400&h=400&fit=crop",
+      "isHotDeal": true,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 2,
+      "discount": 50,
+      "notes": {
+        "top": ["Black Pepper", "Bergamot"],
+        "middle": ["Rose", "Oud"],
+        "base": ["Amber", "Musk"]
+      }
+    },
+    {
+      "id": 7,
+      "name": "Brown Devotion Man",
+      "price": 50.00,
+      "originalPrice": 50.00,
+      "description": "Devoted masculine scent",
+      "category": "men",
+      "fragrance_family": "Woody",
+      "size": "50ml",
+      "brand": "Brown Devotion",
+      "image": "https://images.unsplash.com/photo-1557170334-a9632e77c6e4?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 1,
+      "discount": 0,
+      "notes": {
+        "top": ["Bergamot", "Lemon"],
+        "middle": ["Cedar", "Sandalwood"],
+        "base": ["Musk", "Amber"]
+      }
+    },
+    {
+      "id": 8,
+      "name": "Essence Pour Home",
+      "price": 50.00,
+      "originalPrice": 60.00,
+      "description": "Home essence fragrance",
+      "category": "unisex",
+      "fragrance_family": "Fresh",
+      "size": "75ml",
+      "brand": "Essence",
+      "image": "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 1,
+      "discount": 0,
+      "notes": {
+        "top": ["Lemon", "Mint"],
+        "middle": ["Lavender", "Rose"],
+        "base": ["Cedar", "Musk"]
+      }
+    },
+    {
+      "id": 9,
+      "name": "Eau De Toilette For Men",
+      "price": 79.00,
+      "originalPrice": 79.00,
+      "description": "Classic eau de toilette",
+      "category": "men",
+      "fragrance_family": "Fresh",
+      "size": "100ml",
+      "brand": "Classic",
+      "image": "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 2,
+      "discount": 0,
+      "notes": {
+        "top": ["Bergamot", "Lemon"],
+        "middle": ["Lavender", "Rosemary"],
+        "base": ["Cedar", "Musk"]
+      }
+    },
+    {
+      "id": 10,
+      "name": "Men Caramel Dream",
+      "price": 50.00,
+      "originalPrice": 60.00,
+      "description": "Sweet caramel fragrance for men",
+      "category": "men",
+      "fragrance_family": "Gourmand",
+      "size": "75ml",
+      "brand": "Caramel",
+      "image": "https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 1,
+      "discount": 0,
+      "notes": {
+        "top": ["Caramel", "Vanilla"],
+        "middle": ["Cinnamon", "Honey"],
+        "base": ["Sandalwood", "Musk"]
+      }
+    },
+    {
+      "id": 11,
+      "name": "Klein Women Spray",
+      "price": 99.00,
+      "originalPrice": 99.00,
+      "description": "Premium women's spray",
+      "category": "women",
+      "fragrance_family": "Floral",
+      "size": "50ml",
+      "brand": "Klein",
+      "image": "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=400&h=400&fit=crop",
+      "isHotDeal": false,
+      "isNewArrival": false,
+      "rating": 5.0,
+      "reviews": 1,
+      "discount": 0,
+      "notes": {
+        "top": ["Rose", "Peony"],
+        "middle": ["Jasmine", "Lily"],
+        "base": ["Musk", "Sandalwood"]
+      }
+    }
+  ]
+}
