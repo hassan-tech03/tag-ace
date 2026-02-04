@@ -1,12 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+
   images: {
-    domains: ['images.unsplash.com'],
-  },
-  experimental: {
-    // Disable React Compiler for now to fix parsing issues
-    reactCompiler: false,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
   },
 };
 
