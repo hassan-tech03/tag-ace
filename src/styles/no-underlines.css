@@ -1,0 +1,116 @@
+/* NUCLEAR OPTION - NO UNDERLINES ANYWHERE */
+* {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-thickness: 0 !important;
+  text-underline-offset: 0 !important;
+}
+
+*:hover,
+*:focus,
+*:active,
+*:visited,
+*:link {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-thickness: 0 !important;
+  text-underline-offset: 0 !important;
+}
+
+a,
+a:hover,
+a:focus,
+a:active,
+a:visited,
+a:link {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-thickness: 0 !important;
+  text-underline-offset: 0 !important;
+}
+
+/* Product specific overrides */
+.product-item,
+.product-item *,
+.product-item a,
+.product-item a *,
+.product-link,
+.product-link *,
+.product-info,
+.product-info *,
+.product-info h3,
+.product-info h3 *,
+[class*="product"],
+[class*="product"] *,
+[class*="product"] a,
+[class*="product"] a * {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-thickness: 0 !important;
+  text-underline-offset: 0 !important;
+}
+
+/* Hover states */
+.product-item:hover,
+.product-item:hover *,
+.product-item:hover a,
+.product-item:hover a *,
+.product-link:hover,
+.product-link:hover *,
+.product-info:hover,
+.product-info:hover *,
+.product-info:hover h3,
+.product-info:hover h3 *,
+[class*="product"]:hover,
+[class*="product"]:hover *,
+[class*="product"]:hover a,
+[class*="product"]:hover a * {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+  text-decoration-color: transparent !important;
+  text-decoration-thickness: 0 !important;
+  text-underline-offset: 0 !important;
+}
+
+/* Bootstrap override */
+.container a,
+.container a:hover,
+.container a:focus,
+.container a:active,
+.container a:visited {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+}
+
+/* Swiper override */
+.swiper-slide a,
+.swiper-slide a:hover,
+.swiper-slide a:focus,
+.swiper-slide a:active,
+.swiper-slide a:visited {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+}
+
+/* Section specific */
+.best-sellers-section a,
+.best-sellers-section a:hover,
+.popular-perfumes-section a,
+.popular-perfumes-section a:hover,
+.shop-page a,
+.shop-page a:hover {
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  text-decoration-style: none !important;
+}

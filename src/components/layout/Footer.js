@@ -48,8 +48,12 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <h3>AROME</h3>
-              <span className="logo-subtitle">PERFUME SHOP</span>
+              <img 
+                src="/logo.jpeg" 
+                alt="Arome Perfume Shop" 
+                className="footer-logo-img"
+                style={{ height: '50px', width: 'auto' }}
+              />
             </div>
             <p className="brand-description">
               Arome® was founded on the belief that wellness is more than just a necessity—it&apos;s a powerful expression of self-care and vitality.

@@ -4,19 +4,34 @@ import { useState, useEffect } from 'react';
 
 export const useCart = () => {
   const [cartItems, setCartItems] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+    try {
+      const savedCart = localStorage.getItem('cart');
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
+      }
+    } catch (error) {
+      console.error('Error loading cart from localStorage:', error);
+      setCartItems([]);
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Save cart to localStorage whenever it changes (only after initial load)
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+    if (isLoaded) {
+      try {
+        localStorage.setItem('cart', JSON.stringify(cartItems));
+      } catch (error) {
+        console.error('Error saving cart to localStorage:', error);
+      }
+    }
+  }, [cartItems, isLoaded]);
 
   const addToCart = (product, quantity = 1) => {
     setCartItems(prevItems => {
@@ -54,8 +69,24 @@ export const useCart = () => {
     setCartItems([]);
   };
 
+  // Helper function to extract numeric price from string or number
+  const getNumericPrice = (price) => {
+    if (typeof price === 'number') {
+      return price;
+    }
+    if (typeof price === 'string') {
+      // Extract number from strings like "$45.00", "From $79.00", etc.
+      const match = price.match(/[\d.]+/);
+      return match ? parseFloat(match[0]) : 0;
+    }
+    return 0;
+  };
+
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => {
+      const numericPrice = getNumericPrice(item.price);
+      return total + (numericPrice * item.quantity);
+    }, 0);
   };
 
   const getCartItemsCount = () => {
@@ -70,5 +101,6 @@ export const useCart = () => {
     clearCart,
     getCartTotal,
     getCartItemsCount,
+    isLoaded,
   };
 };

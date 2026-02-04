@@ -2,128 +2,169 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-
-// Mock cart data - replace with actual cart state management
-const initialCartItems = [
-  { id: 1, name: 'Product 1', price: 29.99, quantity: 2, image: '/placeholder.jpg' },
-  { id: 2, name: 'Product 2', price: 39.99, quantity: 1, image: '/placeholder.jpg' },
-];
+import Image from 'next/image';
+import { useCartContext } from '../../context/CartContext';
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState(initialCartItems);
+  const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCartContext();
+  const [orderInstructions, setOrderInstructions] = useState('');
 
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity === 0) {
-      setCartItems(cartItems.filter(item => item.id !== id));
-    } else {
-      setCartItems(cartItems.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      ));
+  // Helper function to extract numeric price from string or number
+  const getNumericPrice = (price) => {
+    if (typeof price === 'number') {
+      return price;
     }
+    if (typeof price === 'string') {
+      // Extract number from strings like "$45.00", "From $79.00", etc.
+      const match = price.match(/[\d.]+/);
+      return match ? parseFloat(match[0]) : 0;
+    }
+    return 0;
   };
 
-  const removeItem = (id) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + tax;
+  const subtotal = getCartTotal() || 0;
 
   if (cartItems.length === 0) {
     return (
-      <div className="container py-5">
-        <div className="text-center">
-          <h1>Your Cart is Empty</h1>
-          <p className="mb-4">Add some products to get started!</p>
-          <Link href="/products" className="btn btn-primary">
-            Continue Shopping
-          </Link>
+      <div className="cart-page">
+        {/* Header */}
+        <div className="cart-header">
+          <div className="container">
+            <nav className="breadcrumb">
+              <Link href="/">Home</Link>
+              <span>/</span>
+              <span>Your Shopping Cart</span>
+            </nav>
+          </div>
+        </div>
+
+        <div className="container py-5">
+          <div className="empty-cart">
+            <div className="empty-cart-icon">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <path d="M16 10a4 4 0 0 1-8 0"></path>
+              </svg>
+            </div>
+            <h2>Your Cart is Empty</h2>
+            <p>Add some products to get started!</p>
+            <Link href="/shop" className="continue-shopping-btn">
+              Continue Shopping
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-4">Shopping Cart</h1>
-      
-      <div className="row">
-        <div className="col-lg-8">
-          {cartItems.map((item) => (
-            <div key={item.id} className="card mb-3">
-              <div className="card-body">
-                <div className="row align-items-center">
-                  <div className="col-md-2">
-                    <div className="bg-light d-flex align-items-center justify-content-center" style={{height: '80px'}}>
-                      <span className="text-muted small">Image</span>
+    <div className="cart-page">
+      {/* Header */}
+      <div className="cart-header">
+        <div className="container">
+          <nav className="breadcrumb">
+            <Link href="/">Home</Link>
+            <span>/</span>
+            <span>Your Shopping Cart</span>
+          </nav>
+        </div>
+      </div>
+
+      {/* Cart Content */}
+      <div className="cart-content">
+        <div className="container">
+          <div className="cart-table-container">
+            {/* Table Header */}
+            <div className="cart-table-header">
+              <div className="header-product">PRODUCT</div>
+              <div className="header-quantity">QUANTITY</div>
+              <div className="header-total">TOTAL</div>
+            </div>
+
+            {/* Cart Items */}
+            <div className="cart-items">
+              {cartItems.map((item) => (
+                <div key={item.id} className="cart-item">
+                  <div className="item-product">
+                    <div className="product-image">
+                      <Image
+                        src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
+                        alt={item.name}
+                        width={80}
+                        height={80}
+                      />
+                    </div>
+                    <div className="product-details">
+                      <h4 className="product-brand">AROME</h4>
+                      <h3 className="product-name">{item.name}</h3>
+                      <div className="product-specs">
+                        <span>Category: {item.category || 'Perfume'}</span>
+                        <span>Size: 100ML</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="col-md-4">
-                    <h5 className="card-title">{item.name}</h5>
-                    <p className="text-primary fw-bold">${item.price}</p>
-                  </div>
-                  <div className="col-md-3">
-                    <div className="input-group">
+
+                  <div className="item-quantity">
+                    <div className="quantity-controls">
                       <button 
-                        className="btn btn-outline-secondary"
+                        className="qty-btn minus"
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       >
-                        -
+                        −
                       </button>
-                      <input 
-                        type="text" 
-                        className="form-control text-center" 
-                        value={item.quantity}
-                        readOnly
-                      />
+                      <span className="qty-display">{item.quantity}</span>
                       <button 
-                        className="btn btn-outline-secondary"
+                        className="qty-btn plus"
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       >
                         +
                       </button>
                     </div>
-                  </div>
-                  <div className="col-md-2">
-                    <p className="fw-bold">${(item.price * item.quantity).toFixed(2)}</p>
-                  </div>
-                  <div className="col-md-1">
                     <button 
-                      className="btn btn-outline-danger btn-sm"
-                      onClick={() => removeItem(item.id)}
+                      className="remove-btn"
+                      onClick={() => removeFromCart(item.id)}
                     >
-                      ×
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3,6 5,6 21,6"></polyline>
+                        <path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"></path>
+                      </svg>
                     </button>
                   </div>
+
+                  <div className="item-total">
+                    ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Section */}
+          <div className="cart-bottom">
+            <div className="cart-actions">
+              <div className="order-instructions">
+                <label htmlFor="instructions">Order special instructions</label>
+                <textarea
+                  id="instructions"
+                  value={orderInstructions}
+                  onChange={(e) => setOrderInstructions(e.target.value)}
+                  placeholder="Add any special instructions for your order..."
+                />
               </div>
             </div>
-          ))}
-        </div>
-        
-        <div className="col-lg-4">
-          <div className="card">
-            <div className="card-header">
-              <h5>Order Summary</h5>
-            </div>
-            <div className="card-body">
-              <div className="d-flex justify-content-between mb-2">
-                <span>Subtotal:</span>
-                <span>${subtotal.toFixed(2)}</span>
+
+            <div className="cart-summary">
+              <div className="summary-content">
+                <div className="subtotal-row">
+                  <span className="subtotal-label">Subtotal</span>
+                  <span className="subtotal-amount">${subtotal.toFixed(2)} USD</span>
+                </div>
+                <p className="shipping-note">Taxes and shipping calculated at checkout.</p>
+                <Link href="/checkout">
+                  <button className="checkout-btn">CHECK OUT</button>
+                </Link>
               </div>
-              <div className="d-flex justify-content-between mb-2">
-                <span>Tax:</span>
-                <span>${tax.toFixed(2)}</span>
-              </div>
-              <hr />
-              <div className="d-flex justify-content-between mb-3">
-                <strong>Total:</strong>
-                <strong>${total.toFixed(2)}</strong>
-              </div>
-              <Link href="/checkout" className="btn btn-primary w-100">
-                Proceed to Checkout
-              </Link>
             </div>
           </div>
         </div>

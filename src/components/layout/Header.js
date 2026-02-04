@@ -1,44 +1,49 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useCartContext } from '../../context/CartContext';
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [mobileExpandedItems, setMobileExpandedItems] = useState({});
-  const [cartItems, setCartItems] = useState([]);
+  const [shopExpanded, setShopExpanded] = useState(false);
+  const [pagesExpanded, setPagesExpanded] = useState(false);
+  const { cartItems, getCartItemsCount, getCartTotal, updateQuantity, removeFromCart } = useCartContext();
+  const router = useRouter();
+
+  const handleNavigation = (path) => {
+    router.push(path);
+    closeMobileMenu();
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    setShopExpanded(false);
+    setPagesExpanded(false);
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
-    setMobileExpandedItems({});
+    setShopExpanded(false);
+    setPagesExpanded(false);
   };
 
   const toggleCart = () => {
     setIsCartOpen(!isCartOpen);
   };
 
-  const toggleMobileExpand = (item) => {
-    setMobileExpandedItems(prev => {
-      // If clicking on a main section (categories, allPerfumes, etc.), close others
-      if (['categories', 'allPerfumes', 'offers', 'support'].includes(item)) {
-        return {
-          ...prev,
-          // Close all other subsections
-          categories: item === 'categories' ? !prev[item] : false,
-          allPerfumes: item === 'allPerfumes' ? !prev[item] : false,
-          offers: item === 'offers' ? !prev[item] : false,
-          support: item === 'support' ? !prev[item] : false,
-          // Keep shop and pages as they are
-          shop: prev.shop,
-          pages: prev.pages
-        };
-      }
-      // For shop and pages, just toggle normally
-      return {
-        ...prev,
-        [item]: !prev[item]
-      };
-    });
+  const toggleShop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShopExpanded(!shopExpanded);
+  };
+
+  const togglePages = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPagesExpanded(!pagesExpanded);
   };
 
   return (
@@ -78,7 +83,14 @@ export default function Header() {
             {/* Logo */}
             <div className="logo">
               <Link href="/">
-                <img src="/logo.png" alt="AROME PERFUME SHOP" className="logo-img" />
+                <Image 
+                  src="/logo.jpeg" 
+                  alt="Arome Perfume Shop" 
+                  width={150}
+                  height={40}
+                  className="logo-img"
+                  style={{ height: '40px', width: 'auto' }}
+                />
               </Link>
             </div>
 
@@ -110,7 +122,7 @@ export default function Header() {
                   <path d="M20 22C20.5523 22 21 21.5523 21 21C21 20.4477 20.5523 20 20 20C19.4477 20 19 20.4477 19 21C19 21.5523 19.4477 22 20 22Z"></path>
                   <path d="M1 1H5L7.68 14.39C7.77144 14.8504 8.02191 15.264 8.38755 15.5583C8.75318 15.8526 9.2107 16.009 9.68 16H19.4C19.8693 16.009 20.3268 15.8526 20.6925 15.5583C21.0581 15.264 21.3086 14.8504 21.4 14.39L23 6H6"></path>
                 </svg>
-                <span className="cart-count">{cartItems.length}</span>
+                <span className="cart-count">{getCartItemsCount()}</span>
               </button>
             </div>
           </div>
@@ -118,136 +130,152 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`}>
-        <div className="mobile-menu">
+      <div className={`mobile-menu-overlay ${isMobileMenuOpen ? 'active' : ''}`} onClick={closeMobileMenu}>
+        <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
           <div className="mobile-menu-header">
             <div className="logo">
-              <img src="/logo.png" alt="AROME PERFUME SHOP" />
+              <Image 
+                src="/logo.jpeg" 
+                alt="Arome Perfume Shop" 
+                width={120}
+                height={35}
+                style={{ height: '35px', width: 'auto' }}
+              />
             </div>
-            <button className="close-btn" onClick={toggleMobileMenu}>✕</button>
+            <button className="close-btn" onClick={closeMobileMenu}>✕</button>
           </div>
+          
           <nav className="mobile-nav">
+            {/* HOME */}
             <div className="nav-item">
-              <Link href="/" className="nav-link" onClick={toggleMobileMenu}>HOME</Link>
-            </div>
-            
-            <div className="nav-item">
-              <Link href="/products" className="nav-link">SHOP</Link>
               <button 
-                className="expand-btn"
-                onClick={() => toggleMobileExpand('shop')}
+                className="nav-link nav-button" 
+                onClick={() => handleNavigation('/')}
               >
-                {mobileExpandedItems.shop ? '−' : '+'}
+                HOME
               </button>
             </div>
             
-            {mobileExpandedItems.shop && (
-              <div className="mobile-submenu">
-                <div className="submenu-section">
-                  <h5>Categories</h5>
-                  <button 
-                    className="submenu-toggle"
-                    onClick={() => toggleMobileExpand('categories')}
-                  >
-                    {mobileExpandedItems.categories ? '−' : '−'}
-                  </button>
-                </div>
-                {mobileExpandedItems.categories && (
-                  <div className="submenu-items">
-                    <Link href="/products/eau-de-parfum" onClick={toggleMobileMenu}>Eau de Parfum</Link>
-                    <Link href="/products/eau-de-toilette" onClick={toggleMobileMenu}>Eau de Toilette</Link>
-                    <Link href="/products/body-mists" onClick={toggleMobileMenu}>Body Mists</Link>
-                    <Link href="/products/travel-sizes" onClick={toggleMobileMenu}>Travel Sizes</Link>
-                  </div>
-                )}
-                
-                <div className="submenu-section">
-                  <h5>All Perfumes</h5>
-                  <button 
-                    className="submenu-toggle"
-                    onClick={() => toggleMobileExpand('allPerfumes')}
-                  >
-                    {mobileExpandedItems.allPerfumes ? '−' : '+'}
-                  </button>
-                </div>
-                {mobileExpandedItems.allPerfumes && (
-                  <div className="submenu-items">
-                    <Link href="/products/mens-fragrances" onClick={toggleMobileMenu}>Men's Fragrances</Link>
-                    <Link href="/products/womens-fragrances" onClick={toggleMobileMenu}>Women's Fragrances</Link>
-                    <Link href="/products/unisex-perfumes" onClick={toggleMobileMenu}>Unisex Perfumes</Link>
-                    <Link href="/products/new-arrivals" onClick={toggleMobileMenu}>New Arrivals</Link>
-                  </div>
-                )}
-                
-                <div className="submenu-section">
-                  <h5>Offers & Discounts</h5>
-                  <button 
-                    className="submenu-toggle"
-                    onClick={() => toggleMobileExpand('offers')}
-                  >
-                    {mobileExpandedItems.offers ? '−' : '+'}
-                  </button>
-                </div>
-                {mobileExpandedItems.offers && (
-                  <div className="submenu-items">
-                    <Link href="/products/limited-editions" onClick={toggleMobileMenu}>Limited Editions</Link>
-                    <Link href="/products/best-sellers" onClick={toggleMobileMenu}>Best Sellers</Link>
-                    <Link href="/products/seasonal-sales" onClick={toggleMobileMenu}>Seasonal Sales</Link>
-                    <Link href="/products/clearance-sale" onClick={toggleMobileMenu}>Clearance Sale</Link>
-                  </div>
-                )}
-                
-                <div className="submenu-section">
-                  <h5>Contact & Support</h5>
-                  <button 
-                    className="submenu-toggle"
-                    onClick={() => toggleMobileExpand('support')}
-                  >
-                    {mobileExpandedItems.support ? '−' : '+'}
-                  </button>
-                </div>
-                {mobileExpandedItems.support && (
-                  <div className="submenu-items">
-                    <Link href="/customer-service" onClick={toggleMobileMenu}>Customer Service</Link>
-                    <Link href="/track-your-order" onClick={toggleMobileMenu}>Track Your Order</Link>
-                    <Link href="/shipping-returns" onClick={toggleMobileMenu}>Shipping & Returns</Link>
-                    <Link href="/faq" onClick={toggleMobileMenu}>FAQ</Link>
-                  </div>
-                )}
-              </div>
-            )}
-            
+            {/* SHOP */}
             <div className="nav-item">
-              <Link href="/blog" className="nav-link" onClick={toggleMobileMenu}>BLOG</Link>
-            </div>
-            
-            <div className="nav-item">
-              <Link href="/pages" className="nav-link">PAGES</Link>
-              <button 
-                className="expand-btn"
-                onClick={() => toggleMobileExpand('pages')}
-              >
-                {mobileExpandedItems.pages ? '−' : '+'}
+              <span className="nav-link">SHOP</span>
+              <button className="expand-btn" onClick={toggleShop}>
+                {shopExpanded ? '−' : '+'}
               </button>
             </div>
             
-            {mobileExpandedItems.pages && (
+            {shopExpanded && (
               <div className="mobile-submenu">
-                <div className="submenu-items" style={{padding: '0 40px 15px'}}>
-                  <Link href="/about" onClick={toggleMobileMenu}>About Us</Link>
-                  <Link href="/faq" onClick={toggleMobileMenu}>FAQ Page</Link>
-                  <Link href="/contact" onClick={toggleMobileMenu}>Contact Us</Link>
-                  <Link href="/wishlist" onClick={toggleMobileMenu}>Wishlist Page</Link>
-                  <Link href="/terms" onClick={toggleMobileMenu}>Terms & Conditions</Link>
-                  <Link href="/privacy" onClick={toggleMobileMenu}>Privacy Policy</Link>
-                  <Link href="/size-guide" onClick={toggleMobileMenu}>Size Guide</Link>
-                  <Link href="/404" onClick={toggleMobileMenu}>404 Error Page</Link>
+                <div className="submenu-items">
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/shop')}
+                  >
+                    All Products
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/shop/men')}
+                  >
+                    Men
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/shop/women')}
+                  >
+                    Women
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/shop/unisex')}
+                  >
+                    Unisex
+                  </button>
                 </div>
               </div>
             )}
             
+            {/* BLOG */}
             <div className="nav-item">
-              <Link href="/contact" className="nav-link" onClick={toggleMobileMenu}>CONTACT</Link>
+              <button 
+                className="nav-link nav-button" 
+                onClick={() => handleNavigation('/blog')}
+              >
+                BLOG
+              </button>
+            </div>
+            
+            {/* PAGES */}
+            <div className="nav-item">
+              <span className="nav-link">PAGES</span>
+              <button className="expand-btn" onClick={togglePages}>
+                {pagesExpanded ? '−' : '+'}
+              </button>
+            </div>
+            
+            {pagesExpanded && (
+              <div className="mobile-submenu">
+                <div className="submenu-items">
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/about')}
+                  >
+                    About Us
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/faq')}
+                  >
+                    FAQ Page
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/contact')}
+                  >
+                    Contact Us
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/wishlist')}
+                  >
+                    Wishlist Page
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/terms')}
+                  >
+                    Terms & Conditions
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/privacy')}
+                  >
+                    Privacy Policy
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/size-guide')}
+                  >
+                    Size Guide
+                  </button>
+                  <button 
+                    className="submenu-link"
+                    onClick={() => handleNavigation('/404')}
+                  >
+                    404 Error Page
+                  </button>
+                </div>
+              </div>
+            )}
+            
+            {/* CONTACT */}
+            <div className="nav-item">
+              <button 
+                className="nav-link nav-button" 
+                onClick={() => handleNavigation('/contact')}
+              >
+                CONTACT
+              </button>
             </div>
           </nav>
         </div>
@@ -257,7 +285,7 @@ export default function Header() {
       <div className={`cart-overlay ${isCartOpen ? 'active' : ''}`}>
         <div className="cart-sidebar">
           <div className="cart-header">
-            <h3>{cartItems.length > 0 ? 'Item added to your cart' : 'Shopping Cart'}</h3>
+            <h3>{cartItems.length > 0 ? 'Shopping Cart' : 'Shopping Cart'}</h3>
             <button className="close-btn" onClick={toggleCart}>✕</button>
           </div>
           
@@ -278,24 +306,45 @@ export default function Header() {
               </div>
             ) : (
               <div className="cart-items">
-                {cartItems.map((item, index) => (
-                  <div key={index} className="cart-item">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="cart-item">
                     <div className="item-image">
-                      <img src={item.image} alt={item.name} />
+                      <Image 
+                        src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
+                        alt={item.name} 
+                        width={60} 
+                        height={60}
+                      />
                     </div>
                     <div className="item-details">
                       <div className="item-brand">AROME</div>
                       <div className="item-name">{item.name}</div>
-                      <div className="item-specs">
-                        <span>Color: {item.color}</span>
-                        <span>Weight: {item.weight}</span>
+                      <div className="item-price">
+                        {typeof item.price === 'string' 
+                          ? item.price 
+                          : `$${(item.price || 0).toFixed(2)}`
+                        }
                       </div>
-                      <div className="item-price">${item.price}</div>
                       <div className="item-controls">
-                        <button className="qty-btn">-</button>
-                        <span className="qty">1</span>
-                        <button className="qty-btn">+</button>
-                        <button className="remove-btn">Remove</button>
+                        <button 
+                          className="qty-btn"
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        >
+                          -
+                        </button>
+                        <span className="qty">{item.quantity}</span>
+                        <button 
+                          className="qty-btn"
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                        <button 
+                          className="remove-btn"
+                          onClick={() => removeFromCart(item.id)}
+                        >
+                          Remove
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -313,12 +362,16 @@ export default function Header() {
               <div className="cart-total">
                 <div className="subtotal">
                   <span>Subtotal</span>
-                  <span>$79.00 USD</span>
+                  <span>${(getCartTotal() || 0).toFixed(2)} USD</span>
                 </div>
               </div>
               <div className="cart-buttons">
-                <button className="view-cart-btn">VIEW CART</button>
-                <button className="checkout-btn">CHECK OUT</button>
+                <Link href="/cart" onClick={toggleCart}>
+                  <button className="view-cart-btn">VIEW CART</button>
+                </Link>
+                <Link href="/checkout" onClick={toggleCart}>
+                  <button className="checkout-btn">CHECK OUT</button>
+                </Link>
               </div>
             </div>
           )}
