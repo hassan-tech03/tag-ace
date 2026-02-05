@@ -70,7 +70,15 @@ export const useCart = () => {
   };
 
   const clearCart = () => {
+    console.log('Clearing cart...'); // Debug log
     setCartItems([]);
+    // Force localStorage update
+    try {
+      localStorage.setItem('cart', JSON.stringify([]));
+      console.log('Cart cleared successfully'); // Debug log
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+    }
   };
 
   // Helper function to extract numeric price from string or number

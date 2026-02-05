@@ -9,7 +9,7 @@ import "../../styles/globals.scss";
 import "../../styles/no-underlines.css";
 
 export default function CheckoutClient() {
-  const { cartItems, getCartTotal, isLoaded } = useCartContext();
+  const { cartItems, getCartTotal, isLoaded, clearCart } = useCartContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
@@ -66,51 +66,170 @@ export default function CheckoutClient() {
 
   const handleStripePaymentSuccess = useCallback(
     (sessionId) => {
-      const orderData = {
-        orderNumber: `AR${Math.floor(Math.random() * 100000)}`,
-        items: cartItems.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-        })),
-        customerInfo: formData,
-        paymentMethod: "Credit Card (Stripe)",
-        subtotal,
-        shipping,
-        tax,
-        total,
-        orderDate: new Date().toISOString(),
-        stripeSessionId: sessionId,
-      };
+      console.log('🚀 Stripe payment success callback triggered with sessionId:', sessionId);
+      
+      try {
+        // Try to get backed up checkout data from multiple sources
+        let checkoutData = null;
+        
+        // First try sessionStorage
+        const backupData = sessionStorage.getItem('stripeCheckoutData');
+        if (backupData) {
+          try {
+            checkoutData = JSON.parse(backupData);
+            console.log('✅ Retrieved backup data from sessionStorage:', checkoutData);
+          } catch (error) {
+            console.error('❌ Error parsing sessionStorage backup:', error);
+          }
+        } else {
+          console.log('⚠️ No backup data in sessionStorage');
+        }
+        
+        // If not found, try localStorage
+        if (!checkoutData) {
+          const localBackupData = localStorage.getItem('stripeCheckoutDataBackup');
+          if (localBackupData) {
+            try {
+              checkoutData = JSON.parse(localBackupData);
+              console.log('✅ Retrieved backup data from localStorage:', checkoutData);
+            } catch (error) {
+              console.error('❌ Error parsing localStorage backup:', error);
+            }
+          } else {
+            console.log('⚠️ No backup data in localStorage');
+          }
+        }
+        
+        // Use backup data if available, otherwise use current data (NO FALLBACK VALUES)
+        let itemsToUse = checkoutData?.cartItems || cartItems;
+        const formToUse = checkoutData?.formData || formData;
+        const subtotalToUse = checkoutData?.subtotal || subtotal;
+        const shippingToUse = checkoutData?.shipping || shipping;
+        const taxToUse = checkoutData?.tax || tax;
+        const totalToUse = checkoutData?.total || total;
+        
+        console.log('📦 Items to use for order:', itemsToUse);
+        console.log('📋 Form data to use:', formToUse);
+        console.log('💰 Totals:', { subtotalToUse, shippingToUse, taxToUse, totalToUse });
+        
+        // If no items found, try to use current cart items
+        if (!itemsToUse || !Array.isArray(itemsToUse) || itemsToUse.length === 0) {
+          console.log('⚠️ No items in backup, trying current cart');
+          
+          // Try current cart first
+          if (cartItems && cartItems.length > 0) {
+            itemsToUse = cartItems;
+            console.log('✅ Using current cart items:', itemsToUse);
+          } else {
+            console.error('❌ No items found anywhere - this should not happen in Stripe flow');
+            // Don't create fallback order - let it fail gracefully
+            return;
+          }
+        }
+        
+        console.log('✅ Final items for order:', itemsToUse);
+        
+        const orderData = {
+          orderNumber: `AR${Date.now().toString().slice(-6)}`,
+          items: itemsToUse.map((item) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+          customerInfo: formToUse,
+          paymentMethod: "Credit Card (Stripe)",
+          subtotal: subtotalToUse,
+          shipping: shippingToUse,
+          tax: taxToUse,
+          total: totalToUse,
+          orderDate: new Date().toISOString(),
+          stripeSessionId: sessionId,
+        };
 
-      sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
-      window.location.href = "/order-confirmation";
+        console.log('💾 Final Stripe order data being saved:', orderData);
+
+        // Save order data to BOTH sessionStorage AND localStorage for backup
+        sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
+        localStorage.setItem("lastOrderBackup", JSON.stringify(orderData));
+        
+        console.log('✅ Order data saved to both storages');
+        
+        // Clean up backup data
+        sessionStorage.removeItem('stripeCheckoutData');
+        localStorage.removeItem('stripeCheckoutDataBackup');
+        
+        console.log('🧹 Cleaned up backup data');
+        
+        // Clear cart
+        clearCart();
+        console.log('🛒 Cart cleared');
+        
+        // Navigate to confirmation IMMEDIATELY without delay
+        console.log('🔄 Navigating to order confirmation...');
+        
+        // Use replace instead of href to avoid back button issues
+        window.location.replace("/order-confirmation");
+        
+      } catch (error) {
+        console.error('❌ Error in handleStripePaymentSuccess:', error);
+        alert('Error processing order. Please contact support.');
+      }
     },
-    [cartItems, formData, subtotal, shipping, tax, total]
+    [cartItems, formData, subtotal, shipping, tax, total, clearCart]
   );
 
-  // Check for payment success/failure from Stripe Checkout
+  // Check for payment success/failure from Stripe Checkout - HIGHEST PRIORITY
   useEffect(() => {
+    console.log('🔍 Checking URL parameters...');
+    console.log('🔍 Current URL:', window.location.href);
+    console.log('🔍 Search params:', window.location.search);
+    
     const paymentSuccess = searchParams.get("payment_success");
     const paymentCancelled = searchParams.get("payment_cancelled");
     const sessionId = searchParams.get("session_id");
 
+    console.log('🔍 Stripe URL params:', { paymentSuccess, paymentCancelled, sessionId });
+
     if (paymentSuccess === "true" && sessionId) {
+      console.log('✅ Processing Stripe success with session ID:', sessionId);
+      
+      // Process immediately without any delay
       handleStripePaymentSuccess(sessionId);
+      return; // Exit early to prevent other useEffects from running
     } else if (paymentCancelled === "true") {
+      console.log('❌ Stripe payment cancelled');
       setPaymentStatus("cancelled");
       setTimeout(() => setPaymentStatus(null), 5000);
+      return; // Exit early
+    } else {
+      console.log('ℹ️ No Stripe payment status found in URL');
     }
   }, [searchParams, handleStripePaymentSuccess]);
 
-  // Redirect if cart is empty (only after cart has loaded)
+  // Redirect if cart is empty (only after cart has loaded and not during order processing)
   useEffect(() => {
-    if (isLoaded && cartItems.length === 0) {
-      router.push("/cart");
+    // Don't redirect if we're processing a Stripe payment
+    const isStripeSuccess = searchParams.get("payment_success") === "true";
+    const isStripeCancel = searchParams.get("payment_cancelled") === "true";
+    
+    if (isStripeSuccess || isStripeCancel) {
+      console.log('🔄 Stripe payment flow detected, skipping cart redirect');
+      return;
     }
-  }, [cartItems, router, isLoaded]);
+    
+    if (isLoaded && cartItems.length === 0 && !isLoading) {
+      // Don't redirect if we're in the middle of processing an order or just cleared cart
+      const isProcessingOrder = sessionStorage.getItem('lastOrder');
+      const justClearedCart = sessionStorage.getItem('cartJustCleared');
+      
+      if (!isProcessingOrder && !justClearedCart) {
+        console.log('🔄 Cart is empty, redirecting to cart page');
+        router.push("/cart");
+      }
+    }
+  }, [cartItems, router, isLoaded, isLoading, searchParams]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -131,8 +250,9 @@ export default function CheckoutClient() {
     setIsLoading(true);
 
     try {
+      // Create order data BEFORE clearing cart
       const orderData = {
-        orderNumber: `AR${Math.floor(Math.random() * 100000)}`,
+        orderNumber: `AR${Date.now().toString().slice(-6)}`, // More unique order number
         items: cartItems.map((item) => ({
           id: item.id,
           name: item.name,
@@ -149,11 +269,21 @@ export default function CheckoutClient() {
         orderDate: new Date().toISOString(),
       };
 
-      sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
+      console.log('COD Order Data:', orderData); // Debug log
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Save order data to BOTH sessionStorage AND localStorage for backup
+      sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
+      localStorage.setItem("lastOrderBackup", JSON.stringify(orderData));
+
+      // Clear cart AFTER saving order data
+      clearCart();
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Navigate to confirmation page
       window.location.href = "/order-confirmation";
     } catch (error) {
+      console.error('COD Order Error:', error);
       alert("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -179,9 +309,35 @@ export default function CheckoutClient() {
       return;
     }
 
+    // Validate cart items before proceeding
+    if (!cartItems || cartItems.length === 0) {
+      alert("Your cart is empty. Please add items before proceeding.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Backup cart items and form data before going to Stripe
+      const checkoutData = {
+        cartItems: JSON.parse(JSON.stringify(cartItems)), // Deep copy
+        formData: JSON.parse(JSON.stringify(formData)), // Deep copy
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        shipping: parseFloat(shipping.toFixed(2)),
+        tax: parseFloat(tax.toFixed(2)),
+        total: parseFloat(total.toFixed(2)),
+        timestamp: Date.now()
+      };
+      
+      console.log('📦 Cart items being backed up:', cartItems);
+      console.log('📋 Form data being backed up:', formData);
+      console.log('💰 Totals being backed up:', { subtotal, shipping, tax, total });
+      
+      // Save to BOTH sessionStorage and localStorage
+      sessionStorage.setItem('stripeCheckoutData', JSON.stringify(checkoutData));
+      localStorage.setItem('stripeCheckoutDataBackup', JSON.stringify(checkoutData));
+      console.log('✅ Backed up checkout data to both storages:', checkoutData);
+
       const response = await fetch("/api/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,6 +351,7 @@ export default function CheckoutClient() {
       const data = await response.json();
 
       if (data.url) {
+        console.log('🔄 Redirecting to Stripe:', data.url);
         window.location.href = data.url;
       } else {
         throw new Error("Failed to create checkout session");
