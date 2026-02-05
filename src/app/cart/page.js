@@ -49,9 +49,14 @@ export default function Cart() {
             </div>
             <h2>Your Cart is Empty</h2>
             <p>Add some products to get started!</p>
-            <Link href="/shop" className="continue-shopping-btn">
-              Continue Shopping
-            </Link>
+            <div className="empty-cart-actions">
+              <Link href="/shop" className="continue-shopping-btn">
+                Continue Shopping
+              </Link>
+              <Link href="/contact" className="contact-help-btn">
+                Need Help? Contact Us
+              </Link>
+            </div>
           </div>
         </div>
       </div>

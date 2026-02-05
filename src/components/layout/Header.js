@@ -53,11 +53,11 @@ export default function Header() {
         <div className="container">
           <div className="top-bar-content">
             <div className="top-bar-left">
-              <span>Order Online Call Us (0123) 456789</span>
+              <span>📞 Order Online Call Us +1 (555) 123-4567</span>
             </div>
             <div className="top-bar-right">
-              <span className="find-store">📍 Find a Store</span>
-              <span className="email">✉ demo@arome.com</span>
+              <Link href="/contact" className="find-store">📍 Find a Store</Link>
+              <Link href="/contact" className="email">✉ info@tagace.com</Link>
             </div>
           </div>
         </div>

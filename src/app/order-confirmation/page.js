@@ -358,9 +358,14 @@ export default function OrderConfirmation() {
           <div className="help-section">
             <h3>Need Help?</h3>
             <p>If you have any questions about your order, please contact our customer service.</p>
-            <Link href="/contact">
-              <button className="contact-btn">Contact Us</button>
-            </Link>
+            <div className="help-buttons">
+              <Link href="/contact">
+                <button className="contact-btn">Contact Us</button>
+              </Link>
+              <a href="tel:+15551234567" className="phone-link">
+                <button className="phone-btn">📞 Call Us</button>
+              </a>
+            </div>
           </div>
         </div>
       </div>
