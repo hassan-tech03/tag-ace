@@ -1,6 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "../styles/globals.scss";
-import "../styles/no-underlines.css";
+// import "../styles/no-underlines.css"; // Temporarily disabled
 import Layout from "../components/layout/Layout";
 import { CartProvider } from "../context/CartContext";
 
