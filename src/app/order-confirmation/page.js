@@ -88,11 +88,15 @@ export default function OrderConfirmation() {
     setIsGeneratingPDF(true);
     
     try {
-      // Dynamic import to avoid SSR issues
-      const html2pdf = (await import('html2pdf.js')).default;
+      // Dynamic import with error handling for build
+      const html2pdf = await import('html2pdf.js').then(module => module.default || module);
       
       // Get the receipt content
       const element = document.getElementById('receipt-content');
+      
+      if (!element) {
+        throw new Error('Receipt content not found');
+      }
       
       const options = {
         margin: 1,
@@ -104,7 +108,9 @@ export default function OrderConfirmation() {
 
       await html2pdf().set(options).from(element).save();
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error generating PDF:', error);
+      }
       alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
