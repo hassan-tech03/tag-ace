@@ -7471,3 +7471,691 @@ body {
     }
   }
 }
+
+// About Us Page Styles
+.about-us-page {
+  
+  // Hero Section
+  .about-hero {
+    padding: 80px 0 60px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    
+    @media (max-width: 768px) {
+      padding: 60px 0 40px;
+    }
+    
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 300;
+      line-height: 1.2;
+      margin-bottom: 30px;
+      color: var(--primary-color);
+      font-family: 'Playfair Display', serif;
+      
+      @media (max-width: 992px) {
+        font-size: 2.8rem;
+      }
+      
+      @media (max-width: 768px) {
+        font-size: 2.2rem;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      @media (max-width: 576px) {
+        font-size: 1.8rem;
+      }
+    }
+    
+    .hero-description {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      color: #666;
+      margin-bottom: 50px;
+      
+      @media (max-width: 768px) {
+        font-size: 1.1rem;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      
+      @media (max-width: 576px) {
+        font-size: 1rem;
+        margin-bottom: 25px;
+      }
+    }
+    
+    .hero-stats {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      flex-wrap: wrap;
+      
+      @media (max-width: 768px) {
+        gap: 30px;
+        margin-top: 30px;
+      }
+      
+      @media (max-width: 576px) {
+        gap: 25px;
+        align-items: center;
+      }
+      
+      .stat-item {
+        text-align: center;
+        flex: 1;
+        
+        @media (max-width: 576px) {
+          width: 100%;
+          max-width: 200px;
+        }
+        
+        h3 {
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: var(--purple-bg);
+          margin-bottom: 5px;
+          
+          @media (max-width: 768px) {
+            font-size: 2rem;
+          }
+          
+          @media (max-width: 576px) {
+            font-size: 1.8rem;
+          }
+        }
+        
+        p {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0;
+          
+          @media (max-width: 576px) {
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+    
+    .hero-image {
+      position: relative;
+      margin-top: 40px;
+      
+      @media (max-width: 768px) {
+        margin-top: 30px;
+      }
+      
+      img {
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        width: 100%;
+        height: auto;
+        
+        @media (max-width: 768px) {
+          border-radius: 15px;
+        }
+      }
+    }
+  }
+  
+  // Our Story Section
+  .our-story {
+    padding: 80px 0;
+    background: white;
+    
+    @media (max-width: 768px) {
+      padding: 60px 0;
+    }
+    
+    .story-content {
+      @media (max-width: 768px) {
+        margin-top: 30px;
+        text-align: center;
+      }
+      
+      h3 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 25px;
+        font-family: 'Playfair Display', serif;
+        
+        @media (max-width: 768px) {
+          font-size: 1.8rem;
+          margin-bottom: 20px;
+        }
+        
+        @media (max-width: 576px) {
+          font-size: 1.5rem;
+        }
+      }
+      
+      p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #666;
+        margin-bottom: 20px;
+        
+        @media (max-width: 768px) {
+          font-size: 1rem;
+          text-align: left;
+        }
+      }
+    }
+    
+    .story-highlights {
+      margin-top: 40px;
+      
+      @media (max-width: 768px) {
+        margin-top: 30px;
+      }
+      
+      .highlight-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 30px;
+        
+        @media (max-width: 576px) {
+          gap: 15px;
+          margin-bottom: 25px;
+        }
+        
+        .highlight-icon {
+          font-size: 2rem;
+          flex-shrink: 0;
+          
+          @media (max-width: 576px) {
+            font-size: 1.5rem;
+          }
+        }
+        
+        .highlight-text {
+          h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            
+            @media (max-width: 576px) {
+              font-size: 1.1rem;
+            }
+          }
+          
+          p {
+            font-size: 1rem;
+            color: #666;
+            margin: 0;
+            
+            @media (max-width: 576px) {
+              font-size: 0.9rem;
+            }
+          }
+        }
+      }
+    }
+    
+    .story-image {
+      @media (max-width: 768px) {
+        margin-bottom: 30px;
+      }
+      
+      img {
+        border-radius: 15px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        width: 100%;
+        height: auto;
+      }
+    }
+  }
+  
+  // Values Section
+  .our-values {
+    padding: 80px 0;
+    background: #f8f9fa;
+    
+    @media (max-width: 768px) {
+      padding: 60px 0;
+    }
+    
+    .value-card {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 15px;
+      text-align: center;
+      height: 100%;
+      transition: all 0.3s ease;
+      border: 1px solid #eee;
+      margin-bottom: 30px;
+      
+      @media (max-width: 768px) {
+        padding: 30px 20px;
+        margin-bottom: 20px;
+      }
+      
+      &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border-color: var(--purple-bg);
+        
+        @media (max-width: 768px) {
+          transform: translateY(-5px);
+        }
+      }
+      
+      .value-icon {
+        color: var(--purple-bg);
+        margin-bottom: 25px;
+        
+        @media (max-width: 768px) {
+          margin-bottom: 20px;
+        }
+        
+        svg {
+          width: 60px;
+          height: 60px;
+          
+          @media (max-width: 768px) {
+            width: 50px;
+            height: 50px;
+          }
+        }
+      }
+      
+      h3 {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 20px;
+        
+        @media (max-width: 768px) {
+          font-size: 1.2rem;
+          margin-bottom: 15px;
+        }
+      }
+      
+      p {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #666;
+        margin: 0;
+        
+        @media (max-width: 768px) {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+  
+  // Team Section
+  .our-team {
+    padding: 80px 0;
+    background: white;
+    
+    @media (max-width: 768px) {
+      padding: 60px 0;
+    }
+    
+    .team-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      height: 100%;
+      margin-bottom: 30px;
+      
+      @media (max-width: 768px) {
+        margin-bottom: 20px;
+      }
+      
+      &:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        
+        @media (max-width: 768px) {
+          transform: translateY(-5px);
+        }
+      }
+      
+      .team-image {
+        position: relative;
+        overflow: hidden;
+        height: 300px;
+        
+        @media (max-width: 768px) {
+          height: 250px;
+        }
+        
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+        
+        &:hover img {
+          transform: scale(1.05);
+        }
+      }
+      
+      .team-info {
+        padding: 30px;
+        text-align: center;
+        
+        @media (max-width: 768px) {
+          padding: 25px 20px;
+        }
+        
+        h3 {
+          font-size: 1.4rem;
+          font-weight: 600;
+          color: var(--primary-color);
+          margin-bottom: 5px;
+          
+          @media (max-width: 768px) {
+            font-size: 1.2rem;
+          }
+        }
+        
+        .team-role {
+          font-size: 1rem;
+          color: var(--purple-bg);
+          font-weight: 500;
+          margin-bottom: 15px;
+          
+          @media (max-width: 768px) {
+            font-size: 0.9rem;
+          }
+        }
+        
+        .team-description {
+          font-size: 0.95rem;
+          line-height: 1.6;
+          color: #666;
+          margin-bottom: 20px;
+          
+          @media (max-width: 768px) {
+            font-size: 0.85rem;
+          }
+        }
+        
+        .team-social {
+          display: flex;
+          justify-content: center;
+          gap: 15px;
+          
+          @media (max-width: 768px) {
+            gap: 12px;
+          }
+          
+          a {
+            width: 40px;
+            height: 40px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            transition: all 0.3s ease;
+            
+            @media (max-width: 768px) {
+              width: 35px;
+              height: 35px;
+            }
+            
+            &:hover {
+              background: var(--purple-bg);
+              color: white;
+              transform: translateY(-2px);
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Mission Section
+  .our-mission {
+    padding: 80px 0;
+    background: linear-gradient(135deg, var(--purple-bg) 0%, var(--dark-purple) 100%);
+    color: white;
+    
+    @media (max-width: 768px) {
+      padding: 60px 0;
+    }
+    
+    .section-title {
+      color: white;
+    }
+    
+    .mission-content {
+      @media (max-width: 768px) {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+    }
+    
+    .mission-text {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      margin-bottom: 40px;
+      opacity: 0.9;
+      
+      @media (max-width: 768px) {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+      }
+      
+      @media (max-width: 576px) {
+        font-size: 1rem;
+      }
+    }
+    
+    .mission-points {
+      .mission-point {
+        display: flex;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 30px;
+        
+        @media (max-width: 768px) {
+          gap: 15px;
+          margin-bottom: 25px;
+        }
+        
+        @media (max-width: 576px) {
+          text-align: left;
+        }
+        
+        .point-icon {
+          font-size: 2rem;
+          flex-shrink: 0;
+          
+          @media (max-width: 576px) {
+            font-size: 1.5rem;
+          }
+        }
+        
+        .point-text {
+          h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: white;
+            
+            @media (max-width: 576px) {
+              font-size: 1.1rem;
+            }
+          }
+          
+          p {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin: 0;
+            
+            @media (max-width: 576px) {
+              font-size: 0.9rem;
+            }
+          }
+        }
+      }
+    }
+    
+    .mission-image {
+      @media (max-width: 768px) {
+        margin-top: 30px;
+      }
+      
+      img {
+        border-radius: 15px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        width: 100%;
+        height: auto;
+      }
+    }
+  }
+  
+  // CTA Section
+  .about-cta {
+    padding: 80px 0;
+    background: #f8f9fa;
+    text-align: center;
+    
+    @media (max-width: 768px) {
+      padding: 60px 0;
+    }
+    
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 300;
+      color: var(--primary-color);
+      margin-bottom: 25px;
+      font-family: 'Playfair Display', serif;
+      
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+      
+      @media (max-width: 576px) {
+        font-size: 1.6rem;
+      }
+    }
+    
+    p {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      color: #666;
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      
+      @media (max-width: 768px) {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+      }
+      
+      @media (max-width: 576px) {
+        font-size: 1rem;
+      }
+    }
+    
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      
+      @media (max-width: 768px) {
+        gap: 15px;
+      }
+      
+      @media (max-width: 576px) {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+      }
+      
+      .btn {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        font-weight: 500;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        
+        @media (max-width: 768px) {
+          padding: 12px 25px;
+          font-size: 1rem;
+        }
+        
+        @media (max-width: 576px) {
+          width: 250px;
+          text-align: center;
+        }
+        
+        &.btn-primary {
+          background: var(--purple-bg);
+          border-color: var(--purple-bg);
+          
+          &:hover {
+            background: var(--dark-purple);
+            border-color: var(--dark-purple);
+            transform: translateY(-2px);
+          }
+        }
+        
+        &.btn-outline-primary {
+          color: var(--purple-bg);
+          border-color: var(--purple-bg);
+          
+          &:hover {
+            background: var(--purple-bg);
+            border-color: var(--purple-bg);
+            color: white;
+            transform: translateY(-2px);
+          }
+        }
+      }
+    }
+  }
+  
+  // Common Section Styles
+  .section-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+    
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
+    
+    @media (max-width: 576px) {
+      font-size: 1.6rem;
+    }
+  }
+  
+  .section-subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    text-align: center;
+    margin-bottom: 60px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+      margin-bottom: 40px;
+    }
+    
+    @media (max-width: 576px) {
+      font-size: 1rem;
+      margin-bottom: 30px;
+    }
+  }
+}
