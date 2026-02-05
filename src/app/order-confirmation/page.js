@@ -3,13 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useCartContext } from '../../context/CartContext';
 
 export default function OrderConfirmation() {
-  const { clearCart } = useCartContext();
   const [orderData, setOrderData] = useState(null);
   const [orderNumber, setOrderNumber] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     // Don't force scroll to top - let user scroll naturally
@@ -17,36 +16,74 @@ export default function OrderConfirmation() {
   }, []);
 
   useEffect(() => {
-    // Get order data from sessionStorage
+    // Only run once
+    if (isInitialized) return;
+    
+    console.log('Order confirmation page initializing...');
+    
+    // Try to get order data from multiple sources
+    let orderData = null;
+    let orderNumber = '';
+    
+    // First try sessionStorage
     const storedOrder = sessionStorage.getItem('lastOrder');
     if (storedOrder) {
-      const parsedOrder = JSON.parse(storedOrder);
-      setOrderData(parsedOrder);
-      setOrderNumber(parsedOrder.orderNumber);
-      
-      // Clear the cart after successfully loading order data
-      clearCart();
-      
-      // Clear the stored order data
-      sessionStorage.removeItem('lastOrder');
+      try {
+        orderData = JSON.parse(storedOrder);
+        orderNumber = orderData.orderNumber;
+        console.log('✅ Order data found in sessionStorage:', orderData);
+        sessionStorage.removeItem('lastOrder');
+      } catch (error) {
+        console.error('❌ Error parsing sessionStorage order:', error);
+      }
     } else {
-      // Fallback if no order data found - create sample data for testing
+      console.log('⚠️ No order data in sessionStorage');
+    }
+    
+    // If no sessionStorage data, try localStorage backup
+    if (!orderData) {
+      const backupOrder = localStorage.getItem('lastOrderBackup');
+      if (backupOrder) {
+        try {
+          orderData = JSON.parse(backupOrder);
+          orderNumber = orderData.orderNumber;
+          console.log('✅ Order data found in localStorage backup:', orderData);
+          localStorage.removeItem('lastOrderBackup');
+        } catch (error) {
+          console.error('❌ Error parsing localStorage backup:', error);
+        }
+      } else {
+        console.log('⚠️ No order data in localStorage backup');
+      }
+    }
+    
+    // If we have order data, use it
+    if (orderData && orderData.items && orderData.items.length > 0) {
+      console.log('✅ Using real order data with', orderData.items.length, 'items');
+      setOrderData(orderData);
+      setOrderNumber(orderNumber);
+    } else {
+      // Create fallback data only if no real order data found
+      console.log('❌ No real order data found, creating fallback data');
+      const timestamp = Date.now();
+      const stableOrderNumber = `AR${timestamp.toString().slice(-5)}`;
+      
       const sampleOrderData = {
-        orderNumber: `AR${Math.floor(Math.random() * 100000)}`,
+        orderNumber: stableOrderNumber,
         items: [
           {
             id: 1,
             name: "Love Edition For Her",
             price: 30.00,
             quantity: 1,
-            image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop"
+            image: "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
           },
           {
             id: 2,
             name: "Arome Le Parfum",
             price: 79.00,
             quantity: 2,
-            image: "https://images.unsplash.com/photo-1588405748880-12d1d2a59d75?w=400&h=400&fit=crop"
+            image: "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
           }
         ],
         customerInfo: {
@@ -68,9 +105,11 @@ export default function OrderConfirmation() {
         orderDate: new Date().toISOString()
       };
       setOrderData(sampleOrderData);
-      setOrderNumber(sampleOrderData.orderNumber);
+      setOrderNumber(stableOrderNumber);
     }
-  }, [clearCart]);
+    
+    setIsInitialized(true);
+  }, [isInitialized]);
 
   // Helper function to extract numeric price from string or number
   const getNumericPrice = (price) => {
@@ -173,7 +212,15 @@ export default function OrderConfirmation() {
             </div>
             <div className="detail-item">
               <span className="label">Payment Method:</span>
-              <span className="value">{orderData?.paymentMethod || 'Cash on Delivery'}</span>
+              <span className="value">
+                {orderData?.paymentMethod === 'Cash on Delivery' ? (
+                  <>💵 Cash on Delivery</>
+                ) : orderData?.paymentMethod === 'Credit Card (Stripe)' ? (
+                  <>💳 Credit Card (Stripe)</>
+                ) : (
+                  orderData?.paymentMethod || 'Cash on Delivery'
+                )}
+              </span>
             </div>
             <div className="detail-item">
               <span className="label">Order Status:</span>
@@ -183,12 +230,6 @@ export default function OrderConfirmation() {
               <span className="label">Estimated Delivery:</span>
               <span className="value">3-5 Business Days</span>
             </div>
-            {orderData?.stripeSessionId && (
-              <div className="detail-item">
-                <span className="label">Transaction ID:</span>
-                <span className="value">{orderData.stripeSessionId.substring(0, 20)}...</span>
-              </div>
-            )}
           </div>
 
           {/* Order Items */}
