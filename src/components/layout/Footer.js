@@ -56,8 +56,13 @@ export default function Footer() {
               />
             </div>
             <p className="brand-description">
-              Arome® was founded on the belief that wellness is more than just a necessity—it&apos;s a powerful expression of self-care and vitality.
+              Tag Ace® was founded on the belief that fragrance is more than just a scent—it&apos;s a powerful expression of personality and elegance.
             </p>
+            <div className="contact-info">
+              <p>📍 123 Fragrance Avenue, New York, NY 10001</p>
+              <p>📞 +1 (555) 123-4567</p>
+              <p>✉ info@tagace.com</p>
+            </div>
             <div className="social-links">
               <a href="#" className="social-link">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -87,14 +92,14 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Useful Links */}
+          {/* Customer Service */}
           <div className="footer-section">
-            <h4>Useful Links</h4>
+            <h4>Customer Service</h4>
             <ul className="footer-links">
-              <li><Link href="/account">My Account</Link></li>
-              <li><Link href="/cart">Shopping Cart</Link></li>
-              <li><Link href="/wishlist">My Wishlist</Link></li>
-              <li><Link href="/store-info">Our Store Info</Link></li>
+              <li><Link href="/contact">Contact Us</Link></li>
+              <li><Link href="/contact">Help & Support</Link></li>
+              <li><Link href="/order-tracking">Order Tracking</Link></li>
+              <li><Link href="/contact">Store Locations</Link></li>
             </ul>
           </div>
 
@@ -102,7 +107,7 @@ export default function Footer() {
           <div className="footer-section">
             <h4>Information</h4>
             <ul className="footer-links">
-              <li><Link href="/order-tracking">Order tracking</Link></li>
+              <li><Link href="/about">About Us</Link></li>
               <li><Link href="/wishlist">Wish List</Link></li>
               <li><Link href="/privacy-policy">Privacy Policy</Link></li>
               <li><Link href="/terms-of-service">Terms of Service</Link></li>
