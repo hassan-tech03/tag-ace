@@ -21,9 +21,6 @@ export default function OrderConfirmation() {
     const storedOrder = sessionStorage.getItem('lastOrder');
     if (storedOrder) {
       const parsedOrder = JSON.parse(storedOrder);
-      console.log('Order data found:', parsedOrder); // Debug log
-      console.log('Order items:', parsedOrder.items); // Debug log
-      console.log('Items length:', parsedOrder.items ? parsedOrder.items.length : 'undefined'); // Debug log
       setOrderData(parsedOrder);
       setOrderNumber(parsedOrder.orderNumber);
       
@@ -33,7 +30,6 @@ export default function OrderConfirmation() {
       // Clear the stored order data
       sessionStorage.removeItem('lastOrder');
     } else {
-      console.log('No order data found in sessionStorage'); // Debug log
       // Fallback if no order data found - create sample data for testing
       const sampleOrderData = {
         orderNumber: `AR${Math.floor(Math.random() * 100000)}`,

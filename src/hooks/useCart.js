@@ -15,7 +15,9 @@ export const useCart = () => {
         setCartItems(Array.isArray(parsedCart) ? parsedCart : []);
       }
     } catch (error) {
-      console.error('Error loading cart from localStorage:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error loading cart from localStorage:', error);
+      }
       setCartItems([]);
     } finally {
       setIsLoaded(true);
@@ -28,7 +30,9 @@ export const useCart = () => {
       try {
         localStorage.setItem('cart', JSON.stringify(cartItems));
       } catch (error) {
-        console.error('Error saving cart to localStorage:', error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error saving cart to localStorage:', error);
+        }
       }
     }
   }, [cartItems, isLoaded]);

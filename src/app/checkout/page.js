@@ -66,8 +66,6 @@ export default function CheckoutPage() {
 
   // Define handleStripePaymentSuccess before useEffect
   const handleStripePaymentSuccess = useCallback((sessionId) => {
-    console.log('Stripe payment success with session:', sessionId);
-    
     // Store order details in sessionStorage for the confirmation page
     const orderData = {
       orderNumber: `AR${Math.floor(Math.random() * 100000)}`,
@@ -206,7 +204,9 @@ export default function CheckoutPage() {
         throw new Error('Failed to create checkout session');
       }
     } catch (error) {
-      console.error('Error creating checkout session:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error creating checkout session:', error);
+      }
       alert('Failed to create checkout session. Please try again.');
     } finally {
       setIsLoading(false);
@@ -228,7 +228,9 @@ export default function CheckoutPage() {
   };
 
   const handleStripePaymentError = (error) => {
-    console.error('Payment failed:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Payment failed:', error);
+    }
     alert('Payment failed. Please try again.');
   };
 
