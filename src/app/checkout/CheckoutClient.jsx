@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useCartContext } from "../../context/CartContext";
-import "../../styles/globals.scss";
-import "../../styles/no-underlines.css";
 
 export default function CheckoutClient() {
   const { cartItems, getCartTotal, isLoaded, clearCart } = useCartContext();

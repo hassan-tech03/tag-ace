@@ -15,7 +15,7 @@ export async function POST(request) {
         currency: 'usd',
         product_data: {
           name: item.name,
-          description: 'TAG ACE • 100ML',
+          description: 'MUSHK • 100ML',
           images: [`${process.env.NEXT_PUBLIC_DOMAIN || 'http://localhost:3000'}/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp`],
         },
         unit_amount: Math.round(parseFloat(item.price.toString().match(/[\d.]+/)?.[0] || 0) * 100), // Convert to cents

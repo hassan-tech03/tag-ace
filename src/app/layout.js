@@ -1,8 +1,15 @@
 import { GeistSans, GeistMono } from "geist/font";
+import { Playfair_Display } from "next/font/google";
 import "../styles/globals.scss";
 import "../styles/no-underlines.css";
 import Layout from "../components/layout/Layout";
 import { CartProvider } from "../context/CartContext";
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 export const metadata = {
   title: "TagAce Perfumes - Discover Your Signature Scent",
@@ -13,7 +20,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={`${GeistSans.variable} ${GeistMono.variable} ${playfair.variable}`}>
         <CartProvider>
           <Layout>{children}</Layout>
         </CartProvider>

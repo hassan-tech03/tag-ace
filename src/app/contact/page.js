@@ -77,7 +77,7 @@ export default function Contact() {
               <div className="hero-image">
                 <Image
                   src="/hero-section/s5.webp"
-                  alt="Contact Tag Ace"
+                  alt="Contact Mushk"
                   width={600}
                   height={400}
                   className="img-fluid rounded-4"
@@ -137,9 +137,9 @@ export default function Contact() {
                 </div>
                 <h3>Email Us</h3>
                 <p>
-                  <strong>General:</strong> info@tagace.com<br />
-                  <strong>Support:</strong> support@tagace.com<br />
-                  <strong>Orders:</strong> orders@tagace.com
+                  <strong>General:</strong> info@mushk.com<br />
+                  <strong>Support:</strong> support@mushk.com<br />
+                  <strong>Orders:</strong> orders@mushk.com
                 </p>
                 <div className="contact-hours">
                   <strong>Response Time:</strong><br />
@@ -318,7 +318,7 @@ export default function Contact() {
             <div className="col-lg-8 mx-auto">
               <div className="section-header text-center">
                 <h2>Frequently Asked Questions</h2>
-                <p>Quick answers to common questions about Tag Ace fragrances</p>
+                <p>Quick answers to common questions about Mushk fragrances</p>
               </div>
 
               <div className="faq-grid">
