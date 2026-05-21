@@ -1,0 +1,125 @@
+// Minimal Bootstrap imports for faster build
+@import 'bootstrap/scss/functions';
+@import 'bootstrap/scss/variables';
+@import 'bootstrap/scss/mixins';
+@import 'bootstrap/scss/root';
+@import 'bootstrap/scss/reboot';
+@import 'bootstrap/scss/type';
+@import 'bootstrap/scss/grid';
+@import 'bootstrap/scss/containers';
+@import 'bootstrap/scss/buttons';
+@import 'bootstrap/scss/forms';
+@import 'bootstrap/scss/navbar';
+@import 'bootstrap/scss/card';
+@import 'bootstrap/scss/modal';
+@import 'bootstrap/scss/utilities';
+
+// Essential underline removal
+* {
+  text-decoration: none !important;
+}
+
+a, a:hover, a:focus, a:active, a:visited {
+  text-decoration: none !important;
+}
+
+// Brand colors
+:root {
+  --primary-color: #8B5A7C;
+  --secondary-color: #E8B86D;
+  --dark-color: #2C3E50;
+  --light-color: #f8f9fa;
+}
+
+// Essential styles only
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: #7a4f6d;
+  border-color: #7a4f6d;
+}
+
+.text-primary {
+  color: var(--primary-color) !important;
+}
+
+.bg-primary {
+  background-color: var(--primary-color) !important;
+}
+
+// Product cards
+.product-card {
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.product-card:hover {
+  background: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+// Header
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+// Footer
+.footer {
+  background-color: var(--dark-color);
+  color: white;
+}
+
+// Hero section
+.hero-section {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  padding: 100px 0;
+}
+
+// Cart sidebar
+.cart-sidebar {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+  transition: right 0.3s ease;
+  z-index: 1050;
+}
+
+.cart-sidebar.open {
+  right: 0;
+}
+
+.cart-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1040;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .cart-sidebar {
+    width: 100%;
+    right: -100%;
+  }
+  
+  .hero-section {
+    padding: 60px 0;
+  }
+}

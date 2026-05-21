@@ -24,20 +24,21 @@ const nextConfig = {
   // Increase timeouts significantly
   staticPageGenerationTimeout: 300,
   
-  // Minimal webpack config to avoid build issues
-  webpack: (config, { isServer, dev }) => {
-    // Increase memory limit
+  webpack: (config, { dev }) => {
     if (!dev) {
-      config.optimization.minimize = false; // Disable minification temporarily
+      config.optimization.minimize = false;
     }
-    
-    // Handle large files more gracefully
+
+    // Stable chunk IDs prevent "Cannot find module './XXX.js'" on hot reload
+    config.optimization.moduleIds = 'deterministic';
+    config.optimization.chunkIds = 'deterministic';
+
     config.performance = {
-      maxAssetSize: 5000000, // 5MB
-      maxEntrypointSize: 5000000, // 5MB
-      hints: false, // Disable warnings
+      maxAssetSize: 5000000,
+      maxEntrypointSize: 5000000,
+      hints: false,
     };
-    
+
     return config;
   },
   

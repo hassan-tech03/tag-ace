@@ -129,7 +129,6 @@ export default function ProductDetail({ params }) {
       if (typeof window !== 'undefined') {
         try {
           const GLightbox = (await import('glightbox')).default;
-          await import('glightbox/dist/css/glightbox.min.css');
           
           GLightbox({
             selector: '.glightbox',

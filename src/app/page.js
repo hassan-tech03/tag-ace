@@ -137,7 +137,7 @@ export default function Home() {
       name: 'Sarah Johnson',
       location: 'New York, USA',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=120&h=120&fit=crop&crop=face',
+      color: '#C9A96E',
       review: 'Absolutely love the Midnight Rose! The scent lasts all day and I get compliments everywhere I go. Will definitely be ordering more.',
       product: 'Midnight Rose'
     },
@@ -146,7 +146,7 @@ export default function Home() {
       name: 'Michael Chen',
       location: 'London, UK',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',
+      color: '#5B7FA6',
       review: 'The quality is exceptional and the packaging is beautiful. Fast shipping and excellent customer service. Highly recommended!',
       product: 'Ocean Breeze'
     },
@@ -155,7 +155,7 @@ export default function Home() {
       name: 'Emma Wilson',
       location: 'Sydney, Australia',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&h=120&fit=crop&crop=face',
+      color: '#A67C6E',
       review: 'I have been searching for the perfect signature scent for years. Finally found it with Arome! The Golden Hour is simply divine.',
       product: 'Golden Hour'
     },
@@ -164,7 +164,7 @@ export default function Home() {
       name: 'David Rodriguez',
       location: 'Madrid, Spain',
       rating: 4,
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face',
+      color: '#6E8C6E',
       review: 'Great selection of fragrances. The Velvet Dreams has become my go-to evening scent. Professional service and fast delivery.',
       product: 'Velvet Dreams'
     },
@@ -173,7 +173,7 @@ export default function Home() {
       name: 'Lisa Thompson',
       location: 'Toronto, Canada',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&h=120&fit=crop&crop=face',
+      color: '#8C6EA6',
       review: 'The Crystal Clear fragrance is perfect for daily wear. Light, fresh, and sophisticated. Exactly what I was looking for!',
       product: 'Crystal Clear'
     },
@@ -182,7 +182,7 @@ export default function Home() {
       name: 'James Miller',
       location: 'Dubai, UAE',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&h=120&fit=crop&crop=face',
+      color: '#A67C52',
       review: 'Outstanding quality and unique scents. The Royal Essence is truly premium. Worth every penny and the presentation is luxurious.',
       product: 'Royal Essence'
     }
@@ -226,11 +226,13 @@ export default function Home() {
                     <p className="slide-subtitle">{slide.subtitle}</p>
                     <h1 className="slide-title">
                       {slide.title}<br />
-                      {slide.title2}
+                      <em>{slide.title2}</em>
                     </h1>
-                    <button className="slide-button">
-                      {slide.buttonText}
-                    </button>
+                    <Link href="/shop">
+                      <button className="slide-button">
+                        {slide.buttonText}
+                      </button>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -267,54 +269,42 @@ export default function Home() {
         <div className="container">
           <div className="categories-grid">
             <div className="category-item large">
-              <a href="https://google.com" className="category-link">
+              <Link href="/shop/women" className="category-link">
                 <div className="category-image">
-                  <Image
-                    src="/259.webp"
-                    alt="Women Perfumes"
-                    width={600}
-                    height={400}
-                  />
+                  <Image src="/259.webp" alt="Women Perfumes" width={600} height={400} />
                 </div>
                 <div className="category-content">
                   <h3>Women Perfumes</h3>
-                  <span className="item-count">(7 Items)</span>
+                  <span className="item-count">7 Items</span>
                 </div>
-              </a>
+                <span className="shop-now-cta">Shop Now</span>
+              </Link>
             </div>
-            
+
             <div className="category-item">
-              <a href="https://google.com" className="category-link">
+              <Link href="/shop/men" className="category-link">
                 <div className="category-image">
-                  <Image
-                    src="/11.webp"
-                    alt="Men Colognes"
-                    width={300}
-                    height={300}
-                  />
+                  <Image src="/11.webp" alt="Men Colognes" width={300} height={300} />
                 </div>
                 <div className="category-content">
                   <h3>Men Colognes</h3>
-                  <span className="item-count">(5 Items)</span>
+                  <span className="item-count">5 Items</span>
                 </div>
-              </a>
+                <span className="shop-now-cta">Shop Now</span>
+              </Link>
             </div>
-            
+
             <div className="category-item">
-              <a href="https://google.com" className="category-link">
+              <Link href="/shop" className="category-link">
                 <div className="category-image">
-                  <Image
-                    src="/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303.webp"
-                    alt="Gift Sets"
-                    width={300}
-                    height={300}
-                  />
+                  <Image src="/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303.webp" alt="Gift Sets" width={300} height={300} />
                 </div>
                 <div className="category-content">
                   <h3>Gift Sets</h3>
-                  <span className="item-count">(10 Items)</span>
+                  <span className="item-count">10 Items</span>
                 </div>
-              </a>
+                <span className="shop-now-cta">Shop Now</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -325,6 +315,7 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Our Best Sellers</h2>
+            <div className="section-title-line"></div>
             
             {/* Bootstrap Tabs */}
             <ul className="nav nav-tabs justify-content-center" id="productTabs" role="tablist">
@@ -440,7 +431,8 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>Popular Perfumes</h2>
-            <p className="section-subtitle">Each fragrance crafted to complement unique essence</p>
+            <div className="section-title-line"></div>
+            <p className="section-subtitle">Each fragrance crafted to complement your unique essence</p>
           </div>
           
           <div className="popular-products-container">
@@ -516,6 +508,7 @@ export default function Home() {
         <div className="container">
           <div className="section-header">
             <h2>What Our Clients Say</h2>
+            <div className="section-title-line"></div>
             <p className="section-subtitle">Discover why thousands of customers love our fragrances</p>
           </div>
           
@@ -555,12 +548,9 @@ export default function Home() {
                   <div className="review-card">
                     <div className="review-header">
                       <div className="client-avatar">
-                        <Image
-                          src={review.avatar}
-                          alt={review.name}
-                          width={60}
-                          height={60}
-                        />
+                        <div className="avatar-initials" style={{ background: review.color }}>
+                          {review.name.split(' ').map(n => n[0]).join('')}
+                        </div>
                       </div>
                       <div className="client-info">
                         <h4>{review.name}</h4>

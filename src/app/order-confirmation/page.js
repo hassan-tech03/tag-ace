@@ -125,31 +125,23 @@ export default function OrderConfirmation() {
 
   const generatePDF = async () => {
     setIsGeneratingPDF(true);
-    
     try {
-      // Dynamic import with error handling for build
-      const html2pdf = await import('html2pdf.js').then(module => module.default || module);
-      
-      // Get the receipt content
-      const element = document.getElementById('receipt-content');
-      
-      if (!element) {
-        throw new Error('Receipt content not found');
-      }
-      
-      const options = {
-        margin: 1,
-        filename: `Tag-Ace-Receipt-${orderNumber}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
+      const { pdf } = await import('@react-pdf/renderer');
+      const { default: ReceiptPDF } = await import('../../components/ui/ReceiptPDF');
+      const { createElement } = await import('react');
 
-      await html2pdf().set(options).from(element).save();
+      const blob = await pdf(
+        createElement(ReceiptPDF, { orderData, orderNumber })
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Mushk-Receipt-${orderNumber}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error generating PDF:', error);
-      }
+      console.error('Error generating PDF:', error);
       alert('Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
@@ -163,16 +155,17 @@ export default function OrderConfirmation() {
           {/* Logo Header for Receipt */}
           <div className="receipt-header">
             <Image
-              src="/logo.jpeg"
-              alt="Tag Ace"
-              width={150}
-              height={50}
+              src="/full_logo_bg.png"
+              alt="Mushk"
+              width={180}
+              height={60}
               className="receipt-logo"
+              style={{ width: 'auto', height: '60px' }}
             />
             <div className="company-info">
-              <h2>Tag Ace</h2>
+              <h2>Mushk</h2>
               <p>Premium Fragrance Collection</p>
-              <p>Email: info@tagace.com | Phone: +1 (555) 123-4567</p>
+              <p>Email: info@mushk.com | Phone: +1 (555) 123-4567</p>
             </div>
           </div>
 
@@ -249,7 +242,7 @@ export default function OrderConfirmation() {
                     </div>
                     <div className="item-details">
                       <h4>{item.name}</h4>
-                      <p>TAG ACE • 100ML</p>
+                      <p>MUSHK • 100ML</p>
                       <p className="quantity">Qty: {item.quantity}</p>
                     </div>
                     <div className="item-price">
@@ -331,7 +324,7 @@ export default function OrderConfirmation() {
               </div>
               <div className="info-item">
                 <h4>📞 Customer Support</h4>
-                <p>Need help? Contact us at support@tagace.com or call +1 (555) 123-4567</p>
+                <p>Need help? Contact us at support@mushk.com or call +1 (555) 123-4567</p>
               </div>
               <div className="info-item">
                 <h4>🎁 Gift Message</h4>
@@ -342,14 +335,15 @@ export default function OrderConfirmation() {
 
           {/* Receipt Footer */}
           <div className="receipt-footer">
-            <p>Thank you for choosing Tag Ace!</p>
+            <p>Thank you for choosing Mushk!</p>
             <p className="footer-note">This is your official order confirmation. Please keep this for your records.</p>
             <div className="footer-logo">
               <Image
-                src="/logo.jpeg"
-                alt="Tag Ace"
-                width={100}
-                height={33}
+                src="/full_logo_bg.png"
+                alt="Mushk"
+                width={150}
+                height={50}
+                style={{ width: 'auto', height: '50px' }}
               />
             </div>
           </div>

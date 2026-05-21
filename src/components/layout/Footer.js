@@ -48,20 +48,22 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="footer-brand">
             <div className="footer-logo">
-              <img 
-                src="/logo.jpeg" 
-                alt="Arome Perfume Shop" 
+              <Image
+                src="/only_icon-removebg-preview.png"
+                alt="Mushk Perfumes"
+                width={160}
+                height={65}
                 className="footer-logo-img"
-                style={{ height: '50px', width: 'auto' }}
+                style={{ height: '65px', width: 'auto' }}
               />
             </div>
             <p className="brand-description">
-              Tag Ace® was founded on the belief that fragrance is more than just a scent—it&apos;s a powerful expression of personality and elegance.
+              Mushk® was founded on the belief that fragrance is more than just a scent—it&apos;s a powerful expression of personality and elegance.
             </p>
             <div className="contact-info">
               <p>📍 123 Fragrance Avenue, New York, NY 10001</p>
               <p>📞 +1 (555) 123-4567</p>
-              <p>✉ info@tagace.com</p>
+              <p>✉ info@mushk.com</p>
             </div>
             <div className="social-links">
               <a href="#" className="social-link">
