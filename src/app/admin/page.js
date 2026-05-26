@@ -223,7 +223,8 @@ export default function DashboardPage() {
             View all →
           </Link>
         </div>
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[720px]">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left px-5 py-2 font-medium">Order</th>
@@ -280,6 +281,7 @@ export default function DashboardPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </section>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">

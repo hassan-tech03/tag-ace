@@ -136,7 +136,8 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
           <Card title="Items">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[520px]">
               <thead className="text-left text-slate-500">
                 <tr>
                   <th className="font-medium pb-2">Product</th>
@@ -203,6 +204,7 @@ export default function OrderDetailPage() {
                 </tr>
               </tfoot>
             </table>
+            </div>
           </Card>
 
           {order.customerNotes && (
