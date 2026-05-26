@@ -1,59 +1,94 @@
 'use client';
-import Image from 'next/image';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProductCard from '../../components/ui/ProductCard';
 
-// Product Section Component
-const ProductSection = ({ title, products, category }) => (
-  <section className="shop-category-section">
-    <div className="container">
-      <div className="section-header">
-        <h2>{title}</h2>
-        <Link href={`/shop/${category}`} className="view-all-link">
-          View All
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="9,18 15,12 9,6"></polyline>
-          </svg>
-        </Link>
-      </div>
-      
-      <div className="products-container">
-        <div className="products-grid">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+const SECTIONS = [
+  { key: 'men', title: "Men's Fragrances" },
+  { key: 'women', title: "Women's Fragrances" },
+  { key: 'unisex', title: 'Unisex Fragrances' },
+];
+
+function SkeletonGrid({ count = 4 }) {
+  return (
+    <div className="products-grid">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="product-skeleton" aria-hidden="true">
+          <div className="skeleton-image" />
+          <div className="skeleton-line skeleton-line--title" />
+          <div className="skeleton-line skeleton-line--meta" />
+          <div className="skeleton-line skeleton-line--price" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const ProductSection = ({ title, products, category, loading }) => {
+  // Don't render the section at all once we know the DB has nothing for it.
+  if (!loading && products.length === 0) return null;
+  return (
+    <section className="shop-category-section">
+      <div className="container">
+        <div className="section-header">
+          <h2>{title}</h2>
+          <Link href={`/shop/${category}`} className="view-all-link">
+            View All
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </Link>
+        </div>
+
+        <div className="products-container">
+          {loading ? (
+            <SkeletonGrid count={4} />
+          ) : (
+            <div className="products-grid">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default function ShopPage() {
-  // Sample product data
-  const menProducts = [
-    { id: 1, name: 'Masculine Power', price: '$85.00', originalPrice: null, badge: 'New', category: 'men' },
-    { id: 2, name: 'Strong Essence', price: '$70.00', originalPrice: '$90.00', badge: 'Sale', category: 'men' },
-    { id: 3, name: 'Bold Spirit', price: '$90.00', originalPrice: null, badge: null, category: 'men' },
-    { id: 4, name: 'Urban Legend', price: '$65.00', originalPrice: null, badge: 'Popular', category: 'men' }
-  ];
+  const [products, setProducts] = useState({ men: [], women: [], unisex: [] });
+  const [loading, setLoading] = useState(true);
 
-  const womenProducts = [
-    { id: 5, name: 'Rose Elegance', price: '$75.00', originalPrice: null, badge: 'New', category: 'women' },
-    { id: 6, name: 'Floral Dreams', price: '$55.00', originalPrice: '$75.00', badge: 'Sale', category: 'women' },
-    { id: 7, name: 'Feminine Touch', price: '$80.00', originalPrice: null, badge: null, category: 'women' },
-    { id: 8, name: 'Lady Charm', price: '$95.00', originalPrice: null, badge: 'Popular', category: 'women' }
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    const fetchProducts = (qs) =>
+      fetch(`/api/storefront/products?${qs}`, { cache: 'no-store' })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((b) => (b?.items ? b.items : []))
+        .catch(() => []);
 
-  const unisexProducts = [
-    { id: 9, name: 'Universal Scent', price: '$70.00', originalPrice: null, badge: 'New', category: 'unisex' },
-    { id: 10, name: 'Neutral Essence', price: '$60.00', originalPrice: '$80.00', badge: 'Sale', category: 'unisex' },
-    { id: 11, name: 'Pure Balance', price: '$85.00', originalPrice: null, badge: null, category: 'unisex' },
-    { id: 12, name: 'Harmony Blend', price: '$75.00', originalPrice: null, badge: 'Popular', category: 'unisex' }
-  ];
+    (async () => {
+      const [men, women, unisex] = await Promise.all([
+        fetchProducts('category=men&limit=4&sort=-createdAt'),
+        fetchProducts('category=women&limit=4&sort=-createdAt'),
+        fetchProducts('category=unisex&limit=4&sort=-createdAt'),
+      ]);
+      if (!cancelled) {
+        setProducts({ men, women, unisex });
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const total = products.men.length + products.women.length + products.unisex.length;
 
   return (
     <div className="shop-page">
-      {/* Page Header */}
       <section className="page-header">
         <div className="container">
           <div className="breadcrumb">
@@ -66,14 +101,26 @@ export default function ShopPage() {
         </div>
       </section>
 
-      {/* Men Section */}
-      <ProductSection title="Men's Fragrances" products={menProducts} category="men" />
+      {SECTIONS.map((s) => (
+        <ProductSection
+          key={s.key}
+          title={s.title}
+          products={products[s.key]}
+          category={s.key}
+          loading={loading}
+        />
+      ))}
 
-      {/* Women Section */}
-      <ProductSection title="Women's Fragrances" products={womenProducts} category="women" />
-
-      {/* Unisex Section */}
-      <ProductSection title="Unisex Fragrances" products={unisexProducts} category="unisex" />
+      {!loading && total === 0 && (
+        <section className="shop-category-section">
+          <div className="container">
+            <div className="empty-state">
+              <h3>No products available yet</h3>
+              <p>The catalog is being curated. Once products are published in <strong>Admin → Products</strong>, they'll appear here automatically.</p>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

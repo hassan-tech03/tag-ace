@@ -1,49 +1,38 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // Temporarily disable for build
-  
-  // Aggressive build optimizations
-  experimental: {
-    optimizeCss: false, // Disable CSS optimization temporarily
-  },
-  
-  // Disable console removal during build to prevent issues
-  compiler: {
-    removeConsole: false,
-  },
+  reactStrictMode: false,
 
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
-  
-  // Increase timeouts significantly
-  staticPageGenerationTimeout: 300,
-  
-  webpack: (config, { dev }) => {
-    if (!dev) {
-      config.optimization.minimize = false;
-    }
 
-    // Stable chunk IDs prevent "Cannot find module './XXX.js'" on hot reload
-    config.optimization.moduleIds = 'deterministic';
-    config.optimization.chunkIds = 'deterministic';
+  // Static-page generation can include calls to MongoDB. Give them headroom
+  // so the build doesn't bail out on a cold connection.
+  staticPageGenerationTimeout: 180,
 
+  // Production build: strip console.* (except warn/error) so logs don't bloat
+  // bundle size and leak debug noise to clients.
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
+  },
+
+  webpack: (config) => {
+    // Stable chunk ids so dynamic chunk references don't break across deploys.
+    config.optimization.moduleIds = "deterministic";
+    config.optimization.chunkIds = "deterministic";
     config.performance = {
-      maxAssetSize: 5000000,
-      maxEntrypointSize: 5000000,
+      maxAssetSize: 5_000_000,
+      maxEntrypointSize: 5_000_000,
       hints: false,
     };
-
     return config;
   },
-  
-  // Use default output for now
-  // output: 'standalone',
 };
 
 export default nextConfig;

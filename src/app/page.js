@@ -6,7 +6,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import ProductCard from '../components/ui/ProductCard';
 
-// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -17,6 +16,56 @@ export default function Home() {
   const [isChanging, setIsChanging] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const swiperRef = useRef(null);
+
+  // All product content is driven from the admin dashboard via the
+  // /api/storefront/* endpoints. Empty arrays render a polite empty state
+  // instead of dummy data.
+  const [bestSellers, setBestSellers] = useState({ women: [], men: [], unisex: [] });
+  const [popularProducts, setPopularProducts] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [bestSellersLoading, setBestSellersLoading] = useState(true);
+  const [popularLoading, setPopularLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAll() {
+      const fetchProducts = (qs) =>
+        fetch(`/api/storefront/products?${qs}`, { cache: 'no-store' })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((b) => (b?.items ? b.items : []))
+          .catch(() => []);
+
+      try {
+        const [women, men, unisex, popular, reviews] = await Promise.all([
+          fetchProducts('category=women&limit=8&sort=-createdAt'),
+          fetchProducts('category=men&limit=8&sort=-createdAt'),
+          fetchProducts('category=unisex&limit=8&sort=-createdAt'),
+          fetchProducts('limit=8&sort=-createdAt'),
+          fetch('/api/storefront/testimonials?limit=12', { cache: 'no-store' })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((b) => (b?.items ? b.items : []))
+            .catch(() => []),
+        ]);
+        if (cancelled) return;
+        setBestSellers({ women, men, unisex });
+        setPopularProducts(popular);
+        setTestimonials(reviews);
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[home data]', err);
+        }
+      } finally {
+        if (!cancelled) {
+          setBestSellersLoading(false);
+          setPopularLoading(false);
+        }
+      }
+    }
+    loadAll();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Check if mobile
   useEffect(() => {
@@ -82,111 +131,23 @@ export default function Home() {
     }
   };
 
-  // Product data for different categories
-  const productData = {
-    women: [
-      { id: 1, name: 'Love Edition For Her', price: '$30.00', originalPrice: '$60.00', badge: 'Save 50%' },
-      { id: 2, name: 'Rose Elegance', price: '$45.00', originalPrice: null, badge: null },
-      { id: 3, name: 'Floral Dreams', price: '$55.00', originalPrice: null, badge: 'New' },
-      { id: 4, name: 'Feminine Touch', price: '$40.00', originalPrice: null, badge: null },
-      { id: 5, name: 'Lady Charm', price: '$65.00', originalPrice: null, badge: null },
-      { id: 6, name: 'Elegant Rose', price: '$50.00', originalPrice: null, badge: null },
-      { id: 7, name: 'Sweet Blossom', price: '$35.00', originalPrice: null, badge: null },
-      { id: 8, name: 'Royal Lady', price: '$80.00', originalPrice: null, badge: 'Limited' }
-    ],
-    men: [
-      { id: 1, name: 'Arome Le Parfum', price: 'From $79.00', originalPrice: null, badge: null },
-      { id: 2, name: 'Masculine Power', price: '$85.00', originalPrice: null, badge: null },
-      { id: 3, name: 'Strong Essence', price: '$70.00', originalPrice: null, badge: 'New' },
-      { id: 4, name: 'Bold Spirit', price: '$90.00', originalPrice: null, badge: null },
-      { id: 5, name: 'Urban Legend', price: '$65.00', originalPrice: null, badge: null },
-      { id: 6, name: 'Classic Man', price: '$75.00', originalPrice: null, badge: null },
-      { id: 7, name: 'Wild Adventure', price: '$95.00', originalPrice: null, badge: null },
-      { id: 8, name: 'Executive Choice', price: '$120.00', originalPrice: null, badge: 'Premium' }
-    ],
-    kids: [
-      { id: 1, name: 'Little Angel', price: '$25.00', originalPrice: null, badge: null },
-      { id: 2, name: 'Sweet Dreams', price: '$20.00', originalPrice: null, badge: null },
-      { id: 3, name: 'Playful Scent', price: '$18.00', originalPrice: null, badge: 'New' },
-      { id: 4, name: 'Gentle Touch', price: '$22.00', originalPrice: null, badge: null },
-      { id: 5, name: 'Happy Kids', price: '$15.00', originalPrice: null, badge: null },
-      { id: 6, name: 'Soft Breeze', price: '$28.00', originalPrice: null, badge: null },
-      { id: 7, name: 'Innocent Joy', price: '$24.00', originalPrice: null, badge: null },
-      { id: 8, name: 'Pure Delight', price: '$30.00', originalPrice: null, badge: 'Special' }
-    ]
-  };
+  const currentProducts = bestSellers[activeTab] || [];
 
-  const currentProducts = productData[activeTab];
-
-  // Popular Products Data
-  const popularProducts = [
-    { id: 1, name: 'Signature Scent', price: '$85.00', originalPrice: null, badge: 'Popular' },
-    { id: 2, name: 'Midnight Rose', price: '$75.00', originalPrice: '$95.00', badge: 'Sale' },
-    { id: 3, name: 'Ocean Breeze', price: '$90.00', originalPrice: null, badge: null },
-    { id: 4, name: 'Golden Hour', price: '$120.00', originalPrice: null, badge: 'Limited' },
-    { id: 5, name: 'Velvet Dreams', price: '$65.00', originalPrice: null, badge: null },
-    { id: 6, name: 'Crystal Clear', price: '$110.00', originalPrice: null, badge: 'New' },
-    { id: 7, name: 'Royal Essence', price: '$150.00', originalPrice: null, badge: 'Premium' },
-    { id: 8, name: 'Pure Elegance', price: '$95.00', originalPrice: null, badge: null }
-  ];
-
-  // Client Reviews Data
-  const clientReviews = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      location: 'New York, USA',
-      rating: 5,
-      color: '#C9A96E',
-      review: 'Absolutely love the Midnight Rose! The scent lasts all day and I get compliments everywhere I go. Will definitely be ordering more.',
-      product: 'Midnight Rose'
-    },
-    {
-      id: 2,
-      name: 'Michael Chen',
-      location: 'London, UK',
-      rating: 5,
-      color: '#5B7FA6',
-      review: 'The quality is exceptional and the packaging is beautiful. Fast shipping and excellent customer service. Highly recommended!',
-      product: 'Ocean Breeze'
-    },
-    {
-      id: 3,
-      name: 'Emma Wilson',
-      location: 'Sydney, Australia',
-      rating: 5,
-      color: '#A67C6E',
-      review: 'I have been searching for the perfect signature scent for years. Finally found it with Arome! The Golden Hour is simply divine.',
-      product: 'Golden Hour'
-    },
-    {
-      id: 4,
-      name: 'David Rodriguez',
-      location: 'Madrid, Spain',
-      rating: 4,
-      color: '#6E8C6E',
-      review: 'Great selection of fragrances. The Velvet Dreams has become my go-to evening scent. Professional service and fast delivery.',
-      product: 'Velvet Dreams'
-    },
-    {
-      id: 5,
-      name: 'Lisa Thompson',
-      location: 'Toronto, Canada',
-      rating: 5,
-      color: '#8C6EA6',
-      review: 'The Crystal Clear fragrance is perfect for daily wear. Light, fresh, and sophisticated. Exactly what I was looking for!',
-      product: 'Crystal Clear'
-    },
-    {
-      id: 6,
-      name: 'James Miller',
-      location: 'Dubai, UAE',
-      rating: 5,
-      color: '#A67C52',
-      review: 'Outstanding quality and unique scents. The Royal Essence is truly premium. Worth every penny and the presentation is luxurious.',
-      product: 'Royal Essence'
-    }
-  ];
+  // Testimonials are managed under admin → Content → Testimonials. The shape
+  // returned by the API is { name, location, rating, body, image }; we adapt
+  // it to the existing review-card shape and rotate through a small avatar
+  // palette so cards still feel distinct.
+  const AVATAR_COLORS = ['#C9A96E', '#5B7FA6', '#A67C6E', '#6E8C6E', '#8C6EA6', '#A67C52'];
+  const clientReviews = (testimonials || []).map((t, i) => ({
+    id: t.id || i + 1,
+    name: t.name,
+    location: t.location || '',
+    rating: t.rating || 5,
+    color: AVATAR_COLORS[i % AVATAR_COLORS.length],
+    review: t.body,
+    product: '',
+    image: t.image || '',
+  }));
 
   // Auto-slide functionality
   useEffect(() => {
@@ -338,12 +299,12 @@ export default function Home() {
                 </button>
               </li>
               <li className="nav-item" role="presentation">
-                <button 
-                  className={`nav-link ${activeTab === 'kids' ? 'active' : ''}`}
-                  onClick={() => handleTabClick('kids')}
+                <button
+                  className={`nav-link ${activeTab === 'unisex' ? 'active' : ''}`}
+                  onClick={() => handleTabClick('unisex')}
                   type="button"
                 >
-                  Kid&apos;s
+                  Unisex
                 </button>
               </li>
             </ul>
@@ -371,9 +332,24 @@ export default function Home() {
                 <div className="loading-spinner"></div>
               </div>
             )}
-            
-            {/* Desktop Grid / Mobile Swiper */}
-            {isMobile ? (
+
+            {bestSellersLoading ? (
+              <div className="products-grid">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="product-skeleton" aria-hidden="true">
+                    <div className="skeleton-image" />
+                    <div className="skeleton-line skeleton-line--title" />
+                    <div className="skeleton-line skeleton-line--meta" />
+                    <div className="skeleton-line skeleton-line--price" />
+                  </div>
+                ))}
+              </div>
+            ) : currentProducts.length === 0 ? (
+              <div className="empty-state">
+                <h3>No products yet in this collection</h3>
+                <p>Add fragrances under <strong>Admin → Products</strong> and tag them with the <em>{activeTab}</em> category to make them appear here.</p>
+              </div>
+            ) : isMobile ? (
               <Swiper
                 modules={[Navigation, Pagination]}
                 spaceBetween={20}
@@ -381,43 +357,29 @@ export default function Home() {
                 onSwiper={(swiper) => {
                   swiperRef.current = swiper;
                 }}
-                navigation={{
-                  enabled: false // Disable default navigation
-                }}
+                navigation={{ enabled: false }}
                 pagination={{ clickable: true }}
                 breakpoints={{
-                  480: {
-                    slidesPerView: 1.5,
-                  },
-                  640: {
-                    slidesPerView: 2,
-                  },
-                  768: {
-                    slidesPerView: 2.5,
-                  }
+                  480: { slidesPerView: 1.5 },
+                  640: { slidesPerView: 2 },
+                  768: { slidesPerView: 2.5 },
                 }}
                 className={`products-swiper ${isChanging ? 'changing' : ''}`}
               >
-                {currentProducts.map((product, index) => (
+                {currentProducts.map((product) => (
                   <SwiperSlide key={`${activeTab}-${product.id}`}>
-                    <ProductCard 
-                      product={product} 
-                      className="swiper-product-card"
-                    />
+                    <ProductCard product={product} className="swiper-product-card" />
                   </SwiperSlide>
                 ))}
               </Swiper>
             ) : (
               <div className={`products-grid ${isChanging ? 'changing' : ''}`}>
                 {currentProducts.map((product, index) => (
-                  <div 
+                  <div
                     key={`${activeTab}-${product.id}`}
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <ProductCard 
-                      product={product} 
-                      className="desktop-product-card"
-                    />
+                    <ProductCard product={product} className="desktop-product-card" />
                   </div>
                 ))}
               </div>
@@ -426,84 +388,91 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Popular Perfumes Section */}
-      <section className="popular-perfumes-section">
-        <div className="container">
-          <div className="section-header">
-            <h2>Popular Perfumes</h2>
-            <div className="section-title-line"></div>
-            <p className="section-subtitle">Each fragrance crafted to complement your unique essence</p>
-          </div>
-          
-          <div className="popular-products-container">
-            <Swiper
-              modules={[Navigation, Pagination]}
-              spaceBetween={20}
-              slidesPerView={4}
-              centeredSlides={false}
-              watchOverflow={true}
-              navigation={{
-                nextEl: '.popular-swiper-button-next',
-                prevEl: '.popular-swiper-button-prev',
-              }}
-              pagination={{ 
-                clickable: true,
-                el: '.popular-swiper-pagination'
-              }}
-              breakpoints={{
-                320: {
-                  slidesPerView: 1,
-                  spaceBetween: 15,
-                },
-                576: {
-                  slidesPerView: 1.5,
-                  spaceBetween: 15,
-                },
-                768: {
-                  slidesPerView: 2,
-                  spaceBetween: 20,
-                },
-                992: {
-                  slidesPerView: 3,
-                  spaceBetween: 25,
-                },
-                1200: {
-                  slidesPerView: 4,
-                  spaceBetween: 30,
-                }
-              }}
-              className="popular-products-swiper"
-            >
-              {popularProducts.map((product) => (
-                <SwiperSlide key={product.id}>
-                  <ProductCard product={product} />
-                </SwiperSlide>
-              ))}
-            </Swiper>
-            
-            {/* Custom Navigation */}
-            <div className="popular-swiper-button-prev swiper-nav-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15,18 9,12 15,6"></polyline>
-              </svg>
+      {/* Popular Perfumes Section — only render when we have something */}
+      {(popularLoading || popularProducts.length > 0) && (
+        <section className="popular-perfumes-section">
+          <div className="container">
+            <div className="section-header">
+              <h2>Popular Perfumes</h2>
+              <div className="section-title-line"></div>
+              <p className="section-subtitle">Each fragrance crafted to complement your unique essence</p>
             </div>
-            <div className="popular-swiper-button-next swiper-nav-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="9,18 15,12 9,6"></polyline>
-              </svg>
-            </div>
-            
-            {/* Custom Pagination */}
-            <div className="popular-swiper-pagination"></div>
-          </div>
-          
-          <div className="view-all-container">
-            <button className="view-all-btn">VIEW ALL</button>
-          </div>
-        </div>
-      </section>
 
-      {/* Client Reviews Section */}
+            {popularLoading ? (
+              <div className="popular-products-grid">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="product-skeleton" aria-hidden="true">
+                    <div className="skeleton-image" />
+                    <div className="skeleton-line skeleton-line--title" />
+                    <div className="skeleton-line skeleton-line--meta" />
+                    <div className="skeleton-line skeleton-line--price" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Desktop grid: 4 cards on large screens */}
+                <div className="popular-products-grid">
+                  {popularProducts.slice(0, 4).map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {/* Mobile/tablet slider */}
+                <div className="popular-products-container">
+                  <Swiper
+                    modules={[Navigation, Pagination]}
+                    spaceBetween={20}
+                    slidesPerView={1}
+                    centeredSlides={false}
+                    watchOverflow={true}
+                    navigation={{
+                      nextEl: '.popular-swiper-button-next',
+                      prevEl: '.popular-swiper-button-prev',
+                    }}
+                    pagination={{
+                      clickable: true,
+                      el: '.popular-swiper-pagination',
+                    }}
+                    breakpoints={{
+                      320: { slidesPerView: 1, spaceBetween: 15 },
+                      576: { slidesPerView: 1.5, spaceBetween: 15 },
+                      768: { slidesPerView: 2, spaceBetween: 20 },
+                    }}
+                    className="popular-products-swiper"
+                  >
+                    {popularProducts.map((product) => (
+                      <SwiperSlide key={product.id}>
+                        <ProductCard product={product} />
+                      </SwiperSlide>
+                    ))}
+                  </Swiper>
+
+                  <div className="popular-swiper-button-prev swiper-nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="15,18 9,12 15,6"></polyline>
+                    </svg>
+                  </div>
+                  <div className="popular-swiper-button-next swiper-nav-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polyline points="9,18 15,12 9,6"></polyline>
+                    </svg>
+                  </div>
+
+                  <div className="popular-swiper-pagination"></div>
+                </div>
+
+                <div className="view-all-container">
+                  <Link href="/shop" className="view-all-btn">VIEW ALL</Link>
+                </div>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Client Reviews Section — only when testimonials exist */}
+      {clientReviews.length > 0 && (
       <section className="client-reviews-section">
         <div className="container">
           <div className="section-header">
@@ -570,9 +539,11 @@ export default function Home() {
                         </svg>
                       </div>
                       <p className="review-text">{review.review}</p>
-                      <div className="review-product">
-                        <span>Purchased: {review.product}</span>
-                      </div>
+                      {review.product ? (
+                        <div className="review-product">
+                          <span>Purchased: {review.product}</span>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </SwiperSlide>
@@ -610,6 +581,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }

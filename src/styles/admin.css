@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Admin-only base styles. Preflight is disabled in tailwind.config.mjs so we
+ * apply a light reset only within the admin shell to keep storefront pages
+ * (which use Bootstrap) untouched.
+ */
+.admin-shell,
+.admin-shell *,
+.admin-shell *::before,
+.admin-shell *::after {
+  box-sizing: border-box;
+}
+
+.admin-shell {
+  font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #0f172a;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3,
+.admin-shell h4 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.admin-shell button {
+  cursor: pointer;
+}
+
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea {
+  font: inherit;
+}
