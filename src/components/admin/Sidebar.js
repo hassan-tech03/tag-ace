@@ -92,20 +92,40 @@ function Icon({ name }) {
   }
 }
 
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose }) {
   const pathname = usePathname();
 
-  return (
-    <aside className="w-60 shrink-0 bg-slate-900 text-slate-200 min-h-screen sticky top-0 hidden md:flex md:flex-col">
-      <div className="px-5 py-5 border-b border-slate-800">
+  const content = (
+    <>
+      <div className="px-5 py-5 border-b border-slate-800 flex items-center justify-between">
         <Link href="/admin" className="flex items-center gap-2 text-white no-underline">
-          <span className="inline-block w-8 h-8 rounded-md bg-amber-400/90 text-slate-900 flex items-center justify-center font-bold">
+          <span className="inline-flex w-8 h-8 rounded-md bg-amber-400/90 text-slate-900 items-center justify-center font-bold">
             M
           </span>
           <span className="font-semibold tracking-wide">Mushk Admin</span>
         </Link>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close menu"
+          className="md:hidden text-slate-300 hover:text-white p-1 -mr-1"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
       </div>
-      <nav className="flex-1 py-3">
+      <nav className="flex-1 py-3 overflow-y-auto">
         {NAV.map((item) => {
           const active =
             item.href === "/admin"
@@ -115,6 +135,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={`flex items-center gap-3 px-5 py-2.5 text-sm no-underline transition-colors ${
                 active
                   ? "bg-slate-800 text-white border-l-2 border-amber-400"
@@ -130,6 +151,37 @@ export default function Sidebar() {
       <div className="px-5 py-3 text-xs text-slate-500 border-t border-slate-800">
         Mushk Admin v0.1
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar: always visible, sticky. */}
+      <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-slate-900 text-slate-200 min-h-screen sticky top-0">
+        {content}
+      </aside>
+
+      {/* Mobile drawer: slides in from the left, with backdrop. */}
+      <div
+        className={`md:hidden fixed inset-0 z-40 transition-opacity duration-200 ${
+          open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        aria-hidden={!open}
+      >
+        <div
+          className="absolute inset-0 bg-black/50"
+          onClick={onClose}
+        />
+        <aside
+          className={`relative z-50 flex flex-col w-64 max-w-[80vw] h-full bg-slate-900 text-slate-200 shadow-xl transition-transform duration-200 ${
+            open ? "translate-x-0" : "-translate-x-full"
+          }`}
+          role="dialog"
+          aria-label="Admin navigation"
+        >
+          {content}
+        </aside>
+      </div>
+    </>
   );
 }

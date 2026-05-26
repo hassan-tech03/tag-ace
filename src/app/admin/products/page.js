@@ -132,7 +132,8 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-sm min-w-[720px]">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="text-left px-3 py-2 font-medium w-14"></th>
@@ -216,6 +217,7 @@ export default function ProductsPage() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="mt-3">

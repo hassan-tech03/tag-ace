@@ -100,7 +100,8 @@ export default function CustomerDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 space-y-4">
           <Card title="Order history">
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[720px]">
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
                   <th className="text-left px-3 py-2 font-medium">Order #</th>
@@ -159,6 +160,7 @@ export default function CustomerDetailPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </Card>
         </div>
 
