@@ -89,23 +89,30 @@ export default function Cart() {
 
             {/* Cart Items */}
             <div className="cart-items">
-              {cartItems.map((item) => (
+              {cartItems.map((item) => {
+                const itemImg =
+                  item.image ||
+                  item.images?.[0] ||
+                  '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp';
+                const isAbsolute = /^https?:\/\//i.test(itemImg);
+                return (
                 <div key={item.id} className="cart-item">
                   <div className="item-product">
                     <div className="product-image">
                       <Image
-                        src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
+                        src={itemImg}
                         alt={item.name}
                         width={80}
                         height={80}
+                        unoptimized={isAbsolute}
                       />
                     </div>
                     <div className="product-details">
-                      <h4 className="product-brand">AROME</h4>
+                      <h4 className="product-brand">{(item.brand || 'MUSHK').toUpperCase()}</h4>
                       <h3 className="product-name">{item.name}</h3>
                       <div className="product-specs">
-                        <span>Category: {item.category || 'Perfume'}</span>
-                        <span>Size: 100ML</span>
+                        <span>Category: {item.fragranceFamily || item.gender || item.category || 'Perfume'}</span>
+                        <span>Size: {item.size || '100ML'}</span>
                       </div>
                     </div>
                   </div>
@@ -141,7 +148,8 @@ export default function Cart() {
                     ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

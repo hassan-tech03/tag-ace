@@ -248,9 +248,66 @@ export default function CheckoutClient() {
     setIsLoading(true);
 
     try {
-      // Create order data BEFORE clearing cart
+      // Persist the order in MongoDB via the admin-backed orders API so it
+      // shows up in /admin/orders. The order number returned by the server
+      // is authoritative.
+      const shippingAddress = {
+        line1: formData.address || "",
+        line2: formData.apartment || "",
+        city: formData.city || "",
+        state: formData.state || "",
+        country: formData.country || "",
+        zipCode: formData.zipCode || "",
+      };
+      const billingAddress = formData.sameAsShipping
+        ? shippingAddress
+        : {
+            line1: formData.billingAddress || "",
+            line2: formData.billingApartment || "",
+            city: formData.billingCity || "",
+            state: formData.billingState || "",
+            country: formData.billingCountry || "",
+            zipCode: formData.billingZipCode || "",
+          };
+
+      const apiRes = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentMethod: "cod",
+          items: cartItems.map((it) => ({
+            productId: it.id,
+            name: it.name,
+            price: it.price,
+            quantity: it.quantity,
+            image: it.image || "",
+          })),
+          customer: {
+            email: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            phone: formData.phone,
+          },
+          shippingAddress,
+          billingAddress,
+          customerNotes: formData.specialInstructions || "",
+        }),
+      });
+      const apiData = await apiRes.json();
+      if (!apiRes.ok) {
+        const msg =
+          apiData?.issues?.[0]?.message ||
+          apiData?.error ||
+          "We couldn't save your order. Please try again.";
+        alert(msg);
+        setIsLoading(false);
+        return;
+      }
+
+      // Build the local snapshot used by /order-confirmation. We keep the
+      // existing sessionStorage shape so the confirmation page works unchanged.
       const orderData = {
-        orderNumber: `AR${Date.now().toString().slice(-6)}`, // More unique order number
+        orderNumber: apiData.orderNumber,
         items: cartItems.map((item) => ({
           id: item.id,
           name: item.name,
@@ -267,21 +324,15 @@ export default function CheckoutClient() {
         orderDate: new Date().toISOString(),
       };
 
-      console.log('COD Order Data:', orderData); // Debug log
-
-      // Save order data to BOTH sessionStorage AND localStorage for backup
       sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
       localStorage.setItem("lastOrderBackup", JSON.stringify(orderData));
 
-      // Clear cart AFTER saving order data
       clearCart();
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // Navigate to confirmation page
+      await new Promise((resolve) => setTimeout(resolve, 500));
       window.location.href = "/order-confirmation";
     } catch (error) {
-      console.error('COD Order Error:', error);
+      console.error("COD Order Error:", error);
       alert("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -346,19 +397,21 @@ export default function CheckoutClient() {
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (data.url) {
+      if (response.ok && data.url) {
         console.log('🔄 Redirecting to Stripe:', data.url);
         window.location.href = data.url;
       } else {
-        throw new Error("Failed to create checkout session");
+        throw new Error(data?.error || `Failed to create checkout session (HTTP ${response.status})`);
       }
     } catch (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Error creating checkout session:", error);
-      }
-      alert("Failed to create checkout session. Please try again.");
+      console.error("Error creating checkout session:", error);
+      alert(
+        `Could not start the payment session.\n\n${
+          error?.message || "Please try again."
+        }`
+      );
     } finally {
       setIsLoading(false);
     }
@@ -389,7 +442,7 @@ export default function CheckoutClient() {
           </nav>
           <div className="checkout-logo">
             <Link href="/">
-              <Image src="/logo.jpeg" alt="Tag Ace" width={120} height={40} />
+              <Image src="/logo.jpeg" alt="Mushk Perfumes" width={120} height={40} />
             </Link>
           </div>
         </div>
@@ -736,26 +789,37 @@ export default function CheckoutClient() {
                 <h2>Order Summary</h2>
 
                 <div className="order-items">
-                  {cartItems.map((item) => (
-                    <div key={item.id} className="order-item">
-                      <div className="item-image">
-                        <Image
-                          src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
-                          alt={item.name}
-                          width={60}
-                          height={60}
-                        />
-                        <span className="item-quantity">{item.quantity}</span>
+                  {cartItems.map((item) => {
+                    const itemImg =
+                      item.image ||
+                      item.images?.[0] ||
+                      "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp";
+                    const isAbsolute = /^https?:\/\//i.test(itemImg);
+                    const meta = [item.brand || "MUSHK", item.size || "100ML"]
+                      .filter(Boolean)
+                      .join(" • ");
+                    return (
+                      <div key={item.id} className="order-item">
+                        <div className="item-image">
+                          <Image
+                            src={itemImg}
+                            alt={item.name}
+                            width={60}
+                            height={60}
+                            unoptimized={isAbsolute}
+                          />
+                          <span className="item-quantity">{item.quantity}</span>
+                        </div>
+                        <div className="item-details">
+                          <h4>{item.name}</h4>
+                          <p>{meta}</p>
+                        </div>
+                        <div className="item-price">
+                          ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
+                        </div>
                       </div>
-                      <div className="item-details">
-                        <h4>{item.name}</h4>
-                        <p>TAG ACE • 100ML</p>
-                      </div>
-                      <div className="item-price">
-                        ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="order-totals">

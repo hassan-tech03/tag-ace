@@ -7,78 +7,34 @@ import { useCartContext } from '../../../context/CartContext';
 import { useRouter } from 'next/navigation';
 import AddToCartModal from '../../../components/ui/AddToCartModal';
 
-// Mock data - replace with actual data fetching
-const getProduct = (id) => {
-  // Convert id to string to match URL params
-  const productId = String(id);
-  
-  console.log('Looking for product with ID:', productId, 'Type:', typeof productId);
-  
-  // Generate products dynamically for any ID
-  const generateProduct = (id) => {
-    const productNames = [
-      'Love Edition For Her', 'Rose Elegance', 'Floral Dreams', 'Feminine Touch', 'Lady Charm', 'Elegant Rose', 'Sweet Blossom', 'Royal Lady',
-      'Arome Le Parfum', 'Masculine Power', 'Strong Essence', 'Bold Spirit', 'Urban Legend', 'Classic Man', 'Wild Adventure', 'Executive Choice',
-      'Little Angel', 'Sweet Dreams', 'Playful Scent', 'Gentle Touch', 'Happy Kids', 'Soft Breeze', 'Innocent Joy', 'Pure Delight',
-      'Signature Scent', 'Midnight Rose', 'Ocean Breeze', 'Golden Hour', 'Velvet Dreams', 'Crystal Clear', 'Royal Essence', 'Pure Elegance',
-      'Universal Scent', 'Neutral Essence', 'Pure Balance', 'Harmony Blend', 'Fresh Unity', 'Balanced Touch', 'Modern Blend', 'Timeless Harmony'
-    ];
-    
-    const categories = ['Women', 'Men', 'Unisex'];
-    const badges = ['New', 'Sale', 'Popular', 'Limited', null, null]; // More null values for no badge
-    const descriptions = [
-      'A captivating fragrance that embodies elegance and sophistication with floral and woody notes.',
-      'An intense and powerful scent designed for confidence with spicy and amber undertones.',
-      'A fresh and modern fragrance perfect for daily wear with citrus and clean notes.',
-      'A luxurious blend of premium ingredients creating a unique and memorable scent.',
-      'An elegant composition featuring delicate florals with a hint of vanilla and musk.',
-      'A bold and dynamic fragrance with woody base notes and fresh top notes.',
-      'A sophisticated scent that makes a lasting impression with its complex blend.',
-      'A versatile fragrance suitable for any occasion with balanced and harmonious notes.'
-    ];
-    
-    const numId = parseInt(id);
-    const nameIndex = (numId - 1) % productNames.length;
-    const categoryIndex = Math.floor((numId - 1) / 13) % categories.length;
-    const badgeIndex = numId % badges.length;
-    const descIndex = (numId - 1) % descriptions.length;
-    
-    const basePrice = 45 + (numId % 8) * 10; // Prices between $45-$115
-    const hasOriginalPrice = numId % 4 === 0; // Every 4th product has original price
-    const originalPrice = hasOriginalPrice ? basePrice + 20 : null;
-    const finalPrice = hasOriginalPrice ? basePrice : basePrice;
-    
-    return {
-      id: numId,
-      name: productNames[nameIndex],
-      price: finalPrice,
-      originalPrice: originalPrice,
-      rating: 4 + (numId % 2), // Rating 4 or 5
-      reviews: 15 + (numId % 30), // Reviews between 15-44
-      description: descriptions[descIndex],
-      images: [
-        '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp',
-        '/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303_360x.webp',
-        '/259.webp',
-        '/11.webp'
-      ],
-      badge: badges[badgeIndex],
-      category: categories[categoryIndex]
-    };
+// Normalises a DB product (already in storefront shape via the adapter) into
+// the richer shape this page expects (with images[], rating, reviews count,
+// description). DB fields take precedence; placeholders fill the gaps.
+const normalizeDbProduct = (p) => {
+  const fallbackImages = [
+    '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp',
+    '/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303_360x.webp',
+    '/259.webp',
+    '/11.webp',
+  ];
+  const imgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : fallbackImages;
+  return {
+    id: p.id,
+    name: p.name,
+    price: Number(p.price || 0),
+    originalPrice: p.originalPrice == null ? null : Number(p.originalPrice),
+    rating: Math.max(1, Math.round(Number(p.rating || 4))),
+    reviews: Number(p.reviewCount || 18),
+    description:
+      p.description ||
+      p.shortDescription ||
+      'A captivating fragrance crafted from premium ingredients.',
+    images: imgs,
+    badge: p.badge || null,
+    category: p.gender
+      ? p.gender.charAt(0).toUpperCase() + p.gender.slice(1)
+      : 'Unisex',
   };
-  
-  // Check if it's a valid number
-  const numId = parseInt(productId);
-  if (isNaN(numId) || numId < 1) {
-    console.log('Invalid product ID:', productId);
-    return null;
-  }
-  
-  // Generate product for any valid ID
-  const product = generateProduct(numId);
-  console.log('Generated product:', product.name);
-  
-  return product;
 };
 
 export default function ProductDetail({ params }) {
@@ -86,6 +42,7 @@ export default function ProductDetail({ params }) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [resolvedParams, setResolvedParams] = useState(null);
   const [product, setProduct] = useState(null);
+  const [productLoading, setProductLoading] = useState(true);
   const [reviewFilter, setReviewFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Most helpful');
   const [likedReviews, setLikedReviews] = useState(new Set());
@@ -96,31 +53,55 @@ export default function ProductDetail({ params }) {
   
   // Resolve params and get product
   useEffect(() => {
+    let cancelled = false;
+
+    const loadProduct = async (rawId) => {
+      if (!rawId) return null;
+      try {
+        const res = await fetch(`/api/storefront/products/${encodeURIComponent(rawId)}`, {
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const body = await res.json();
+          if (body && !body.error) return normalizeDbProduct(body);
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[product detail fetch]', err);
+        }
+      }
+      return null;
+    };
+
     const resolveParams = async () => {
       try {
         const resolved = await params;
-        console.log('Resolved params:', resolved);
+        if (cancelled) return;
         setResolvedParams(resolved);
-        
         if (resolved?.id) {
-          const foundProduct = getProduct(resolved.id);
-          console.log('Found product:', foundProduct);
-          setProduct(foundProduct);
+          const found = await loadProduct(resolved.id);
+          if (!cancelled) {
+            setProduct(found);
+            setProductLoading(false);
+          }
         }
       } catch (error) {
-        console.error('Error resolving params:', error);
-        // Fallback for older Next.js versions
         if (params && typeof params === 'object' && params.id) {
-          console.log('Using fallback params:', params);
+          if (cancelled) return;
           setResolvedParams(params);
-          const foundProduct = getProduct(params.id);
-          console.log('Found product (fallback):', foundProduct);
-          setProduct(foundProduct);
+          const found = await loadProduct(params.id);
+          if (!cancelled) {
+            setProduct(found);
+            setProductLoading(false);
+          }
         }
       }
     };
-    
+
     resolveParams();
+    return () => {
+      cancelled = true;
+    };
   }, [params]);
 
   // Load GLightbox
@@ -147,8 +128,9 @@ export default function ProductDetail({ params }) {
     }
   }, [product]);
   
-  // Loading state
-  if (!resolvedParams) {
+  // Loading state — stay here while we're either resolving params or
+  // fetching the product. Avoids a brief flash of "Not Found" on slow DB.
+  if (!resolvedParams || productLoading) {
     return (
       <div className="product-detail-page">
         <div className="container py-5">
@@ -288,10 +270,22 @@ export default function ProductDetail({ params }) {
       'Absolutely love this perfume, my new favorite!'
     ];
     
+    // Stable numeric seed from the product id - works for legacy numeric ids
+    // and Mongo ObjectIds alike. Using `+` directly would string-concatenate
+    // for Mongo ids and produce NaN after `%`.
+    const numericSeed = (() => {
+      const asNum = Number(productId);
+      if (Number.isFinite(asNum)) return Math.abs(Math.floor(asNum));
+      const s = String(productId);
+      let h = 0;
+      for (let j = 0; j < s.length; j++) h = (h * 31 + s.charCodeAt(j)) >>> 0;
+      return h;
+    })();
+
     const reviews = [];
     for (let i = 0; i < reviewCount; i++) {
-      const reviewerIndex = (productId + i) % reviewers.length;
-      const textIndex = (productId + i) % reviewTexts.length;
+      const reviewerIndex = (numericSeed + i) % reviewers.length;
+      const textIndex = (numericSeed + i) % reviewTexts.length;
       const rating = 3 + (i % 3); // Mix of 3, 4, and 5 star ratings
       const daysAgo = Math.floor(Math.random() * 90) + 1; // 1-90 days ago
       const date = new Date();
@@ -437,6 +431,7 @@ export default function ProductDetail({ params }) {
                       height={600}
                       className="img-fluid"
                       priority
+                      unoptimized={/^https?:\/\//.test(product.images[selectedImage] || '')}
                     />
                     {/* Zoom Icon */}
                     <a 
@@ -468,6 +463,7 @@ export default function ProductDetail({ params }) {
                         width={100}
                         height={100}
                         className="img-fluid"
+                        unoptimized={/^https?:\/\//.test(image || '')}
                       />
                     </div>
                   ))}
@@ -566,14 +562,6 @@ export default function ProductDetail({ params }) {
                     </button>
                   </div>
 
-                  <div className="wishlist-compare">
-                    <button className="wishlist-btn">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                      </svg>
-                      Add to Wishlist
-                    </button>
-                  </div>
                 </div>
 
                 {/* Product Features */}

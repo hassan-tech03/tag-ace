@@ -8,7 +8,7 @@ export const API_ENDPOINTS = {
 
 // App configuration
 export const APP_CONFIG = {
-  APP_NAME: 'TagAce Perfumes',
+  APP_NAME: 'Mushk Perfumes',
   APP_DESCRIPTION: 'Discover your signature scent with premium fragrances',
   CURRENCY: 'USD',
   TAX_RATE: 0.1, // 10%
