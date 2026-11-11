@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { dbConnect } from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
+import { eq } from "drizzle-orm";
+import { db, orders } from "@/lib/db";
+import { isUuid } from "@/lib/db/helpers";
 
 // Stripe webhook receiver. Configure the endpoint in the Stripe dashboard
 // (or `stripe listen --forward-to localhost:3000/api/webhooks/stripe` in dev)
@@ -33,8 +34,6 @@ export async function POST(request) {
   }
 
   try {
-    await dbConnect();
-
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
@@ -45,11 +44,11 @@ export async function POST(request) {
           stripePaymentIntentId: session.payment_intent || "",
           stripeSessionId: session.id,
         };
-        if (orderId) {
-          await Order.findByIdAndUpdate(orderId, update);
+        if (isUuid(orderId)) {
+          await db.update(orders).set(update).where(eq(orders.id, orderId));
         } else {
           // Fallback: locate by session id if metadata is missing.
-          await Order.findOneAndUpdate({ stripeSessionId: session.id }, update);
+          await db.update(orders).set(update).where(eq(orders.stripeSessionId, session.id));
         }
         break;
       }
@@ -57,11 +56,11 @@ export async function POST(request) {
       case "checkout.session.async_payment_failed": {
         const session = event.data.object;
         const orderId = session.metadata?.orderId;
-        if (orderId) {
-          await Order.findByIdAndUpdate(orderId, {
-            paymentStatus: "failed",
-            status: "cancelled",
-          });
+        if (isUuid(orderId)) {
+          await db
+            .update(orders)
+            .set({ paymentStatus: "failed", status: "cancelled", cancelledAt: new Date() })
+            .where(eq(orders.id, orderId));
         }
         break;
       }
@@ -69,10 +68,10 @@ export async function POST(request) {
         const charge = event.data.object;
         const pi = charge.payment_intent;
         if (pi) {
-          await Order.findOneAndUpdate(
-            { stripePaymentIntentId: pi },
-            { paymentStatus: "refunded" }
-          );
+          await db
+            .update(orders)
+            .set({ paymentStatus: "refunded" })
+            .where(eq(orders.stripePaymentIntentId, pi));
         }
         break;
       }

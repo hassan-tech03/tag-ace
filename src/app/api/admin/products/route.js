@@ -1,37 +1,43 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { adminRoute, parseListParams } from "@/lib/api";
-import Product from "@/lib/models/Product";
+import { db, products } from "@/lib/db";
+import { buildOrderBy, countAll, pageResult, searchAny, serialize, where } from "@/lib/db/helpers";
 import { productCreateSchema } from "@/lib/validation";
 
+const PRODUCT_SORT_COLUMNS = {
+  createdAt: products.createdAt,
+  updatedAt: products.updatedAt,
+  name: products.name,
+  price: products.price,
+  stock: products.stock,
+  rating: products.rating,
+  status: products.status,
+};
+
 export const GET = adminRoute(async (request) => {
-  const { page, limit, skip, search, sort, sp } = parseListParams(request.url);
+  const { page, limit, skip, search, sort, defaultSort, sp } = parseListParams(request.url);
   const category = sp.get("category")?.trim();
   const status = sp.get("status")?.trim();
 
-  const filter = {};
-  if (search) {
-    filter.$or = [
-      { name: { $regex: search, $options: "i" } },
-      { brand: { $regex: search, $options: "i" } },
-      { sku: { $regex: search, $options: "i" } },
-      { slug: { $regex: search, $options: "i" } },
-    ];
-  }
-  if (category) filter.category = category.toLowerCase();
-  if (status) filter.status = status;
+  const filter = where(
+    searchAny(search, [products.name, products.brand, products.sku, products.slug]),
+    category ? eq(products.category, category.toLowerCase()) : undefined,
+    status ? eq(products.status, status) : undefined
+  );
 
-  const [items, total] = await Promise.all([
-    Product.find(filter).sort(sort).skip(skip).limit(limit).lean(),
-    Product.countDocuments(filter),
+  const [rows, [{ count }]] = await Promise.all([
+    db
+      .select()
+      .from(products)
+      .where(filter)
+      .orderBy(...buildOrderBy(sort, PRODUCT_SORT_COLUMNS, defaultSort))
+      .limit(limit)
+      .offset(skip),
+    db.select({ count: countAll }).from(products).where(filter),
   ]);
 
-  return NextResponse.json({
-    items,
-    total,
-    page,
-    limit,
-    totalPages: Math.max(1, Math.ceil(total / limit)),
-  });
+  return NextResponse.json(pageResult(rows.map(serialize), count, page, limit));
 });
 
 export const POST = adminRoute(async (request) => {
@@ -39,6 +45,6 @@ export const POST = adminRoute(async (request) => {
   const data = productCreateSchema.parse(body);
   data.slug = data.slug.toLowerCase();
   if (data.category) data.category = data.category.toLowerCase();
-  const doc = await Product.create(data);
-  return NextResponse.json(doc, { status: 201 });
+  const [row] = await db.insert(products).values(data).returning();
+  return NextResponse.json(serialize(row), { status: 201 });
 });

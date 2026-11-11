@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
-import { dbConnect } from "@/lib/mongodb";
-import Coupon from "@/lib/models/Coupon";
+import { eq } from "drizzle-orm";
+import { db, coupons } from "@/lib/db";
 
 // Public endpoint: validates a coupon code against a cart subtotal.
 // Returns the computed discount amount (does not persist usage; counts
 // should be incremented when the order is actually placed).
 export async function POST(request) {
   try {
-    await dbConnect();
     const body = await request.json();
     const codeRaw = String(body?.code || "").trim().toUpperCase();
     const subtotal = Number(body?.subtotal || 0);
@@ -16,7 +15,7 @@ export async function POST(request) {
       return NextResponse.json({ valid: false, error: "Enter a coupon code." }, { status: 400 });
     }
 
-    const coupon = await Coupon.findOne({ code: codeRaw }).lean();
+    const [coupon] = await db.select().from(coupons).where(eq(coupons.code, codeRaw)).limit(1);
     if (!coupon) {
       return NextResponse.json({ valid: false, error: "Coupon not found." }, { status: 404 });
     }

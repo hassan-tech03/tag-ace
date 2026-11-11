@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
+import { desc, eq } from "drizzle-orm";
 import { adminRoute } from "@/lib/api";
-import Order from "@/lib/models/Order";
+import { db, orders } from "@/lib/db";
 
 // Returns:
 //  - customer: rolled-up stats and most recent profile fields
@@ -12,24 +13,26 @@ export const GET = adminRoute(async (_req, { params }) => {
     return NextResponse.json({ error: "Email is required" }, { status: 400 });
   }
 
-  const orders = await Order.find({ "customer.email": email })
-    .sort({ createdAt: -1 })
-    .lean();
+  const rows = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.customerEmail, email))
+    .orderBy(desc(orders.createdAt));
 
-  if (orders.length === 0) {
+  if (rows.length === 0) {
     return NextResponse.json({ error: "Customer not found" }, { status: 404 });
   }
 
-  const newest = orders[0];
-  const oldest = orders[orders.length - 1];
-  const totalSpent = orders.reduce((s, o) => s + (o.total || 0), 0);
-  const paidSpent = orders
+  const newest = rows[0];
+  const oldest = rows[rows.length - 1];
+  const totalSpent = rows.reduce((s, o) => s + (o.total || 0), 0);
+  const paidSpent = rows
     .filter((o) => o.paymentStatus === "paid")
     .reduce((s, o) => s + (o.total || 0), 0);
 
   // Dedupe shipping addresses by a normalized fingerprint.
   const addressMap = new Map();
-  for (const o of orders) {
+  for (const o of rows) {
     const a = o.shippingAddress || {};
     const key = [a.line1, a.line2, a.city, a.state, a.zipCode, a.country]
       .map((s) => (s || "").trim().toLowerCase())
@@ -43,15 +46,15 @@ export const GET = adminRoute(async (_req, { params }) => {
       firstName: newest.customer?.firstName || "",
       lastName: newest.customer?.lastName || "",
       phone: newest.customer?.phone || "",
-      orderCount: orders.length,
+      orderCount: rows.length,
       totalSpent: Math.round(totalSpent * 100) / 100,
       paidSpent: Math.round(paidSpent * 100) / 100,
       firstOrderAt: oldest.createdAt,
       lastOrderAt: newest.createdAt,
     },
     addresses: Array.from(addressMap.values()),
-    orders: orders.map((o) => ({
-      _id: o._id,
+    orders: rows.map((o) => ({
+      _id: o.id,
       orderNumber: o.orderNumber,
       createdAt: o.createdAt,
       total: o.total,

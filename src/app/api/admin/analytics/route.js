@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
+import { desc, eq, gte, sql } from "drizzle-orm";
 import { adminRoute } from "@/lib/api";
-import Order from "@/lib/models/Order";
-import Product from "@/lib/models/Product";
-import Coupon from "@/lib/models/Coupon";
+import { db, orders, products, coupons } from "@/lib/db";
 
 // Returns a comprehensive dashboard payload in a single round trip.
 // Query params:
@@ -12,176 +11,138 @@ export const GET = adminRoute(async (request) => {
   const url = new URL(request.url);
   const range = url.searchParams.get("range") || "30d";
 
-  const days =
-    { "7d": 7, "30d": 30, "90d": 90, "365d": 365 }[range] || 30;
+  const days = { "7d": 7, "30d": 30, "90d": 90, "365d": 365 }[range] || 30;
+  // Day buckets are UTC (both here and in the SQL below) so the chart keys
+  // line up regardless of the server's timezone.
   const since = new Date();
-  since.setHours(0, 0, 0, 0);
-  since.setDate(since.getDate() - (days - 1));
+  since.setUTCHours(0, 0, 0, 0);
+  since.setUTCDate(since.getUTCDate() - (days - 1));
 
-  const isPaid = {
-    $in: [
-      "$paymentStatus",
-      ["paid", "cod_collected"],
-    ],
+  const isPaid = sql`${orders.paymentStatus} in ('paid', 'cod_collected')`;
+  const totalsSelect = {
+    orders: sql`count(*)::int`,
+    revenue: sql`coalesce(sum(${orders.total}), 0)::float8`,
+    paidRevenue: sql`coalesce(sum(${orders.total}) filter (where ${isPaid}), 0)::float8`,
+    paidOrders: sql`(count(*) filter (where ${isPaid}))::int`,
+    customers: sql`count(distinct ${orders.customerEmail})::int`,
   };
+  const inRange = gte(orders.createdAt, since);
 
   const [
-    totalsAgg,
-    rangeAgg,
-    seriesAgg,
-    topProductsAgg,
-    topCategoriesAgg,
-    statusAgg,
-    paymentAgg,
-    recentOrders,
-    productCount,
-    activeCouponCount,
+    [totalsRaw],
+    [rangeRaw],
+    seriesRows,
+    topProductsRes,
+    topCategoriesRes,
+    statusRows,
+    paymentRows,
+    recentRows,
+    [{ productCount }],
+    [{ activeCouponCount }],
   ] = await Promise.all([
-    Order.aggregate([
-      {
-        $group: {
-          _id: null,
-          orders: { $sum: 1 },
-          revenue: { $sum: "$total" },
-          paidRevenue: { $sum: { $cond: [isPaid, "$total", 0] } },
-          paidOrders: { $sum: { $cond: [isPaid, 1, 0] } },
-          emails: { $addToSet: "$customer.email" },
-        },
-      },
-    ]),
+    db.select(totalsSelect).from(orders),
+    db.select(totalsSelect).from(orders).where(inRange),
 
-    Order.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      {
-        $group: {
-          _id: null,
-          orders: { $sum: 1 },
-          revenue: { $sum: "$total" },
-          paidRevenue: { $sum: { $cond: [isPaid, "$total", 0] } },
-          paidOrders: { $sum: { $cond: [isPaid, 1, 0] } },
-          emails: { $addToSet: "$customer.email" },
-        },
-      },
-    ]),
+    db
+      .select({
+        date: sql`to_char(${orders.createdAt} at time zone 'UTC', 'YYYY-MM-DD')`.as("date"),
+        orders: sql`count(*)::int`,
+        revenue: sql`coalesce(sum(${orders.total}), 0)::float8`,
+        paidRevenue: sql`coalesce(sum(${orders.total}) filter (where ${isPaid}), 0)::float8`,
+      })
+      .from(orders)
+      .where(inRange)
+      .groupBy(sql`1`)
+      .orderBy(sql`1`),
 
-    Order.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
-          },
-          orders: { $sum: 1 },
-          revenue: { $sum: "$total" },
-          paidRevenue: { $sum: { $cond: [isPaid, "$total", 0] } },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]),
+    // Order items are jsonb snapshots; unnest them to rank products.
+    db.execute(sql`
+      select
+        coalesce(nullif(item->>'productId', ''), item->>'name') as "_id",
+        (array_agg(item->>'name'))[1] as name,
+        (array_agg(item->>'image'))[1] as image,
+        sum((item->>'quantity')::int)::int as qty,
+        sum((item->>'price')::numeric * (item->>'quantity')::int)::float8 as revenue
+      from ${orders}, jsonb_array_elements(${orders.items}) as item
+      where ${orders.createdAt} >= ${since}
+      group by 1
+      order by revenue desc
+      limit 8
+    `),
 
-    Order.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      { $unwind: "$items" },
-      {
-        $group: {
-          _id: { $ifNull: ["$items.productId", "$items.name"] },
-          name: { $first: "$items.name" },
-          image: { $first: "$items.image" },
-          qty: { $sum: "$items.quantity" },
-          revenue: {
-            $sum: { $multiply: ["$items.price", "$items.quantity"] },
-          },
-        },
-      },
-      { $sort: { revenue: -1 } },
-      { $limit: 8 },
-    ]),
+    // Top categories: resolve each item to its product (by id when the
+    // snapshot has one, otherwise by name) to read the current category.
+    db.execute(sql`
+      select
+        coalesce(p.category, 'uncategorized') as category,
+        sum((item->>'quantity')::int)::int as qty,
+        sum((item->>'price')::numeric * (item->>'quantity')::int)::float8 as revenue,
+        count(distinct o.id)::int as orders
+      from ${orders} o
+      cross join lateral jsonb_array_elements(o.items) as item
+      left join lateral (
+        select ${products.category} as category
+        from ${products}
+        where ${products.id}::text = item->>'productId' or ${products.name} = item->>'name'
+        order by (${products.id}::text = item->>'productId') desc
+        limit 1
+      ) p on true
+      where o.created_at >= ${since}
+      group by 1
+      order by revenue desc
+      limit 6
+    `),
 
-    // Top categories: look up each item's product (best effort - items are
-    // denormalized snapshots, so we match by name when we can't match by id).
-    Order.aggregate([
-      { $match: { createdAt: { $gte: since } } },
-      { $unwind: "$items" },
-      {
-        $lookup: {
-          from: "products",
-          let: { name: "$items.name" },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$name", "$$name"] } } },
-            { $project: { category: 1 } },
-            { $limit: 1 },
-          ],
-          as: "product",
-        },
-      },
-      {
-        $addFields: {
-          category: {
-            $ifNull: [{ $arrayElemAt: ["$product.category", 0] }, "uncategorized"],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: "$category",
-          qty: { $sum: "$items.quantity" },
-          revenue: {
-            $sum: { $multiply: ["$items.price", "$items.quantity"] },
-          },
-          orders: { $addToSet: "$_id" },
-        },
-      },
-      {
-        $project: {
-          category: "$_id",
-          _id: 0,
-          qty: 1,
-          revenue: 1,
-          orders: { $size: "$orders" },
-        },
-      },
-      { $sort: { revenue: -1 } },
-      { $limit: 6 },
-    ]),
+    db
+      .select({ key: orders.status, count: sql`count(*)::int` })
+      .from(orders)
+      .groupBy(orders.status),
+    db
+      .select({ key: orders.paymentStatus, count: sql`count(*)::int` })
+      .from(orders)
+      .groupBy(orders.paymentStatus),
 
-    Order.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
-    Order.aggregate([{ $group: { _id: "$paymentStatus", count: { $sum: 1 } } }]),
+    db
+      .select({
+        id: orders.id,
+        orderNumber: orders.orderNumber,
+        total: orders.total,
+        paymentStatus: orders.paymentStatus,
+        status: orders.status,
+        customerEmail: orders.customerEmail,
+        customer: orders.customer,
+        createdAt: orders.createdAt,
+      })
+      .from(orders)
+      .orderBy(desc(orders.createdAt))
+      .limit(5),
 
-    Order.find()
-      .sort("-createdAt")
-      .limit(5)
-      .select(
-        "orderNumber total paymentStatus status customer.email customer.firstName customer.lastName createdAt"
-      )
-      .lean(),
-
-    Product.countDocuments({}),
-    Coupon.countDocuments({ isActive: true }),
+    db.select({ productCount: sql`count(*)::int` }).from(products),
+    db
+      .select({ activeCouponCount: sql`count(*)::int` })
+      .from(coupons)
+      .where(eq(coupons.isActive, true)),
   ]);
 
-  const totalsRaw = totalsAgg[0] || {};
-  const rangeRaw = rangeAgg[0] || {};
-
-  function pack(raw) {
-    const orders = raw.orders || 0;
+  function pack(raw = {}) {
     const paidOrders = raw.paidOrders || 0;
     const paidRevenue = raw.paidRevenue || 0;
     return {
-      orders,
+      orders: raw.orders || 0,
       paidOrders,
       revenue: raw.revenue || 0,
       paidRevenue,
-      customers: (raw.emails || []).length,
+      customers: raw.customers || 0,
       aov: paidOrders ? paidRevenue / paidOrders : 0,
     };
   }
 
   // Fill missing days with zeros so the chart is continuous.
-  const seriesMap = new Map(seriesAgg.map((d) => [d._id, d]));
+  const seriesMap = new Map(seriesRows.map((d) => [d.date, d]));
   const series = [];
   for (let i = 0; i < days; i++) {
     const d = new Date(since);
-    d.setDate(since.getDate() + i);
+    d.setUTCDate(since.getUTCDate() + i);
     const key = d.toISOString().slice(0, 10);
     const row = seriesMap.get(key);
     series.push({
@@ -192,12 +153,7 @@ export const GET = adminRoute(async (request) => {
     });
   }
 
-  const orderStatus = Object.fromEntries(
-    (statusAgg || []).map((r) => [r._id, r.count])
-  );
-  const paymentStatus = Object.fromEntries(
-    (paymentAgg || []).map((r) => [r._id, r.count])
-  );
+  const toMap = (rows) => Object.fromEntries(rows.map((r) => [r.key, r.count]));
 
   return NextResponse.json({
     range,
@@ -205,11 +161,23 @@ export const GET = adminRoute(async (request) => {
     totals: pack(totalsRaw),
     rangeStats: pack(rangeRaw),
     series,
-    topProducts: topProductsAgg,
-    topCategories: topCategoriesAgg,
-    orderStatus,
-    paymentStatus,
-    recentOrders,
+    topProducts: topProductsRes.rows,
+    topCategories: topCategoriesRes.rows,
+    orderStatus: toMap(statusRows),
+    paymentStatus: toMap(paymentRows),
+    recentOrders: recentRows.map((o) => ({
+      _id: o.id,
+      orderNumber: o.orderNumber,
+      total: o.total,
+      paymentStatus: o.paymentStatus,
+      status: o.status,
+      createdAt: o.createdAt,
+      customer: {
+        email: o.customerEmail,
+        firstName: o.customer?.firstName || "",
+        lastName: o.customer?.lastName || "",
+      },
+    })),
     counts: {
       products: productCount,
       activeCoupons: activeCouponCount,

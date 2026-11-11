@@ -33,7 +33,7 @@ const normalizeDbProduct = (p) => {
     badge: p.badge || null,
     category: p.gender
       ? p.gender.charAt(0).toUpperCase() + p.gender.slice(1)
-      : 'Unisex',
+      : '',
   };
 };
 
@@ -487,11 +487,13 @@ export default function ProductDetail({ params }) {
             <div className="col-lg-6">
               <div className="product-info">
                 {/* Category */}
-                <div className="product-category">
-                  <Link href={`/shop/${product.category.toLowerCase()}`}>
-                    {product.category}
-                  </Link>
-                </div>
+                {product.category && (
+                  <div className="product-category">
+                    <Link href={`/shop/${product.category.toLowerCase()}`}>
+                      {product.category}
+                    </Link>
+                  </div>
+                )}
 
                 {/* Product Name */}
                 <h1 className="product-title">{product.name}</h1>

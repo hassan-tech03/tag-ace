@@ -3,23 +3,18 @@ import { notFound } from "next/navigation";
 import PageHeader from "@/components/admin/ui/PageHeader";
 import { Button } from "@/components/admin/ui/Field";
 import ProductForm from "@/components/admin/ProductForm";
-import { dbConnect } from "@/lib/mongodb";
-import Product from "@/lib/models/Product";
+import { eq } from "drizzle-orm";
+import { db, products } from "@/lib/db";
+import { isUuid, serialize } from "@/lib/db/helpers";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditProductPage({ params }) {
-  await dbConnect();
-  let doc = null;
-  try {
-    doc = await Product.findById(params.id).lean();
-  } catch {
-    // Invalid ObjectId etc.
-    notFound();
-  }
-  if (!doc) notFound();
+  if (!isUuid(params.id)) notFound();
+  const [row] = await db.select().from(products).where(eq(products.id, params.id));
+  if (!row) notFound();
 
-  const initial = JSON.parse(JSON.stringify(doc));
+  const initial = JSON.parse(JSON.stringify(serialize(row)));
 
   return (
     <div>

@@ -1,32 +1,27 @@
-import Category from "@/lib/models/Category";
+import { db, categories } from "@/lib/db";
 import { STORE_CATEGORIES } from "@/lib/storefrontCategories";
 
-// Idempotent: ensures the three canonical storefront categories
-// (men/women/unisex) exist with their friendly names. Safe to call on
-// every request - it only writes when the docs are missing.
+// Idempotent: ensures the canonical storefront categories (men/women) exist
+// with their friendly names. Safe to call on every request - it only inserts
+// rows that are missing and never overwrites admin edits.
 //
-// Cached for the lifetime of the process so we only hit Mongo once.
+// Cached for the lifetime of the process so we only hit the DB once.
 let seeded = false;
 
 export async function ensureStoreCategories() {
   if (seeded) return;
   try {
-    await Promise.all(
-      STORE_CATEGORIES.map((c) =>
-        Category.updateOne(
-          { slug: c.slug },
-          {
-            $setOnInsert: {
-              name: c.name,
-              slug: c.slug,
-              isActive: true,
-              order: c.order,
-            },
-          },
-          { upsert: true }
-        )
+    await db
+      .insert(categories)
+      .values(
+        STORE_CATEGORIES.map((c) => ({
+          name: c.name,
+          slug: c.slug,
+          isActive: true,
+          order: c.order,
+        }))
       )
-    );
+      .onConflictDoNothing({ target: categories.slug });
     seeded = true;
   } catch (err) {
     // If seeding fails (e.g. transient DB hiccup) we just let the next call

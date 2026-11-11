@@ -6,7 +6,6 @@ import ProductCard from '../../components/ui/ProductCard';
 const SECTIONS = [
   { key: 'men', title: "Men's Fragrances" },
   { key: 'women', title: "Women's Fragrances" },
-  { key: 'unisex', title: 'Unisex Fragrances' },
 ];
 
 function SkeletonGrid({ count = 4 }) {
@@ -57,7 +56,7 @@ const ProductSection = ({ title, products, category, loading }) => {
 };
 
 export default function ShopPage() {
-  const [products, setProducts] = useState({ men: [], women: [], unisex: [] });
+  const [products, setProducts] = useState({ men: [], women: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,13 +68,12 @@ export default function ShopPage() {
         .catch(() => []);
 
     (async () => {
-      const [men, women, unisex] = await Promise.all([
+      const [men, women] = await Promise.all([
         fetchProducts('category=men&limit=4&sort=-createdAt'),
         fetchProducts('category=women&limit=4&sort=-createdAt'),
-        fetchProducts('category=unisex&limit=4&sort=-createdAt'),
       ]);
       if (!cancelled) {
-        setProducts({ men, women, unisex });
+        setProducts({ men, women });
         setLoading(false);
       }
     })();
@@ -85,7 +83,7 @@ export default function ShopPage() {
     };
   }, []);
 
-  const total = products.men.length + products.women.length + products.unisex.length;
+  const total = products.men.length + products.women.length;
 
   return (
     <div className="shop-page">

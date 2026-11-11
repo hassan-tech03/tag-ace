@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { dbConnect } from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
+import { eq } from "drizzle-orm";
+import { db, orders } from "@/lib/db";
+import { createOrder } from "@/lib/db/queries";
 import { computeTotals, generateOrderNumber } from "@/lib/orderUtils";
 
 // Legacy endpoint used by the existing CheckoutClient.jsx. Behaviour preserved
@@ -44,8 +45,7 @@ export async function POST(request) {
           zipCode: info.billingZipCode || "",
         };
 
-    await dbConnect();
-    const order = await Order.create({
+    const order = await createOrder({
       orderNumber: generateOrderNumber(),
       items: totals.items,
       subtotal: totals.subtotal,
@@ -123,7 +123,7 @@ export async function POST(request) {
       billing_address_collection: "required",
       shipping_address_collection: { allowed_countries: ["US"] },
       metadata: {
-        orderId: order._id.toString(),
+        orderId: order.id,
         orderNumber: order.orderNumber,
         customerName: `${info.firstName || ""} ${info.lastName || ""}`.trim(),
         customerPhone: info.phone || "",
@@ -131,13 +131,15 @@ export async function POST(request) {
       },
     });
 
-    order.stripeSessionId = session.id;
-    await order.save();
+    await db
+      .update(orders)
+      .set({ stripeSessionId: session.id })
+      .where(eq(orders.id, order.id));
 
     return NextResponse.json({
       sessionId: session.id,
       url: session.url,
-      orderId: order._id.toString(),
+      orderId: order.id,
       orderNumber: order.orderNumber,
     });
   } catch (error) {

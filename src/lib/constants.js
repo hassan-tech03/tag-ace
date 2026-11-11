@@ -27,7 +27,6 @@ export const NAV_LINKS = [
 export const PERFUME_CATEGORIES = [
   { id: 'women', name: "Women's Perfumes", description: 'Elegant and sophisticated scents' },
   { id: 'men', name: "Men's Cologne", description: 'Bold and distinctive fragrances' },
-  { id: 'unisex', name: 'Unisex Fragrances', description: 'Versatile scents for everyone' },
   { id: 'luxury', name: 'Luxury Collection', description: 'Premium and exclusive fragrances' },
   { id: 'oriental', name: 'Oriental', description: 'Rich and exotic scents' },
   { id: 'fresh', name: 'Fresh & Aquatic', description: 'Light and refreshing fragrances' },

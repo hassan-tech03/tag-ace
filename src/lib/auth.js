@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { dbConnect } from "./mongodb";
-import AdminUser from "./models/AdminUser";
+import { eq } from "drizzle-orm";
+import { db, adminUsers } from "./db";
 
 export const authOptions = {
   providers: [
@@ -14,22 +14,24 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        await dbConnect();
-        const user = await AdminUser.findOne({
-          email: credentials.email.toLowerCase().trim(),
-        });
+        const [user] = await db
+          .select()
+          .from(adminUsers)
+          .where(eq(adminUsers.email, credentials.email.toLowerCase().trim()))
+          .limit(1);
         if (!user) return null;
 
         const ok = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!ok) return null;
 
         // Fire-and-forget timestamp update; ignore errors.
-        AdminUser.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } }).catch(
-          () => {}
-        );
+        db.update(adminUsers)
+          .set({ lastLoginAt: new Date() })
+          .where(eq(adminUsers.id, user.id))
+          .catch(() => {});
 
         return {
-          id: user._id.toString(),
+          id: user.id,
           email: user.email,
           name: user.name || user.email,
           role: user.role,

@@ -137,7 +137,6 @@ export default function SearchModal({ isOpen, onClose }) {
                 {[
                   { label: "Men's", href: '/shop/men', icon: '♂' },
                   { label: "Women's", href: '/shop/women', icon: '♀' },
-                  { label: 'Unisex', href: '/shop/unisex', icon: '◎' },
                   { label: 'All Products', href: '/shop', icon: '✦' },
                 ].map((c) => (
                   <Link key={c.href} href={c.href} className="search-category-chip" onClick={onClose}>
