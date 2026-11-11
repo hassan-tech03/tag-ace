@@ -20,7 +20,7 @@ export default function Home() {
   // All product content is driven from the admin dashboard via the
   // /api/storefront/* endpoints. Empty arrays render a polite empty state
   // instead of dummy data.
-  const [bestSellers, setBestSellers] = useState({ women: [], men: [], unisex: [] });
+  const [bestSellers, setBestSellers] = useState({ women: [], men: [] });
   const [popularProducts, setPopularProducts] = useState([]);
   const [testimonials, setTestimonials] = useState([]);
   const [bestSellersLoading, setBestSellersLoading] = useState(true);
@@ -36,10 +36,9 @@ export default function Home() {
           .catch(() => []);
 
       try {
-        const [women, men, unisex, popular, reviews] = await Promise.all([
+        const [women, men, popular, reviews] = await Promise.all([
           fetchProducts('category=women&limit=8&sort=-createdAt'),
           fetchProducts('category=men&limit=8&sort=-createdAt'),
-          fetchProducts('category=unisex&limit=8&sort=-createdAt'),
           fetchProducts('limit=8&sort=-createdAt'),
           fetch('/api/storefront/testimonials?limit=12', { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
@@ -47,7 +46,7 @@ export default function Home() {
             .catch(() => []),
         ]);
         if (cancelled) return;
-        setBestSellers({ women, men, unisex });
+        setBestSellers({ women, men });
         setPopularProducts(popular);
         setTestimonials(reviews);
       } catch (err) {
@@ -296,15 +295,6 @@ export default function Home() {
                   type="button"
                 >
                   Men
-                </button>
-              </li>
-              <li className="nav-item" role="presentation">
-                <button
-                  className={`nav-link ${activeTab === 'unisex' ? 'active' : ''}`}
-                  onClick={() => handleTabClick('unisex')}
-                  type="button"
-                >
-                  Unisex
                 </button>
               </li>
             </ul>

@@ -41,20 +41,20 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 The admin panel lives at `/admin` and is gated behind NextAuth (email + password). Phase 1 ships the foundation: authentication, layout, routing, and placeholder pages for every section. Real CRUD lands in later phases.
 
-### 1. Create a MongoDB Atlas cluster
+### 1. Create a Neon Postgres database
 
-1. Sign up / log in at [cloud.mongodb.com](https://cloud.mongodb.com).
-2. Create a **Free (M0) Shared cluster**.
-3. Under **Database Access**, add a database user with a username + password.
-4. Under **Network Access**, allow access from `0.0.0.0/0` for development (tighten this for production).
-5. Click **Connect → Drivers** on your cluster and copy the connection string. It looks like `mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority`. Append a database name, e.g. `/tagace`.
+1. Sign up / log in at [console.neon.tech](https://console.neon.tech) and create a project.
+2. Click **Connect** and copy two connection strings:
+   - **Pooled** (host contains `-pooler`) → `DATABASE_URL` (used by the app)
+   - **Direct** (pooling toggled off) → `DATABASE_URL_UNPOOLED` (used by migrations and scripts)
 
 ### 2. Configure environment variables
 
 Copy `.env.example` to `.env.local` and fill in:
 
 ```bash
-MONGODB_URI="mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/tagace?retryWrites=true&w=majority"
+DATABASE_URL="postgresql://USER:PASSWORD@ep-xxx-pooler.REGION.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@ep-xxx.REGION.aws.neon.tech/neondb?sslmode=require"
 NEXTAUTH_SECRET="$(openssl rand -base64 32)"
 NEXTAUTH_URL="http://localhost:3000"
 
@@ -63,13 +63,17 @@ ADMIN_PASSWORD="a-strong-password"
 ADMIN_NAME="Your Name"
 ```
 
-### 3. Seed the first admin user
+### 3. Create the tables and seed
 
 ```bash
-npm run seed:admin
+npm run db:migrate      # applies the SQL migrations in ./drizzle
+npm run seed:admin      # first admin user (superadmin)
+npm run seed:products   # optional: 19 sample products (men + women)
 ```
 
-This reads `MONGODB_URI`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` from `.env.local`, hashes the password with bcrypt, and writes a `superadmin` document into the `adminusers` collection. Safe to re-run — it updates the existing user if the email already exists.
+`seed:admin` hashes the password with bcrypt and upserts the user, so it's safe to re-run. Moving over from the old MongoDB setup? Set `MONGODB_URI` as well and run `npm run migrate:mongo` instead of `seed:products`. It copies every collection into Neon and only reads from Mongo.
+
+The schema lives in `src/lib/db/schema.js` (Drizzle ORM). After changing it, run `npm run db:generate` to write a new migration, commit it, then `npm run db:migrate`.
 
 ### 4. Sign in
 
@@ -87,7 +91,7 @@ Visit [http://localhost:3000/admin](http://localhost:3000/admin). You will be re
 
 ### Phase 2: Products & Categories
 
-The Categories and Products sections are now fully functional CRUD UIs backed by MongoDB collections (`categories`, `products`). The storefront still reads its hardcoded data — Phase 2 only adds the admin side. Wiring the storefront to MongoDB is a later step.
+The Categories and Products sections are now fully functional CRUD UIs backed by the `categories` and `products` tables in Neon Postgres. The storefront has two categories: **men** and **women**.
 
 #### Image uploads (optional Cloudinary)
 
@@ -115,7 +119,7 @@ The Orders section (`/admin/orders`) shows every order that comes through the st
 #### How orders get into the database
 
 - **COD orders** — `CheckoutClient.jsx` posts to `POST /api/orders` when the buyer clicks **Place Order** with Cash on Delivery selected. The order is created with `paymentMethod=cod` and `paymentStatus=cod_pending`. The buyer is then redirected to `/order-confirmation` as before.
-- **Stripe orders** — `POST /api/create-payment-intent` now creates a pending order in MongoDB before redirecting to Stripe Checkout. The order id is embedded in `session.metadata.orderId`. When Stripe sends the `checkout.session.completed` webhook, `POST /api/webhooks/stripe` flips the order's `paymentStatus` to `paid` and `status` to `processing`. If the session expires or async payment fails, the order is marked `failed` / `cancelled`. Refunds (`charge.refunded`) flip it to `refunded`.
+- **Stripe orders** — `POST /api/create-payment-intent` now creates a pending order in Postgres before redirecting to Stripe Checkout. The order id is embedded in `session.metadata.orderId`. When Stripe sends the `checkout.session.completed` webhook, `POST /api/webhooks/stripe` flips the order's `paymentStatus` to `paid` and `status` to `processing`. If the session expires or async payment fails, the order is marked `failed` / `cancelled`. Refunds (`charge.refunded`) flip it to `refunded`.
 
 #### Configuring the Stripe webhook (required for "paid" to appear)
 

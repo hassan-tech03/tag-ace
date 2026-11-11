@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth";
-import { dbConnect } from "./mongodb";
 
 // Returns { session } when the request is from an authenticated admin, or
 // { response } containing a 401/403 to short-circuit the route. Middleware
@@ -18,13 +17,12 @@ export async function requireAdmin() {
   return { session };
 }
 
-// Wraps an async handler with DB connection + uniform error handling.
+// Wraps an async handler with the admin guard + uniform error handling.
 export function adminRoute(handler) {
   return async (request, ctx) => {
     try {
       const guard = await requireAdmin();
       if (guard.response) return guard.response;
-      await dbConnect();
       return await handler(request, ctx, guard.session);
     } catch (err) {
       return handleError(err);
@@ -32,14 +30,28 @@ export function adminRoute(handler) {
   };
 }
 
+// Drizzle wraps driver errors; the Postgres error is on `cause`.
+function pgError(err) {
+  if (err?.code && typeof err.code === "string" && err.code.length === 5) return err;
+  if (err?.cause?.code) return err.cause;
+  return null;
+}
+
 export function handleError(err) {
-  // Mongoose duplicate key
-  if (err?.code === 11000) {
-    const field = Object.keys(err.keyValue || {})[0] || "field";
+  const pg = pgError(err);
+
+  // Postgres unique violation, e.g. duplicate slug or coupon code.
+  if (pg?.code === "23505") {
+    const m = /\(([^)]+)\)=/.exec(pg.detail || "");
+    const field = m ? m[1].replace(/_([a-z])/g, (_, c) => c.toUpperCase()) : "field";
     return NextResponse.json(
       { error: `A record with this ${field} already exists.`, field },
       { status: 409 }
     );
+  }
+  // Check / not-null / enum-ish violations and malformed input.
+  if (pg && ["23502", "23514", "22P02", "22003"].includes(pg.code)) {
+    return NextResponse.json({ error: pg.message || "Invalid data" }, { status: 400 });
   }
   // Zod
   if (err?.name === "ZodError") {
@@ -51,17 +63,13 @@ export function handleError(err) {
       { status: 400 }
     );
   }
-  // Mongoose validation
-  if (err?.name === "ValidationError") {
-    return NextResponse.json(
-      { error: err.message, fields: Object.keys(err.errors || {}) },
-      { status: 400 }
-    );
-  }
   if (process.env.NODE_ENV !== "production") {
     console.error("[admin route]", err);
   }
-  return NextResponse.json({ error: err?.message || "Internal server error" }, { status: 500 });
+  // Don't echo raw database errors (they can include SQL); other errors
+  // (e.g. Cloudinary) carry messages that are useful to the admin.
+  const message = pg ? "Database error" : err?.message || "Internal server error";
+  return NextResponse.json({ error: message }, { status: 500 });
 }
 
 // Parse pagination + sorting params from a URL.
@@ -71,5 +79,9 @@ export function parseListParams(url, { defaultSort = "-createdAt" } = {}) {
   const limit = Math.min(100, Math.max(1, parseInt(sp.get("limit") || "20", 10) || 20));
   const search = sp.get("search")?.trim() || "";
   const sort = sp.get("sort") || defaultSort;
-  return { page, limit, skip: (page - 1) * limit, search, sort, sp };
+  return { page, limit, skip: (page - 1) * limit, search, sort, defaultSort, sp };
+}
+
+export function notFound() {
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
 }

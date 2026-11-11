@@ -9,8 +9,8 @@ const nextConfig = {
     ],
   },
 
-  // Static-page generation can include calls to MongoDB. Give them headroom
-  // so the build doesn't bail out on a cold connection.
+  // Static-page generation can include database calls. Give them headroom
+  // so the build doesn't bail out on a cold (scaled-to-zero) Neon compute.
   staticPageGenerationTimeout: 180,
 
   // Production build: strip console.* (except warn/error) so logs don't bloat
@@ -20,6 +20,11 @@ const nextConfig = {
       process.env.NODE_ENV === "production"
         ? { exclude: ["error", "warn"] }
         : false,
+  },
+
+  // The Unisex category was retired; keep old links working.
+  async redirects() {
+    return [{ source: "/shop/unisex", destination: "/shop", permanent: true }];
   },
 
   webpack: (config) => {

@@ -1,23 +1,23 @@
 // Maps DB documents to the shape the storefront UI components already expect.
 // Keeping this single mapping isolated means the existing storefront files
-// don't have to learn about Mongo or schema changes - we just keep this
+// don't have to learn about the database or schema changes - we just keep this
 // adapter honest.
 
 export function mapProductToStorefront(p) {
   if (!p) return null;
-  const id = p._id?.toString?.() || p.id || p.slug;
+  const id = p.id || p.slug;
   const stock = Number(p.stock || 0);
   const out = stock <= 0;
   const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
 
-  // The storefront's gender pages (men/women/unisex) sub-filter on a
+  // The storefront's gender pages (men/women) sub-filter on a
   // "category" like cologne/eau-de-parfum which maps to the admin's
   // `fragranceFamily` field. The DB-level `category` field stores the
   // top-level gender slug. We surface both so each consumer picks the right
   // one without surprises.
   const gender = (p.category || "").toLowerCase();
   return {
-    id, // Mongo id as string
+    id, // UUID
     slug: p.slug || "",
     name: p.name,
     price: Number(p.price || 0),
@@ -47,7 +47,7 @@ export function mapProductToStorefront(p) {
 export function mapCategoryToStorefront(c) {
   if (!c) return null;
   return {
-    id: c._id?.toString?.() || c.slug,
+    id: c.id || c.slug,
     slug: c.slug,
     name: c.name,
     description: c.description || "",
@@ -59,7 +59,7 @@ export function mapCategoryToStorefront(c) {
 export function mapOfferToStorefront(o) {
   if (!o) return null;
   return {
-    id: o._id?.toString?.() || "",
+    id: o.id || "",
     title: o.title,
     subtitle: o.subtitle || "",
     description: o.description || "",
@@ -77,7 +77,7 @@ export function mapOfferToStorefront(o) {
 export function mapTestimonialToStorefront(t) {
   if (!t) return null;
   return {
-    id: t._id?.toString?.() || "",
+    id: t.id || "",
     name: t.name,
     location: t.location || "",
     rating: Number(t.rating || 5),

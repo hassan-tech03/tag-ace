@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+// For PATCH payloads: every field optional and *no* defaults. Zod's own
+// `.partial()` keeps `.default()`s, so a PATCH of `{ stock: 0 }` would reset
+// status, images, notes... to their defaults. `deep` applies the same to
+// nested objects (used for settings sections).
+function updateSchema(schema, { deep = false } = {}) {
+  const shape = {};
+  for (const [key, field] of Object.entries(schema.shape)) {
+    let t = field;
+    while (t instanceof z.ZodDefault || t instanceof z.ZodOptional) t = t.unwrap();
+    if (deep && t instanceof z.ZodObject) t = updateSchema(t);
+    shape[key] = t.optional();
+  }
+  return z.object(shape);
+}
+
 // Categories ----------------------------------------------------------------
 
 export const categoryCreateSchema = z.object({
@@ -15,7 +30,7 @@ export const categoryCreateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const categoryUpdateSchema = categoryCreateSchema.partial();
+export const categoryUpdateSchema = updateSchema(categoryCreateSchema);
 
 // Products ------------------------------------------------------------------
 
@@ -55,7 +70,7 @@ export const productCreateSchema = z.object({
   status: z.enum(["active", "draft", "archived"]).default("draft"),
 });
 
-export const productUpdateSchema = productCreateSchema.partial();
+export const productUpdateSchema = updateSchema(productCreateSchema);
 
 // Orders --------------------------------------------------------------------
 
@@ -148,7 +163,7 @@ export const couponCreateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const couponUpdateSchema = couponCreateSchema.partial();
+export const couponUpdateSchema = updateSchema(couponCreateSchema);
 
 // Offers --------------------------------------------------------------------
 
@@ -171,7 +186,7 @@ export const offerCreateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const offerUpdateSchema = offerCreateSchema.partial();
+export const offerUpdateSchema = updateSchema(offerCreateSchema);
 
 // Testimonials -------------------------------------------------------------
 
@@ -185,13 +200,13 @@ export const testimonialCreateSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-export const testimonialUpdateSchema = testimonialCreateSchema.partial();
+export const testimonialUpdateSchema = updateSchema(testimonialCreateSchema);
 
 // Site settings ------------------------------------------------------------
 
 const urlOrEmpty = z.string().max(500).optional().default("");
 
-export const settingsUpdateSchema = z.object({
+const settingsShape = z.object({
   announcementBar: z
     .object({
       text: z.string().max(300).optional().default(""),
@@ -232,3 +247,6 @@ export const settingsUpdateSchema = z.object({
     })
     .optional(),
 });
+
+// Only the keys that were sent are written; others keep their stored value.
+export const settingsUpdateSchema = updateSchema(settingsShape, { deep: true });

@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { dbConnect } from "@/lib/mongodb";
-import Order from "@/lib/models/Order";
+import { eq } from "drizzle-orm";
+import { db, orders } from "@/lib/db";
+import { createOrder } from "@/lib/db/queries";
 import { orderCreateSchema } from "@/lib/validation";
 import { computeTotals, generateOrderNumber } from "@/lib/orderUtils";
 import { handleError } from "@/lib/api";
 
 // Public endpoint called by the storefront checkout. Persists an Order in
-// Mongo and, for Stripe orders, also creates a Checkout Session so the
+// Postgres and, for Stripe orders, also creates a Checkout Session so the
 // storefront can redirect to Stripe in a single round trip.
 export async function POST(request) {
   try {
-    await dbConnect();
     const body = await request.json();
     const data = orderCreateSchema.parse(body);
 
@@ -22,7 +22,7 @@ export async function POST(request) {
     }
 
     const orderNumber = generateOrderNumber();
-    const order = await Order.create({
+    const order = await createOrder({
       orderNumber,
       items: totals.items,
       subtotal: totals.subtotal,
@@ -40,7 +40,7 @@ export async function POST(request) {
 
     if (data.paymentMethod === "cod") {
       return NextResponse.json({
-        orderId: order._id.toString(),
+        orderId: order.id,
         orderNumber: order.orderNumber,
         total: order.total,
         redirect: "/order-confirmation",
@@ -50,7 +50,7 @@ export async function POST(request) {
     // Stripe path -----------------------------------------------------------
     if (!process.env.STRIPE_SECRET_KEY) {
       // Roll back: order shouldn't sit there if we can't take payment.
-      await Order.deleteOne({ _id: order._id });
+      await db.delete(orders).where(eq(orders.id, order.id));
       return NextResponse.json(
         { error: "Stripe is not configured" },
         { status: 503 }
@@ -104,16 +104,18 @@ export async function POST(request) {
       billing_address_collection: "required",
       shipping_address_collection: { allowed_countries: ["US"] },
       metadata: {
-        orderId: order._id.toString(),
+        orderId: order.id,
         orderNumber: order.orderNumber,
       },
     });
 
-    order.stripeSessionId = session.id;
-    await order.save();
+    await db
+      .update(orders)
+      .set({ stripeSessionId: session.id })
+      .where(eq(orders.id, order.id));
 
     return NextResponse.json({
-      orderId: order._id.toString(),
+      orderId: order.id,
       orderNumber: order.orderNumber,
       total: order.total,
       sessionId: session.id,

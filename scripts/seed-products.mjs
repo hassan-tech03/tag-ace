@@ -4,105 +4,23 @@
  * Seeds the live storefront with a curated catalogue of men's and women's
  * fragrances (Office for Men, Bleu de Chanel, Coco Mademoiselle, etc.).
  *
- * Reads MONGODB_URI from .env.local (or the environment).
+ * Reads DATABASE_URL from .env.local (or the environment).
  * Run with: `npm run seed:products`
  *
  * Safe to re-run: products are upserted by `slug`, so existing rows get
  * updated rather than duplicated.
  */
-
-import mongoose from "mongoose";
 import slugify from "slugify";
-import fs from "node:fs";
-import path from "node:path";
+import { sql } from "drizzle-orm";
+import { connect } from "./_db.mjs";
 
-// --- env loader (mirrors seed-admin.js) -----------------------------------
-function loadEnvLocal() {
-  const envPath = path.resolve(process.cwd(), ".env.local");
-  if (!fs.existsSync(envPath)) return;
-  const lines = fs.readFileSync(envPath, "utf8").split("\n");
-  for (const raw of lines) {
-    const line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
-    const eq = line.indexOf("=");
-    if (eq === -1) continue;
-    const key = line.slice(0, eq).trim();
-    let value = line.slice(eq + 1).trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    if (!(key in process.env)) process.env[key] = value;
-  }
-}
+const { db, pool, schema } = connect();
+const { products, categories } = schema;
 
-loadEnvLocal();
-const { MONGODB_URI } = process.env;
-if (!MONGODB_URI) {
-  console.error("✖ MONGODB_URI is not set. Add it to .env.local.");
-  process.exit(1);
-}
-
-// --- minimal schemas (must mirror src/lib/models) -------------------------
-const NotesSchema = new mongoose.Schema(
-  {
-    top: { type: [String], default: [] },
-    middle: { type: [String], default: [] },
-    base: { type: [String], default: [] },
-  },
-  { _id: false }
-);
-
-const ProductSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
-    description: { type: String, default: "" },
-    shortDescription: { type: String, default: "" },
-    price: { type: Number, required: true, min: 0 },
-    originalPrice: { type: Number, default: null, min: 0 },
-    category: { type: String, default: "", index: true, trim: true, lowercase: true },
-    fragranceFamily: { type: String, default: "" },
-    size: { type: String, default: "" },
-    brand: { type: String, default: "" },
-    sku: { type: String, default: "", trim: true },
-    images: { type: [String], default: [] },
-    stock: { type: Number, default: 0, min: 0 },
-    isHotDeal: { type: Boolean, default: false },
-    isNewArrival: { type: Boolean, default: false },
-    rating: { type: Number, default: 0, min: 0, max: 5 },
-    reviewCount: { type: Number, default: 0, min: 0 },
-    discount: { type: Number, default: 0, min: 0, max: 100 },
-    notes: { type: NotesSchema, default: () => ({}) },
-    badge: { type: String, default: "" },
-    status: {
-      type: String,
-      enum: ["active", "draft", "archived"],
-      default: "draft",
-      index: true,
-    },
-  },
-  { timestamps: true }
-);
-
-const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
-
-const CategorySchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
-    description: { type: String, default: "" },
-    image: { type: String, default: "" },
-    order: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
-
-const Category =
-  mongoose.models.Category || mongoose.model("Category", CategorySchema);
+const STORE_CATEGORIES = [
+  { slug: "men", name: "Men's Fragrances", order: 1 },
+  { slug: "women", name: "Women's Fragrances", order: 2 },
+];
 
 // --- local image rotation -------------------------------------------------
 const LOCAL_IMAGES = [
@@ -122,7 +40,7 @@ function imagesFor(idx) {
 // --- curated catalogue ----------------------------------------------------
 // Notes are mapped to the storefront's canonical structure. Prices are the
 // midpoint of the supplied USD ranges. `category` is the storefront slug
-// (men / women / unisex). `fragranceFamily` aligns with the predefined list
+// (men / women). `fragranceFamily` aligns with the predefined list
 // used by the admin form and the gender-page sidebar.
 const CATALOGUE = [
   // ============ MEN ============
@@ -411,34 +329,12 @@ function toSlug(value) {
   return slugify(String(value || ""), { lower: true, strict: true, trim: true });
 }
 
-async function ensureStoreCategories() {
-  const canonical = [
-    { slug: "men", name: "Men's Fragrances", order: 1 },
-    { slug: "women", name: "Women's Fragrances", order: 2 },
-    { slug: "unisex", name: "Unisex", order: 3 },
-  ];
-  for (const c of canonical) {
-    await Category.updateOne(
-      { slug: c.slug },
-      {
-        $setOnInsert: {
-          name: c.name,
-          slug: c.slug,
-          isActive: true,
-          order: c.order,
-        },
-      },
-      { upsert: true }
-    );
-  }
-}
-
 async function main() {
-  console.log("→ Connecting to MongoDB…");
-  await mongoose.connect(MONGODB_URI);
-
   console.log("→ Ensuring storefront categories…");
-  await ensureStoreCategories();
+  await db
+    .insert(categories)
+    .values(STORE_CATEGORIES.map((c) => ({ ...c, isActive: true })))
+    .onConflictDoNothing({ target: categories.slug });
 
   let created = 0;
   let updated = 0;
@@ -446,7 +342,6 @@ async function main() {
   for (let i = 0; i < CATALOGUE.length; i++) {
     const p = CATALOGUE[i];
     const slug = toSlug(p.name);
-    const images = imagesFor(i);
     const payload = {
       name: p.name,
       slug,
@@ -457,7 +352,7 @@ async function main() {
       fragranceFamily: p.fragranceFamily || "",
       size: "100ml",
       sku: `MUSHK-${slug.toUpperCase()}`.slice(0, 32),
-      images,
+      images: imagesFor(i),
       stock: 25,
       isHotDeal: false,
       isNewArrival: false,
@@ -471,23 +366,27 @@ async function main() {
       description: buildLongDescription(p),
     };
 
-    const existing = await Product.findOne({ slug });
-    if (existing) {
-      await Product.updateOne({ slug }, { $set: payload });
-      updated += 1;
-      console.log(`  ↺ updated  ${p.category.padEnd(6)}  ${p.name}`);
-    } else {
-      await Product.create(payload);
-      created += 1;
-      console.log(`  + created  ${p.category.padEnd(6)}  ${p.name}`);
-    }
+    const { slug: _slug, ...updatable } = payload;
+    const [row] = await db
+      .insert(products)
+      .values(payload)
+      .onConflictDoUpdate({
+        target: products.slug,
+        set: { ...updatable, updatedAt: new Date() },
+      })
+      .returning({ inserted: sql`(xmax = 0)` });
+
+    if (row.inserted) created += 1;
+    else updated += 1;
+    console.log(`  ${row.inserted ? "+ created" : "↺ updated"}  ${p.category.padEnd(6)}  ${p.name}`);
   }
 
   console.log(`\n✔ Done. Created ${created}, updated ${updated}, total ${CATALOGUE.length}.`);
-  await mongoose.disconnect();
 }
 
-main().catch((err) => {
-  console.error("✖ Seed failed:", err);
-  process.exit(1);
-});
+main()
+  .catch((err) => {
+    console.error("✖ Seed failed:", err);
+    process.exitCode = 1;
+  })
+  .finally(() => pool.end());

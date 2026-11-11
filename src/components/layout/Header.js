@@ -129,7 +129,6 @@ export default function Header() {
                   <Link href="/shop" className="dropdown-link">All Products</Link>
                   <Link href="/shop/men" className="dropdown-link">Men's Fragrances</Link>
                   <Link href="/shop/women" className="dropdown-link">Women's Fragrances</Link>
-                  <Link href="/shop/unisex" className="dropdown-link">Unisex</Link>
                 </div>
               </div>
               <Link href="/about" className="desktop-nav-link">About</Link>
@@ -199,7 +198,6 @@ export default function Header() {
                   <button className="submenu-link" onClick={() => handleNavigation('/shop')}>All Products</button>
                   <button className="submenu-link" onClick={() => handleNavigation('/shop/men')}>Men</button>
                   <button className="submenu-link" onClick={() => handleNavigation('/shop/women')}>Women</button>
-                  <button className="submenu-link" onClick={() => handleNavigation('/shop/unisex')}>Unisex</button>
                 </div>
               </div>
             )}

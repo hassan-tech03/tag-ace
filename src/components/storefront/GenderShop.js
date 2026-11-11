@@ -4,7 +4,7 @@ import Link from 'next/link';
 import ProductCard from '../ui/ProductCard';
 import { FRAGRANCE_FAMILIES } from '../../lib/storefrontCategories';
 
-// One shared implementation for /shop/men, /shop/women and /shop/unisex.
+// One shared implementation for /shop/men and /shop/women.
 // All data comes from the storefront API; if there are no products yet the
 // page renders a polite empty state instead of dummy data.
 //

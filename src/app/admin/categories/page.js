@@ -143,7 +143,7 @@ export default function CategoriesPage() {
     <div>
       <PageHeader
         title="Categories"
-        description="The storefront ships with three built-in categories: men, women, unisex. They mirror the /shop/men, /shop/women and /shop/unisex pages. Add more here only if you also plan to add a matching shop page."
+        description="The storefront has two built-in categories: men and women. They mirror the /shop/men and /shop/women pages. Add more here only if you also plan to add a matching shop page."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
