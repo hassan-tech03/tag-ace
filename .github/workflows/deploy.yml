@@ -1,0 +1,48 @@
+# Deploys to the Contabo server on every push to main (or manually).
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   CONTABO_HOST      server IP or hostname
+#   CONTABO_USER      deploy
+#   CONTABO_SSH_KEY   private key whose public half is in ~deploy/.ssh/authorized_keys
+#   CONTABO_PORT      optional, defaults to 22
+#
+# Without these secrets the job just skips, so it is harmless until set up.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HOST: ${{ secrets.CONTABO_HOST }}
+    steps:
+      - name: Check configuration
+        id: check
+        run: |
+          if [ -z "$HOST" ]; then
+            echo "CONTABO_HOST secret not set; skipping deploy."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy over SSH
+        if: steps.check.outputs.skip != 'true'
+        env:
+          USER_: ${{ secrets.CONTABO_USER }}
+          PORT_: ${{ secrets.CONTABO_PORT || '22' }}
+          KEY: ${{ secrets.CONTABO_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$PORT_" -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -i ~/.ssh/id_deploy -p "$PORT_" "$USER_@$HOST" \
+            "cd /opt/mushk && git fetch --quiet origin main && git checkout --quiet main && ./deploy/scripts/deploy.sh"
