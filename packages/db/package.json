@@ -1,0 +1,30 @@
+{
+  "name": "@mushk/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Postgres schema, client, migrations and seed scripts for Mushk Perfumes.",
+  "exports": {
+    ".": "./src/index.js",
+    "./schema": "./src/schema.js",
+    "./helpers": "./src/helpers.js",
+    "./queries": "./src/queries.js"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "node scripts/migrate.mjs",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
+    "seed:admin": "node scripts/seed-admin.mjs",
+    "seed:products": "node scripts/seed-products.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "drizzle-orm": "^0.45.4",
+    "pg": "^8.23.1",
+    "slugify": "^1.6.9"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11"
+  }
+}

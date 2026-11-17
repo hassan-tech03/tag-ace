@@ -1,234 +1,185 @@
-# Deploying Mushk Perfumes to Vercel (Free / Hobby plan)
+# Deploying to Contabo
 
-This project is now a **dynamic** Next.js 14 app:
+Everything runs on one VPS with Docker Compose:
 
-- Neon Postgres + Drizzle ORM (products, orders, customers, admin)
-- NextAuth.js (admin login)
-- Stripe (checkout sessions + webhook)
-- Cloudinary (product image uploads)
-
-Everything fits inside Vercel's free **Hobby** tier as long as you stay under
-the bandwidth/function-hour caps.
-
----
-
-## 0) One-time prep on third-party services
-
-### 0.1 Neon — create the database
-
-1. https://console.neon.tech → **New project** (pick the region closest to
-   your Vercel region, e.g. `aws-us-east-1` for Vercel's default `iad1`).
-2. **Connect** → copy two connection strings:
-   - **Pooled** (host contains `-pooler`) → `DATABASE_URL`
-   - **Direct** (toggle "Connection pooling" off) → `DATABASE_URL_UNPOOLED`
-3. Put both in `.env.local`, then from your machine run once:
-
-```bash
-npm run db:migrate      # creates the tables (uses the direct URL)
-npm run seed:admin      # first admin user
-npm run seed:products   # optional: the 19 sample products
-# OR, to bring over the existing MongoDB data instead of the samples:
-npm run migrate:mongo   # needs MONGODB_URI too; Mongo is only read
+```
+Internet ──► Caddy :80/:443 (auto HTTPS) ──► web :3000 (Next.js) ──► postgres :5432
+                                                   ▲
+                                 migrate (runs migrations on every deploy, then exits)
 ```
 
-No IP allow-listing is needed; Neon accepts TLS connections from anywhere by
-default.
-
-### 0.2 Cloudinary
-
-You already have these in `.env.local`. Reuse them — no changes needed.
-
-### 0.3 Stripe
-
-You already have **test mode** keys. We'll wire the webhook *after* the first
-deploy when the production URL exists.
-
----
-
-## 1) Push to GitHub
-
-```bash
-git status
-git add -A
-git commit -m "Production-ready Vercel deploy"
-git push origin admin-dashboard
-```
-
-> The current branch is `admin-dashboard`. On Vercel you'll tell it to deploy
-> this branch as **Production**.
-
----
-
-## 2) Create the Vercel project
-
-1. Go to https://vercel.com/new
-2. **Import Git Repository** → pick the `tag-ace` repo.
-3. Framework Preset: **Next.js** (auto-detected).
-4. Build & Output settings: leave the defaults — `vercel.json` already pins
-   `next build`.
-5. **DO NOT click Deploy yet.** Open the **Environment Variables** section
-   first and paste the values from step 3 below.
-
----
-
-## 3) Environment variables (paste into Vercel → Settings → Environment Variables)
-
-Set **Environment** = `Production`, `Preview`, and `Development` for each one
-unless noted otherwise.
-
-| Variable | Value (use yours) | Notes |
+| Service | Image | Notes |
 |---|---|---|
-| `DATABASE_URL` | `postgresql://...-pooler...neon.tech/neondb?sslmode=require` | Neon **pooled** string, from `.env.local` |
-| `NEXTAUTH_SECRET` | from `.env.local` | Same secret across all environments |
-| `NEXTAUTH_URL` | **temp**: `https://YOUR-PROJECT.vercel.app` | Update after deploy |
-| `NEXT_PUBLIC_DOMAIN` | **temp**: `https://YOUR-PROJECT.vercel.app` | Update after deploy |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | `pk_test_...` | From `.env.local` |
-| `STRIPE_SECRET_KEY` | `sk_test_...` | From `.env.local` |
-| `STRIPE_WEBHOOK_SECRET` | **placeholder** `whsec_placeholder` | Real value comes in step 6 |
-| `CLOUDINARY_CLOUD_NAME` | from `.env.local` | |
-| `CLOUDINARY_API_KEY` | from `.env.local` | |
-| `CLOUDINARY_API_SECRET` | from `.env.local` | |
+| `postgres` | `postgres:18-alpine` | data in the `pgdata` volume; port bound to `127.0.0.1` only |
+| `migrate` | `mushk-tools` (built) | `packages/db/scripts/migrate.mjs`; also runs the seed scripts |
+| `web` | `mushk-web` (built) | Next.js standalone server, healthcheck at `/api/health` |
+| `caddy` | `caddy:2-alpine` | Let's Encrypt certificates, `www` → apex redirect, gzip/zstd |
 
-> `ADMIN_*` and `DATABASE_URL_UNPOOLED` are only used by the CLI scripts you
-> run locally; they don't need to be in Vercel.
->
-> **Tip:** instead of pasting `DATABASE_URL` by hand you can add the Neon
-> integration from Vercel → Storage; it sets `DATABASE_URL` for you.
+Product images stay on Cloudinary. Payments go through Stripe. Nothing else is needed.
 
-Now click **Deploy**. First deploy will take 2–4 minutes.
+**Recommended VPS:** Cloud VPS 10 or larger (4+ vCPU, 8 GB RAM), Ubuntu 24.04. The image is built on the server, and a Next.js build needs about 2–3 GB of RAM. The setup script adds 4 GB of swap as headroom.
 
 ---
 
-## 4) After the first deploy
+## 1. Create the server
 
-Vercel will give you a URL like `https://tag-ace-xxx.vercel.app`.
+1. Order a Contabo VPS with **Ubuntu 24.04**, add your **SSH public key** during checkout and choose a region (EU or Singapore are closest to Pakistan).
+2. Note the server's IPv4 address from the Contabo panel.
 
-1. Go to **Settings → Environment Variables**.
-2. Edit `NEXTAUTH_URL` and `NEXT_PUBLIC_DOMAIN` and set both to the real URL
-   (no trailing slash, must be `https://`).
-3. **Deployments → ⋯ → Redeploy** (no need to push again). This rebuild will
-   pick up the new env vars.
+## 2. Point the domain (Hostinger DNS)
 
-> If you skip this step the admin login will redirect to localhost and Stripe
-> success/cancel URLs will be wrong.
+In Hostinger: **Domains → mushkscents.com → DNS / Nameservers → DNS records**:
 
----
+| Type | Name | Points to | TTL |
+|---|---|---|---|
+| A | `@` | `<server-ip>` | 300 |
+| A | `www` | `<server-ip>` | 300 |
 
-## 5) Seed the database
+Delete any other `A`, `AAAA` or `CNAME` records for `@` and `www`, such as Hostinger's default parking records. Leave the MX/TXT records for email (Zoho) alone.
 
-Done in step 0.1. When the schema changes later (`src/lib/db/schema.js`):
+Check with `dig +short mushkscents.com` that it shows your IP before step 5. Caddy can only get a certificate once DNS points at the server.
+
+> **No domain yet?** Use `DOMAIN=<ip-with-dashes>.sslip.io` (e.g. `203-0-113-10.sslip.io`). It resolves to your IP automatically and gets a real HTTPS certificate.
+
+## 3. Bootstrap the server (once)
 
 ```bash
-npm run db:generate    # writes a new SQL migration into ./drizzle (commit it)
-npm run db:migrate     # applies it to the database in DATABASE_URL_UNPOOLED
+ssh root@<server-ip>
+curl -fsSL https://raw.githubusercontent.com/hassan-tech03/tag-ace/main/deploy/scripts/server-setup.sh -o setup.sh
+bash setup.sh
 ```
 
-Tip: try a migration on a Neon **branch** of production first.
+The script installs updates, Docker, a firewall (SSH/80/443 only), fail2ban, swap and automatic security updates. It also creates a `deploy` user with your SSH key and the `/opt/mushk` directory.
+
+Then log in as `deploy` from a **new** terminal to make sure it works:
+
+```bash
+ssh deploy@<server-ip>
+```
+
+Optional, once key login for `deploy` works: disable root and password login.
+
+```bash
+sudo HARDEN_SSH=1 bash setup.sh
+```
+
+## 4. Get the code and configure
+
+```bash
+git clone https://github.com/hassan-tech03/tag-ace.git /opt/mushk
+cd /opt/mushk
+cp .env.example .env
+nano .env
+```
+
+Fill in:
+
+| Variable | Value |
+|---|---|
+| `DOMAIN` | `mushkscents.com` |
+| `ACME_EMAIL` | your email (Let's Encrypt expiry notices) |
+| `POSTGRES_PASSWORD` | output of `openssl rand -hex 24` |
+| `NEXTAUTH_SECRET` | output of `openssl rand -base64 32` |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | admin login (use a strong password) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY` | Stripe keys |
+| `STRIPE_WEBHOOK_SECRET` | from step 7 (can be added later) |
+| `CLOUDINARY_*` | same 3 values as now |
+
+`chmod 600 .env`. Don't use quotes, and don't put spaces around `=`.
+
+## 5. First deploy
+
+```bash
+./deploy/scripts/deploy.sh
+```
+
+The first build takes about 5–10 minutes, and later builds are faster because of the cache. The script builds the images, starts Postgres, runs migrations, then starts `web` and `caddy` and waits for the healthcheck.
+
+Open `https://mushkscents.com`. The certificate is issued within a few seconds of the first request.
+
+## 6. Data: fresh start or copy from Neon
+
+**Option A: fresh database**
+
+```bash
+docker compose run --rm migrate node scripts/seed-admin.mjs
+docker compose run --rm migrate node scripts/seed-products.mjs   # optional sample catalogue
+```
+
+**Option B: copy everything from Neon** (products, orders, admin users, settings…)
+
+```bash
+NEON_URL='postgresql://mushk_owner:<password>@<neon-direct-host>/mushk?sslmode=require' \
+  ./deploy/scripts/import-from-neon.sh
+```
+
+Use Neon's **direct** connection string (host without `-pooler`) with `sslmode=require`. The script dumps Neon's `public` and `drizzle` schemas, replaces the server database with them, prints row counts and restarts the app. A copy of the dump stays in `backups/`. Your admin login is the same as it was on Neon.
+
+Once you're happy with the new server, you can delete the Neon project.
+
+## 7. Stripe webhook
+
+Stripe dashboard → **Developers → Webhooks → Add endpoint**:
+
+- URL: `https://mushkscents.com/api/webhooks/stripe`
+- Events: `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_failed`, `charge.refunded`
+
+Put the signing secret (`whsec_…`) into `STRIPE_WEBHOOK_SECRET` in `.env`, then run `./deploy/scripts/deploy.sh`.
+
+## 8. Backups
+
+```bash
+./deploy/scripts/backup-db.sh                 # writes backups/mushk-<date>.dump
+crontab -e                                    # nightly at 03:00, keeps 14 days:
+0 3 * * * cd /opt/mushk && ./deploy/scripts/backup-db.sh >> backups/backup.log 2>&1
+```
+
+Restore with `./deploy/scripts/restore-db.sh backups/<file>.dump`. It asks for confirmation first.
+
+Keep a copy **off** the server too, for example with `rclone` to Google Drive or Backblaze B2, or by downloading it with `scp deploy@<ip>:/opt/mushk/backups/*.dump .`. Contabo's paid snapshot/backup add-on also helps.
 
 ---
 
-## 6) Wire up the Stripe webhook (production)
+## Day-to-day
 
-1. https://dashboard.stripe.com/test/webhooks → **+ Add endpoint**
-2. Endpoint URL: `https://YOUR-PROJECT.vercel.app/api/webhooks/stripe`
-3. Events to send:
-   - `checkout.session.completed`
-   - `checkout.session.expired`
-   - `checkout.session.async_payment_failed`
-   - `charge.refunded`
-4. Click **Add endpoint**.
-5. Open the new endpoint → reveal **Signing secret** (starts with `whsec_...`).
-6. Back in Vercel → Settings → Environment Variables → edit
-   `STRIPE_WEBHOOK_SECRET` and paste it.
-7. **Redeploy** so the new value is picked up.
+**Deploy a new version:** push to `main`, then on the server:
 
-You can verify it works by:
+```bash
+cd /opt/mushk && ./deploy/scripts/deploy.sh
+```
 
-- Placing a test order on the live site with card `4242 4242 4242 4242`.
-- Opening **Stripe Dashboard → Webhooks → your endpoint → "Recent events"**
-  and confirming the event returned `200`.
-- Opening **/admin/orders** on the live site and confirming the order shows
-  `paid` / `processing`.
+**Automatic deploys (optional):** `.github/workflows/deploy.yml` SSHes in and runs the same script on every push to `main`. Create a key pair just for this:
 
----
+```bash
+ssh-keygen -t ed25519 -f mushk_deploy -N ""          # on your PC
+ssh-copy-id -i mushk_deploy.pub deploy@<server-ip>
+```
 
-## 7) Smoke-test the live site
+Then add these GitHub secrets under **Settings → Secrets and variables → Actions**: `CONTABO_HOST` (the IP), `CONTABO_USER` (`deploy`) and `CONTABO_SSH_KEY` (contents of `mushk_deploy`). Until they're set, the workflow skips.
 
-After redeploy:
+| Task | Command |
+|---|---|
+| Status | `docker compose ps` |
+| Logs | `docker compose logs -f web` (or `caddy`, `postgres`) |
+| Restart app | `docker compose restart web` |
+| Health | `curl -s https://mushkscents.com/api/health` |
+| SQL shell | `docker compose exec postgres psql -U mushk mushk` |
+| Reset admin password | edit `ADMIN_PASSWORD` in `.env`, then `docker compose run --rm migrate node scripts/seed-admin.mjs` |
+| Disk usage | `docker system df` · clean up: `docker system prune` (never add `--volumes`) |
 
-- [ ] `/` homepage loads, products visible.
-- [ ] `/shop`, `/shop/men`, `/shop/women` show products (`/shop/unisex` redirects to `/shop`).
-- [ ] `/products/<slug>` opens a real product detail page.
-- [ ] Search modal (header magnifier) returns API results.
-- [ ] `/admin/login` lets you log in with the `ADMIN_EMAIL` / `ADMIN_PASSWORD` you seeded.
-- [ ] `/admin` dashboard loads stats.
-- [ ] Place a card order → Stripe Checkout → success page.
-- [ ] Place a COD order → success page.
+**Connect a GUI (TablePlus, DBeaver, pgAdmin) to the server database** through an SSH tunnel. Port 5432 is never open to the internet.
 
----
+```bash
+ssh -N -L 5433:127.0.0.1:5432 deploy@<server-ip>
+# then connect to localhost:5433, user/db mushk, password = POSTGRES_PASSWORD
+```
 
-## 8) Things to watch on the free Hobby tier
-
-- **Bandwidth**: 100 GB/month. Cloudinary images don't count against this
-  (they're served from Cloudinary's CDN), which is good — we already point
-  product images to Cloudinary.
-- **Function execution**: 100 GB-hours/month. Each request to an API route
-  counts; webhook + checkout intent are the busiest.
-- **Function timeout**: capped at 60 s on Hobby. `vercel.json` already sets
-  30 s for the Stripe and admin routes — plenty of headroom.
-- **Cold starts**: Neon's free tier suspends the database after ~5 min idle.
-  The first request after that takes a few hundred ms extra while it wakes.
-  The `pg` pool is reused across warm invocations (`src/lib/db/index.js`).
-
----
-
-## 9) Going live with real money
-
-When you're ready to accept real cards:
-
-1. Switch Stripe to **live mode** (top-right toggle in Stripe Dashboard).
-2. Update Vercel envs:
-   - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` → `pk_live_...`
-   - `STRIPE_SECRET_KEY` → `sk_live_...`
-   - Create a new **live** webhook at `https://YOUR-DOMAIN/api/webhooks/stripe`
-     and update `STRIPE_WEBHOOK_SECRET`.
-3. Redeploy.
-
----
+**Environment changes:** edit `.env`, then run `./deploy/scripts/deploy.sh`. A rebuild is required for `NEXT_PUBLIC_*` values and `DOMAIN`, because they're baked into the browser bundle.
 
 ## Troubleshooting
 
-**Build fails with "Module not found"**
-Make sure every new file is committed. Vercel only sees what's in Git.
-
-**Build fails with `Cannot find module 'tailwindcss'` (or `postcss` / `autoprefixer`)**
-You manually set `NODE_ENV=production` in Vercel's Environment Variables.
-That makes `npm install` skip `devDependencies`. **Delete the `NODE_ENV`
-variable** in Vercel (it's auto-set during prod builds — never set it
-yourself), then redeploy. The PostCSS toolchain is now also listed under
-`dependencies` so this should not recur, but the `NODE_ENV` entry will
-break other things downstream and should still be removed.
-
-**Admin login redirects forever**
-`NEXTAUTH_URL` must exactly match your deployed URL (`https://...`, no slash).
-Redeploy after changing it.
-
-**"Failed to create checkout session" on Pay with Stripe**
-Open Vercel → Deployments → latest → **Functions logs**. The route already
-logs full Stripe errors. Usually means `STRIPE_SECRET_KEY` is wrong/missing
-or `NEXT_PUBLIC_DOMAIN` doesn't start with `https://`.
-
-**Stripe webhook returns 400**
-The `STRIPE_WEBHOOK_SECRET` in Vercel doesn't match the value shown in the
-Stripe dashboard webhook page. Copy it again and redeploy.
-
-**`DATABASE_URL is not defined`**
-The env var is missing in Vercel (or `.env.local` locally). Add the Neon
-pooled connection string and redeploy.
-
-**`relation "products" does not exist`**
-Migrations haven't been applied to this database: `npm run db:migrate`.
-
-**Migration fails with `prepared statement ... already exists`**
-You ran it over the pooled URL. Set `DATABASE_URL_UNPOOLED` to the direct
-(non `-pooler`) string.
+- **Certificate not issued / site not reachable:** run `docker compose logs caddy`. Usually DNS doesn't point at the server yet, or ports 80/443 are blocked. Check the Contabo firewall in the panel as well as UFW.
+- **`web` unhealthy:** run `docker compose logs web`. `/api/health` returns 503 when Postgres is unreachable.
+- **Migration failed during deploy:** the old `web` container keeps running. Fix the migration, push, and deploy again.
+- **Build killed (exit 137):** the server ran out of memory. Check `free -h` and that swap is on, or upgrade the VPS.
+- **Admin login loops back to the login page:** check that `DOMAIN` is correct, because `NEXTAUTH_URL` comes from it, and that you're using `https://`.
