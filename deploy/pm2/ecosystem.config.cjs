@@ -33,5 +33,15 @@ module.exports = {
       max_memory_restart: "150M",
       time: true,
     },
+    {
+      // Nightly database dump at 03:00 to /work/backups (keeps 14 days).
+      name: "mushk-backup",
+      cwd: root,
+      script: path.join(root, "deploy/pm2/backup.sh"),
+      interpreter: "bash",
+      cron_restart: "0 3 * * *",
+      autorestart: false,
+      time: true,
+    },
   ],
 };
