@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCartContext } from '../../context/CartContext';
 import { formatPrice as formatPKR } from "@/lib/money";
+import { SHOW_PRODUCT_RATINGS } from '@/lib/storefront/flags';
 
 // Modern product card with:
 //  - Consistent square media area with subtle hover image swap
@@ -172,12 +173,14 @@ const ProductCard = ({ product, className = '' }) => {
         <div className="product-info">
           {eyebrow ? <div className="product-eyebrow">{eyebrow}</div> : null}
           <h3>{product.name}</h3>
-          <div className="product-rating">
-            <Stars rating={product.rating || 5} />
-            {reviewCount > 0 && (
-              <span className="rating-count">({reviewCount})</span>
-            )}
-          </div>
+          {SHOW_PRODUCT_RATINGS && (
+            <div className="product-rating">
+              <Stars rating={product.rating || 5} />
+              {reviewCount > 0 && (
+                <span className="rating-count">({reviewCount})</span>
+              )}
+            </div>
+          )}
           <div className="product-price">
             <span className="current-price">{formatPrice(product.price)}</span>
             {product.originalPrice && (

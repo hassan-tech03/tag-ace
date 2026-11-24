@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import AddToCartModal from '../../../components/ui/AddToCartModal';
 import { formatPrice } from "@/lib/money";
 import { useShippingRates } from "@/lib/storefront/useShippingRates";
+import { SHOW_PRODUCT_RATINGS } from '@/lib/storefront/flags';
 
 // Normalises a DB product (already in storefront shape via the adapter) into
 // the richer shape this page expects (with images[], rating, reviews count,
@@ -501,17 +502,19 @@ export default function ProductDetail({ params }) {
                 {/* Product Name */}
                 <h1 className="product-title">{product.name}</h1>
 
-                {/* Rating */}
-                <div className="product-rating">
-                  <div className="stars">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i} className={i < product.rating ? 'star filled' : 'star'}>
-                        ★
-                      </span>
-                    ))}
+                {/* Rating (hidden until real reviews exist) */}
+                {SHOW_PRODUCT_RATINGS && (
+                  <div className="product-rating">
+                    <div className="stars">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} className={i < product.rating ? 'star filled' : 'star'}>
+                          ★
+                        </span>
+                      ))}
+                    </div>
+                    <span className="rating-text">({product.reviews} reviews)</span>
                   </div>
-                  <span className="rating-text">({product.reviews} reviews)</span>
-                </div>
+                )}
 
                 {/* Price */}
                 <div className="product-price">
@@ -602,7 +605,8 @@ export default function ProductDetail({ params }) {
         </div>
       </section>
 
-      {/* Customer Reviews Section */}
+      {/* Customer Reviews Section (generated sample reviews: hidden until real reviews exist) */}
+      {SHOW_PRODUCT_RATINGS && (
       <section className="customer-reviews-section">
         <div className="container">
           <div className="row">
@@ -750,6 +754,7 @@ export default function ProductDetail({ params }) {
           </div>
         </div>
       </section>
+      )}
 
       {/* FAQs Section */}
       <section className="faqs-section">
