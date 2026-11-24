@@ -16,9 +16,10 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         NEXT_TELEMETRY_DISABLED: "1",
-        // Let NextAuth take the public host from the proxy headers, so no
-        // NEXTAUTH_URL is needed and the domain can change without a rebuild.
-        AUTH_TRUST_HOST: "true",
+        // Set NEXTAUTH_URL and SITE_URL (https://your-domain) in
+        // apps/web/.env.local. Don't rely on proxy headers here: behind
+        // Cloudflare "Flexible" the origin sees http and NextAuth would
+        // redirect to http:// and drop secure cookies.
       },
       max_memory_restart: "1200M",
       kill_timeout: 10000,

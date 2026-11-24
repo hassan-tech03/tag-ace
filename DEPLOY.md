@@ -18,7 +18,7 @@ Live at `/work/mushk` on the server (`ssh hassan@169.58.171.233`).
 | `mushk-backup` | nightly 03:00 database backup to `/work/backups` (keeps 14 days) |
 
 - **Secrets:** `apps/web/.env.local` on the server (mode 600, never committed). `DATABASE_URL` points at the container's Postgres 16.
-- **Domain:** `NEXTAUTH_URL` and `NEXT_PUBLIC_DOMAIN` are left unset on purpose. NextAuth (`AUTH_TRUST_HOST=true`) and the Stripe return URLs take the public host from the proxy headers, so a domain can be attached without a rebuild.
+- **Domain:** `https://mushkscents.com`, behind Cloudflare (proxied). `apps/web/.env.local` sets `NEXTAUTH_URL` and `SITE_URL` to it. These are read at runtime, so changing them only needs `pm2 restart mushk-web`, not a rebuild. Cloudflare SSL mode must stay **Flexible** until the server's nginx has a certificate for the domain, because the server's HTTPS default site is another app.
 - PM2 processes come back after a container restart (`pm2 save` + `pm2 resurrect`).
 
 **Deploy a new version** (after pushing to `main`):
