@@ -159,6 +159,8 @@ export default function Home() {
 
   return (
     <div>
+      {/* One page heading for search engines / screen readers. */}
+      <h1 className="visually-hidden">Mushk Perfumes · Premium Perfumes for Men &amp; Women in Pakistan</h1>
       {/* Hero Slider Section */}
       <section className="hero-slider">
         <div className="slider-container">
@@ -184,10 +186,10 @@ export default function Home() {
                 <div className="slide-content">
                   <div className="slide-text">
                     <p className="slide-subtitle">{slide.subtitle}</p>
-                    <h1 className="slide-title">
+                    <h2 className="slide-title">
                       {slide.title}<br />
                       <em>{slide.title2}</em>
-                    </h1>
+                    </h2>
                     <Link href="/shop">
                       <button className="slide-button">
                         {slide.buttonText}

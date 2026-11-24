@@ -96,7 +96,7 @@ const ProductCard = ({ product, className = '' }) => {
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/products/${product.slug || product.id}`}
       className="product-link"
       aria-label={product.name}
     >
