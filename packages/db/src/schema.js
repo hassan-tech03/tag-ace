@@ -282,7 +282,7 @@ export const posts = pgTable(
 
 export const SETTINGS_DEFAULTS = {
   announcementBar: { text: "", link: "", isActive: false },
-  storeInfo: { name: "Mushk Perfumes", tagline: "", email: "mushk.scents1@gmail.com", phone: "", address: "" },
+  storeInfo: { name: "Mushk Perfumes", tagline: "", email: "mushk.scents1@gmail.com", phone: "0306 9167328", address: "" },
   social: { facebook: "", instagram: "", twitter: "", youtube: "", tiktok: "" },
   seo: { defaultTitle: "", defaultDescription: "", ogImage: "" },
   shipping: { freeShippingThreshold: 5000, flatRate: 250, taxRate: 0 }, // PKR

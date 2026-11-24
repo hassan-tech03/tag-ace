@@ -6085,3 +6085,40 @@ body {
     }
   }
 }
+
+// Contact links (email / phone) — on-brand instead of the browser's blue.
+.top-bar .top-bar-phone {
+  color: inherit;
+  font-weight: 600;
+  &:hover {
+    color: var(--color-gold);
+  }
+}
+
+.footer .footer-brand .contact-info a {
+  color: rgba(255, 255, 255, 0.7);
+  transition: color var(--transition);
+  &:hover {
+    color: var(--color-gold);
+  }
+}
+
+.contact-page .contact-card {
+  a {
+    color: var(--color-charcoal);
+    font-weight: 600;
+    word-break: break-word;
+    transition: color var(--transition);
+    &:hover {
+      color: var(--color-gold);
+    }
+  }
+}
+
+.order-confirmation-page .info-item a {
+  color: var(--color-charcoal);
+  font-weight: 600;
+  &:hover {
+    color: var(--color-gold);
+  }
+}
