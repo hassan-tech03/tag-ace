@@ -28,11 +28,12 @@ export default function AdminShell({ children }) {
   }, [open]);
 
   return (
-    <div className="admin-shell md:flex">
+    <div className="admin-shell">
       <Sidebar open={open} onClose={close} />
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* Desktop sidebar is position:fixed (w-64), so offset the content. */}
+      <div className="md:pl-64 min-h-screen flex flex-col min-w-0">
         <Topbar onMenuClick={() => setOpen(true)} />
-        <main className="flex-1 p-3 sm:p-4 md:p-6">{children}</main>
+        <main className="flex-1 w-full max-w-[1400px] mx-auto p-3 sm:p-5 lg:p-8">{children}</main>
       </div>
     </div>
   );

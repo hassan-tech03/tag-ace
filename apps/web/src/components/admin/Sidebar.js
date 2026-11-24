@@ -1,18 +1,39 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const NAV = [
-  { href: "/admin", label: "Dashboard", icon: "grid" },
-  { href: "/admin/products", label: "Products", icon: "box" },
-  { href: "/admin/categories", label: "Categories", icon: "tag" },
-  { href: "/admin/orders", label: "Orders", icon: "cart" },
-  { href: "/admin/customers", label: "Customers", icon: "users" },
-  { href: "/admin/coupons", label: "Coupons", icon: "ticket" },
-  { href: "/admin/offers", label: "Special Offers", icon: "spark" },
-  { href: "/admin/content", label: "Site Content", icon: "layout" },
+export const NAV_GROUPS = [
+  {
+    label: "Overview",
+    items: [{ href: "/admin", label: "Dashboard", icon: "grid" }],
+  },
+  {
+    label: "Catalog",
+    items: [
+      { href: "/admin/products", label: "Products", icon: "box" },
+      { href: "/admin/categories", label: "Categories", icon: "tag" },
+    ],
+  },
+  {
+    label: "Sales",
+    items: [
+      { href: "/admin/orders", label: "Orders", icon: "cart" },
+      { href: "/admin/customers", label: "Customers", icon: "users" },
+      { href: "/admin/coupons", label: "Coupons", icon: "ticket" },
+      { href: "/admin/offers", label: "Special Offers", icon: "spark" },
+    ],
+  },
+  {
+    label: "Storefront",
+    items: [{ href: "/admin/content", label: "Site Content", icon: "layout" }],
+  },
 ];
+
+export function isActive(pathname, href) {
+  return href === "/admin" ? pathname === "/admin" : pathname === href || pathname.startsWith(href + "/");
+}
 
 function Icon({ name }) {
   const props = {
@@ -87,6 +108,14 @@ function Icon({ name }) {
           <line x1="9" y1="21" x2="9" y2="9" />
         </svg>
       );
+    case "external":
+      return (
+        <svg {...props} width={15} height={15}>
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          <polyline points="15 3 21 3 21 9" />
+          <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -97,12 +126,15 @@ export default function Sidebar({ open = false, onClose }) {
 
   const content = (
     <>
-      <div className="px-5 py-5 border-b border-slate-800 flex items-center justify-between">
-        <Link href="/admin" className="flex items-center gap-2 text-white no-underline">
-          <span className="inline-flex w-8 h-8 rounded-md bg-amber-400/90 text-slate-900 items-center justify-center font-bold">
-            M
+      <div className="h-16 px-5 border-b border-white/10 flex items-center justify-between shrink-0">
+        <Link href="/admin" className="flex items-center gap-3 text-white no-underline min-w-0">
+          <span className="inline-flex w-10 h-10 rounded-xl bg-[#faf6ee] items-center justify-center shrink-0 shadow-sm">
+            <Image src="/brand/mushk-icon.png" alt="" width={32} height={32} className="w-8 h-8 object-contain" />
           </span>
-          <span className="font-semibold tracking-wide">Mushk Admin</span>
+          <span className="flex flex-col leading-tight min-w-0">
+            <span className="font-semibold tracking-wide text-[15px]">Mushk</span>
+            <span className="text-[11px] uppercase tracking-[0.18em] text-[#c9a96e]">Admin panel</span>
+          </span>
         </Link>
         <button
           type="button"
@@ -110,54 +142,65 @@ export default function Sidebar({ open = false, onClose }) {
           aria-label="Close menu"
           className="md:hidden text-slate-300 hover:text-white p-1 -mr-1"
         >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
-      <nav className="flex-1 py-3 overflow-y-auto">
-        {NAV.map((item) => {
-          const active =
-            item.href === "/admin"
-              ? pathname === "/admin"
-              : pathname === item.href || pathname.startsWith(item.href + "/");
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-5 py-2.5 text-sm no-underline transition-colors ${
-                active
-                  ? "bg-slate-800 text-white border-l-2 border-amber-400"
-                  : "text-slate-300 hover:bg-slate-800/60 hover:text-white border-l-2 border-transparent"
-              }`}
-            >
-              <Icon name={item.icon} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.label}>
+            <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+              {group.label}
+            </div>
+            <div className="space-y-0.5">
+              {group.items.map((item) => {
+                const active = isActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    aria-current={active ? "page" : undefined}
+                    className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm no-underline transition-colors ${
+                      active
+                        ? "bg-[#c9a96e]/15 text-white"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <span className={active ? "text-[#c9a96e]" : "text-slate-400 group-hover:text-slate-200"}>
+                      <Icon name={item.icon} />
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                    {active && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#c9a96e]" />}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
-      <div className="px-5 py-3 text-xs text-slate-500 border-t border-slate-800">
-        Mushk Admin v0.1
+
+      <div className="p-3 border-t border-white/10 shrink-0">
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm text-slate-300 no-underline hover:bg-white/5 hover:text-white"
+        >
+          <span>View store</span>
+          <Icon name="external" />
+        </a>
       </div>
     </>
   );
 
   return (
     <>
-      {/* Desktop sidebar: always visible, sticky. */}
-      <aside className="hidden md:flex md:flex-col w-60 shrink-0 bg-slate-900 text-slate-200 min-h-screen sticky top-0">
+      {/* Desktop: fixed to the viewport so it never scrolls with the page. */}
+      <aside className="hidden md:flex md:flex-col fixed inset-y-0 left-0 z-30 w-64 bg-[#111827] text-slate-200 border-r border-black/20">
         {content}
       </aside>
 
@@ -168,12 +211,9 @@ export default function Sidebar({ open = false, onClose }) {
         }`}
         aria-hidden={!open}
       >
-        <div
-          className="absolute inset-0 bg-black/50"
-          onClick={onClose}
-        />
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onClick={onClose} />
         <aside
-          className={`relative z-50 flex flex-col w-64 max-w-[80vw] h-full bg-slate-900 text-slate-200 shadow-xl transition-transform duration-200 ${
+          className={`relative z-50 flex flex-col w-72 max-w-[85vw] h-full bg-[#111827] text-slate-200 shadow-2xl transition-transform duration-200 ${
             open ? "translate-x-0" : "-translate-x-full"
           }`}
           role="dialog"

@@ -40,10 +40,14 @@ const nextConfig = {
     return [{ source: "/shop/unisex", destination: "/shop", permanent: true }];
   },
 
-  webpack: (config) => {
+  webpack: (config, { dev }) => {
     // Stable chunk ids so dynamic chunk references don't break across deploys.
-    config.optimization.moduleIds = "deterministic";
-    config.optimization.chunkIds = "deterministic";
+    // Production only: in `next dev` this breaks hot reload ("Cannot read
+    // properties of undefined (reading 'call')").
+    if (!dev) {
+      config.optimization.moduleIds = "deterministic";
+      config.optimization.chunkIds = "deterministic";
+    }
     config.performance = {
       maxAssetSize: 5_000_000,
       maxEntrypointSize: 5_000_000,

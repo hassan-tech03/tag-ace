@@ -385,8 +385,7 @@ export default function ReceiptPDF({ orderData, orderNumber }) {
                   <Text style={styles.colBoxMuted}>Email: {ci.email}</Text>
                   <Text style={styles.colBoxMuted}>Phone: {ci.phone}</Text>
                   <Text style={[styles.colBoxTitle, { marginTop: 10 }]}>Support</Text>
-                  <Text style={styles.colBoxMuted}>info@mushk.com</Text>
-                  <Text style={styles.colBoxMuted}>+1 (555) 123-4567</Text>
+                  <Text style={styles.colBoxMuted}>mushkscents.com/contact</Text>
                 </View>
               </View>
             </>

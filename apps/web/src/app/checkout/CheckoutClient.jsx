@@ -442,7 +442,7 @@ export default function CheckoutClient() {
           </nav>
           <div className="checkout-logo">
             <Link href="/">
-              <Image src="/logo.jpeg" alt="Mushk Perfumes" width={120} height={40} />
+              <Image src="/brand/mushk-logo.png" alt="Mushk Perfumes" width={379} height={339} style={{ height: '56px', width: 'auto' }} />
             </Link>
           </div>
         </div>
@@ -467,7 +467,7 @@ export default function CheckoutClient() {
                         value={formData.email}
                         onChange={handleInputChange}
                         required
-                        placeholder="john@example.com"
+                        placeholder="you@example.com"
                       />
                     </div>
                     <div className="form-group">
@@ -479,7 +479,7 @@ export default function CheckoutClient() {
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        placeholder="+1 (555) 123-4567"
+                        placeholder="Your phone number"
                       />
                     </div>
                   </div>
@@ -512,7 +512,7 @@ export default function CheckoutClient() {
                         value={formData.firstName}
                         onChange={handleInputChange}
                         required
-                        placeholder="John"
+                        placeholder="First name"
                       />
                     </div>
 
@@ -525,7 +525,7 @@ export default function CheckoutClient() {
                         value={formData.lastName}
                         onChange={handleInputChange}
                         required
-                        placeholder="Doe"
+                        placeholder="Last name"
                       />
                     </div>
                   </div>
@@ -551,7 +551,7 @@ export default function CheckoutClient() {
                       value={formData.address}
                       onChange={handleInputChange}
                       required
-                      placeholder="123 Main Street"
+                      placeholder="House no., street, area"
                     />
                   </div>
 
@@ -577,7 +577,7 @@ export default function CheckoutClient() {
                         value={formData.city}
                         onChange={handleInputChange}
                         required
-                        placeholder="New York"
+                        placeholder="City"
                       />
                     </div>
 

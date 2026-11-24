@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 function LoginForm() {
   const router = useRouter();
@@ -39,13 +40,18 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-slate-100">
-      <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-slate-200 p-7">
+    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-br from-[#faf6ee] via-white to-slate-100">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-200 p-7 sm:p-8">
         <div className="text-center mb-6">
-          <div className="inline-flex w-12 h-12 rounded-xl bg-amber-400/90 text-slate-900 items-center justify-center font-bold text-lg mb-3">
-            M
-          </div>
-          <h1 className="text-xl font-semibold text-slate-900">Mushk Admin</h1>
+          <Image
+            src="/brand/mushk-logo.png"
+            alt="Mushk Perfumes"
+            width={379}
+            height={339}
+            priority
+            className="mx-auto mb-4 h-24 w-auto"
+          />
+          <h1 className="text-xl font-semibold text-slate-900">Admin sign in</h1>
           <p className="text-sm text-slate-500 mt-1">Sign in to manage your store</p>
         </div>
 
