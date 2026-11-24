@@ -9,6 +9,22 @@ import { formatPrice } from "@/lib/money";
 import { shippingFor } from "@/lib/orderUtils";
 import { useShippingRates } from "@/lib/storefront/useShippingRates";
 
+const PK_PROVINCES = [
+  "Punjab",
+  "Sindh",
+  "Khyber Pakhtunkhwa",
+  "Balochistan",
+  "Islamabad Capital Territory",
+  "Gilgit-Baltistan",
+  "Azad Jammu & Kashmir",
+];
+
+// Pakistani numbers: 03XXXXXXXXX, +923XXXXXXXXX, or a landline with area code.
+function isValidPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length >= 10 && digits.length <= 13;
+}
+
 export default function CheckoutClient() {
   const { cartItems, getCartTotal, isLoaded, clearCart } = useCartContext();
   const router = useRouter();
@@ -28,7 +44,7 @@ export default function CheckoutClient() {
     address: "",
     apartment: "",
     city: "",
-    country: "United States",
+    country: "Pakistan",
     state: "",
     zipCode: "",
 
@@ -40,7 +56,7 @@ export default function CheckoutClient() {
     billingAddress: "",
     billingApartment: "",
     billingCity: "",
-    billingCountry: "United States",
+    billingCountry: "Pakistan",
     billingState: "",
     billingZipCode: "",
 
@@ -368,7 +384,7 @@ export default function CheckoutClient() {
       formData.address &&
       formData.city &&
       formData.state &&
-      formData.zipCode
+      isValidPhone(formData.phone)
     );
   };
 
@@ -502,10 +518,13 @@ export default function CheckoutClient() {
                         type="tel"
                         id="phone"
                         name="phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
                         value={formData.phone}
                         onChange={handleInputChange}
                         required
-                        placeholder="Your phone number"
+                        placeholder="03XX XXXXXXX"
                       />
                     </div>
                   </div>
@@ -526,7 +545,8 @@ export default function CheckoutClient() {
 
                 {/* Shipping Address */}
                 <div className="form-section">
-                  <h2>Shipping Address</h2>
+                  <h2>Delivery Address</h2>
+                  <p className="text-muted small mb-3">We deliver across Pakistan.</p>
 
                   <div className="form-row">
                     <div className="form-group">
@@ -608,7 +628,7 @@ export default function CheckoutClient() {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="state">State *</label>
+                      <label htmlFor="state">Province *</label>
                       <select
                         id="state"
                         name="state"
@@ -616,70 +636,24 @@ export default function CheckoutClient() {
                         onChange={handleInputChange}
                         required
                       >
-                        <option value="">Select State</option>
-                        <option value="AL">Alabama</option>
-                        <option value="AK">Alaska</option>
-                        <option value="AZ">Arizona</option>
-                        <option value="AR">Arkansas</option>
-                        <option value="CA">California</option>
-                        <option value="CO">Colorado</option>
-                        <option value="CT">Connecticut</option>
-                        <option value="DE">Delaware</option>
-                        <option value="FL">Florida</option>
-                        <option value="GA">Georgia</option>
-                        <option value="HI">Hawaii</option>
-                        <option value="ID">Idaho</option>
-                        <option value="IL">Illinois</option>
-                        <option value="IN">Indiana</option>
-                        <option value="IA">Iowa</option>
-                        <option value="KS">Kansas</option>
-                        <option value="KY">Kentucky</option>
-                        <option value="LA">Louisiana</option>
-                        <option value="ME">Maine</option>
-                        <option value="MD">Maryland</option>
-                        <option value="MA">Massachusetts</option>
-                        <option value="MI">Michigan</option>
-                        <option value="MN">Minnesota</option>
-                        <option value="MS">Mississippi</option>
-                        <option value="MO">Missouri</option>
-                        <option value="MT">Montana</option>
-                        <option value="NE">Nebraska</option>
-                        <option value="NV">Nevada</option>
-                        <option value="NH">New Hampshire</option>
-                        <option value="NJ">New Jersey</option>
-                        <option value="NM">New Mexico</option>
-                        <option value="NY">New York</option>
-                        <option value="NC">North Carolina</option>
-                        <option value="ND">North Dakota</option>
-                        <option value="OH">Ohio</option>
-                        <option value="OK">Oklahoma</option>
-                        <option value="OR">Oregon</option>
-                        <option value="PA">Pennsylvania</option>
-                        <option value="RI">Rhode Island</option>
-                        <option value="SC">South Carolina</option>
-                        <option value="SD">South Dakota</option>
-                        <option value="TN">Tennessee</option>
-                        <option value="TX">Texas</option>
-                        <option value="UT">Utah</option>
-                        <option value="VT">Vermont</option>
-                        <option value="VA">Virginia</option>
-                        <option value="WA">Washington</option>
-                        <option value="WV">West Virginia</option>
-                        <option value="WI">Wisconsin</option>
-                        <option value="WY">Wyoming</option>
+                        <option value="">Select province</option>
+                        {PK_PROVINCES.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
                       </select>
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="zipCode">ZIP Code *</label>
+                      <label htmlFor="zipCode">Postal code (optional)</label>
                       <input
                         type="text"
                         id="zipCode"
                         name="zipCode"
                         value={formData.zipCode}
                         onChange={handleInputChange}
-                        required
-                        placeholder="10001"
+                        inputMode="numeric"
+                        maxLength={10}
+                        placeholder="54000"
                       />
                     </div>
                   </div>

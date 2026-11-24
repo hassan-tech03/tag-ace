@@ -161,6 +161,7 @@ export const orders = pgTable(
     adminNotes: text("admin_notes").notNull().default(""),
 
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
     cancelReason: text("cancel_reason").notNull().default(""),
     ...timestamps,
   },
