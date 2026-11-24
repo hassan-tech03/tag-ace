@@ -302,7 +302,10 @@ export default function OrderConfirmation() {
                 <h4>📞 Customer Support</h4>
                 <p>
                   Need help? {storeInfo.email ? (
-                    <>Email us at <a href={`mailto:${storeInfo.email}`}>{storeInfo.email}</a> or use our </>
+                    <>
+                      Email us at <a href={`mailto:${storeInfo.email}`}>{storeInfo.email}</a>
+                      {storeInfo.phone ? <>, call <a href={`tel:${storeInfo.phone.replace(/[^+0-9]/g, '')}`}>{storeInfo.phone}</a></> : null} or use our{' '}
+                    </>
                   ) : 'Reach us through our '}
                   <Link href="/contact">contact page</Link>. A confirmation has also been sent to your email.
                 </p>
