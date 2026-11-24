@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, coupons } from "@mushk/db";
+import { formatPrice } from "@/lib/money";
 
 // Public endpoint: validates a coupon code against a cart subtotal.
 // Returns the computed discount amount (does not persist usage; counts
@@ -43,7 +44,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           valid: false,
-          error: `Spend at least $${coupon.minPurchase.toFixed(2)} to use this coupon.`,
+          error: `Spend at least ${formatPrice(coupon.minPurchase)} to use this coupon.`,
         },
         { status: 400 }
       );

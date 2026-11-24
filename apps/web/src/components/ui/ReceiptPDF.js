@@ -1,6 +1,7 @@
 'use client';
 
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { formatPrice } from "@/lib/money";
 
 const colors = {
   primary: '#2c2c2c',
@@ -336,10 +337,10 @@ export default function ReceiptPDF({ orderData, orderNumber }) {
               </View>
               <Text style={[styles.cellText, styles.colQty, { textAlign: 'center' }]}>{item.quantity}</Text>
               <Text style={[styles.cellText, styles.colPrice, { textAlign: 'right' }]}>
-                ${getNumericPrice(item.price).toFixed(2)}
+                {formatPrice(getNumericPrice(item.price))}
               </Text>
               <Text style={[styles.cellText, styles.colTotal, { textAlign: 'right' }]}>
-                ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
+                {formatPrice((getNumericPrice(item.price) * item.quantity))}
               </Text>
             </View>
           ))}
@@ -348,22 +349,24 @@ export default function ReceiptPDF({ orderData, orderNumber }) {
           <View style={styles.totalsBox}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Subtotal</Text>
-              <Text style={styles.totalValue}>${(orderData?.subtotal || 0).toFixed(2)}</Text>
+              <Text style={styles.totalValue}>{formatPrice((orderData?.subtotal || 0))}</Text>
             </View>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Shipping</Text>
               <Text style={styles.totalValue}>
-                {orderData?.shipping === 0 ? 'Free' : `$${(orderData?.shipping || 0).toFixed(2)}`}
+                {orderData?.shipping === 0 ? 'Free' : formatPrice((orderData?.shipping || 0))}
               </Text>
             </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Tax</Text>
-              <Text style={styles.totalValue}>${(orderData?.tax || 0).toFixed(2)}</Text>
-            </View>
+            {Number(orderData?.tax) > 0 && (
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Tax</Text>
+                <Text style={styles.totalValue}>{formatPrice(orderData.tax)}</Text>
+              </View>
+            )}
             <View style={styles.totalDivider} />
             <View style={styles.totalRow}>
               <Text style={styles.grandLabel}>Total</Text>
-              <Text style={styles.grandValue}>${(orderData?.total || 0).toFixed(2)} USD</Text>
+              <Text style={styles.grandValue}>{formatPrice((orderData?.total || 0))}</Text>
             </View>
           </View>
 

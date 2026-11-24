@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCartContext } from '../../context/CartContext';
+import { formatPrice as formatPKR } from "@/lib/money";
 
 // Modern product card with:
 //  - Consistent square media area with subtle hover image swap
@@ -24,11 +25,10 @@ function parsePrice(val) {
 }
 
 function formatPrice(val) {
-  // If the value came in as a string with extra words like "From $79.00"
+  // If the value came in as a string with extra words like "From Rs 7,900"
   // we keep the original string so the card still reads naturally.
   if (typeof val === 'string') return val;
-  const n = parsePrice(val);
-  return `$${n.toFixed(2)}`;
+  return formatPKR(parsePrice(val));
 }
 
 function discountPercent(price, originalPrice) {

@@ -7,6 +7,7 @@ import {
   RevenueChart,
   StatusBreakdown,
 } from "@/components/admin/AnalyticsCharts";
+import { formatPrice } from "@/lib/money";
 
 const RANGES = [
   { id: "7d", label: "7d" },
@@ -16,10 +17,7 @@ const RANGES = [
 ];
 
 function money(n) {
-  return `$${Number(n || 0).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+  return formatPrice(n);
 }
 
 function StatTile({ label, value, sub, accent = "amber" }) {

@@ -18,7 +18,8 @@
     "seed:admin": "node scripts/seed-admin.mjs",
     "seed:products": "node scripts/seed-products.mjs",
     "backup": "node scripts/backup-json.mjs",
-    "restore": "node scripts/restore-json.mjs"
+    "restore": "node scripts/restore-json.mjs",
+    "seed:blog": "node scripts/seed-blog.mjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

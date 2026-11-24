@@ -22,6 +22,7 @@
     "seed:admin": "npm run seed:admin -w @mushk/db",
     "seed:products": "npm run seed:products -w @mushk/db",
     "db:backup": "npm run backup -w @mushk/db --",
-    "db:restore": "npm run restore -w @mushk/db --"
+    "db:restore": "npm run restore -w @mushk/db --",
+    "seed:blog": "npm run seed:blog -w @mushk/db"
   }
 }

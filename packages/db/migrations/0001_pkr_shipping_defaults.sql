@@ -1,0 +1,1 @@
+ALTER TABLE "settings" ALTER COLUMN "shipping" SET DEFAULT '{"freeShippingThreshold":5000,"flatRate":250,"taxRate":0}'::jsonb;

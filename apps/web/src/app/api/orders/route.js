@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db, orders } from "@mushk/db";
-import { createOrder } from "@mushk/db/queries";
+import { createOrder, getSettings } from "@mushk/db/queries";
 import { orderCreateSchema } from "@/lib/validation";
-import { computeTotals, generateOrderNumber } from "@/lib/orderUtils";
+import { computeTotals, generateOrderNumber, ratesFromSettings } from "@/lib/orderUtils";
 import { handleError } from "@/lib/api";
 import { siteUrl } from "@/lib/siteUrl";
+import { STRIPE_CURRENCY } from "@/lib/money";
 
 // Public endpoint called by the storefront checkout. Persists an Order in
 // Postgres and, for Stripe orders, also creates a Checkout Session so the
@@ -17,7 +18,7 @@ export async function POST(request) {
     const data = orderCreateSchema.parse(body);
 
     // Recompute totals on the server. Never trust client-side totals.
-    const totals = computeTotals(data.items);
+    const totals = computeTotals(data.items, ratesFromSettings((await getSettings()).shipping));
     if (totals.items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
     }
@@ -63,7 +64,7 @@ export async function POST(request) {
 
     const lineItems = totals.items.map((item) => ({
       price_data: {
-        currency: "usd",
+        currency: STRIPE_CURRENCY,
         product_data: {
           name: item.name,
           images: item.image ? [item.image] : undefined,
@@ -76,7 +77,7 @@ export async function POST(request) {
     if (totals.shipping > 0) {
       lineItems.push({
         price_data: {
-          currency: "usd",
+          currency: STRIPE_CURRENCY,
           product_data: { name: "Shipping" },
           unit_amount: Math.round(totals.shipping * 100),
         },
@@ -86,8 +87,8 @@ export async function POST(request) {
     if (totals.tax > 0) {
       lineItems.push({
         price_data: {
-          currency: "usd",
-          product_data: { name: "Tax (8%)" },
+          currency: STRIPE_CURRENCY,
+          product_data: { name: "Tax" },
           unit_amount: Math.round(totals.tax * 100),
         },
         quantity: 1,

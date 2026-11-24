@@ -252,6 +252,32 @@ export const testimonials = pgTable(
   (t) => [index("testimonials_active_order_idx").on(t.isActive, t.order)]
 );
 
+// Blog posts -----------------------------------------------------------------
+// `content` is Markdown, written by admins and rendered on /blog/[slug].
+
+export const posts = pgTable(
+  "posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull(),
+    title: text("title").notNull(),
+    excerpt: text("excerpt").notNull().default(""),
+    content: text("content").notNull().default(""),
+    coverImage: text("cover_image").notNull().default(""),
+    author: text("author").notNull().default("Mushk Perfumes"),
+    tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+    status: text("status", { enum: ["draft", "published"] })
+      .notNull()
+      .default("draft"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("posts_slug_unique").on(t.slug),
+    index("posts_status_published_idx").on(t.status, t.publishedAt),
+  ]
+);
+
 // Site settings (single row, id = "site") ------------------------------------
 
 export const SETTINGS_DEFAULTS = {
@@ -259,7 +285,7 @@ export const SETTINGS_DEFAULTS = {
   storeInfo: { name: "Mushk Perfumes", tagline: "", email: "", phone: "", address: "" },
   social: { facebook: "", instagram: "", twitter: "", youtube: "", tiktok: "" },
   seo: { defaultTitle: "", defaultDescription: "", ogImage: "" },
-  shipping: { freeShippingThreshold: 100, flatRate: 10, taxRate: 0.08 },
+  shipping: { freeShippingThreshold: 5000, flatRate: 250, taxRate: 0 }, // PKR
 };
 
 export const settings = pgTable("settings", {

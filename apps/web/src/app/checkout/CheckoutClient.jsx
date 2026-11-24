@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useCartContext } from "../../context/CartContext";
+import { formatPrice } from "@/lib/money";
+import { shippingFor } from "@/lib/orderUtils";
+import { useShippingRates } from "@/lib/storefront/useShippingRates";
 
 export default function CheckoutClient() {
   const { cartItems, getCartTotal, isLoaded, clearCart } = useCartContext();
@@ -58,8 +61,10 @@ export default function CheckoutClient() {
   };
 
   const subtotal = getCartTotal() || 0;
-  const shipping = subtotal > 50 ? 0 : 9.99;
-  const tax = subtotal * 0.08; // 8% tax
+  // Same rules and rates as the server (src/lib/orderUtils.js).
+  const rates = useShippingRates();
+  const shipping = shippingFor(subtotal, rates);
+  const tax = subtotal * rates.taxRate;
   const total = subtotal + shipping + tax;
 
   const handleStripePaymentSuccess = useCallback(
@@ -744,7 +749,7 @@ export default function CheckoutClient() {
                             </p>
                             <ul>
                               <li>✅ Enter your card details securely</li>
-                              <li>✅ Review your order total (${total.toFixed(2)})</li>
+                              <li>✅ Review your order total ({formatPrice(total)})</li>
                               <li>✅ Complete your payment safely</li>
                             </ul>
                             <p className="note">
@@ -815,7 +820,7 @@ export default function CheckoutClient() {
                           <p>{meta}</p>
                         </div>
                         <div className="item-price">
-                          ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
+                          {formatPrice((getNumericPrice(item.price) * item.quantity))}
                         </div>
                       </div>
                     );
@@ -825,19 +830,21 @@ export default function CheckoutClient() {
                 <div className="order-totals">
                   <div className="total-row">
                     <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>{formatPrice(subtotal)}</span>
                   </div>
                   <div className="total-row">
                     <span>Shipping</span>
-                    <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                    <span>{shipping === 0 ? "Free" : formatPrice(shipping)}</span>
                   </div>
-                  <div className="total-row">
-                    <span>Tax</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
+                  {tax > 0 && (
+                    <div className="total-row">
+                      <span>Tax</span>
+                      <span>{formatPrice(tax)}</span>
+                    </div>
+                  )}
                   <div className="total-row total-final">
                     <span>Total</span>
-                    <span>${total.toFixed(2)} USD</span>
+                    <span>{formatPrice(total)}</span>
                   </div>
                 </div>
 
@@ -882,7 +889,7 @@ export default function CheckoutClient() {
                       "Complete Form First"
                     ) : (
                       <>
-                        Pay with Stripe (${total.toFixed(2)})
+                        Pay with Stripe ({formatPrice(total)})
                         <svg
                           width="20"
                           height="20"

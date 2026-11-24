@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import Image from 'next/image';
+import { formatPrice } from "@/lib/money";
 
 const AddToCartModal = ({ isOpen, onClose, product, quantity }) => {
   // Helper function to extract numeric price from string or number
@@ -72,7 +73,7 @@ const AddToCartModal = ({ isOpen, onClose, product, quantity }) => {
                 <span className="price">
                   {typeof product.price === 'string' 
                     ? product.price 
-                    : `$${(product.price || 0).toFixed(2)}`
+                    : formatPrice((product.price || 0))
                   }
                 </span>
               </div>

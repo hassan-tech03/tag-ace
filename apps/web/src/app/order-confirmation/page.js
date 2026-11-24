@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { formatPrice } from "@/lib/money";
 
 export default function OrderConfirmation() {
   const [orderData, setOrderData] = useState(null);
@@ -221,7 +222,7 @@ export default function OrderConfirmation() {
                       <p className="quantity">Qty: {item.quantity}</p>
                     </div>
                     <div className="item-price">
-                      ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
+                      {formatPrice((getNumericPrice(item.price) * item.quantity))}
                     </div>
                   </div>
                 ))}
@@ -230,19 +231,21 @@ export default function OrderConfirmation() {
               <div className="receipt-totals">
                 <div className="total-row">
                   <span>Subtotal</span>
-                  <span>${orderData.subtotal.toFixed(2)}</span>
+                  <span>{formatPrice(orderData.subtotal)}</span>
                 </div>
                 <div className="total-row">
                   <span>Shipping</span>
-                  <span>{orderData.shipping === 0 ? 'Free' : `$${orderData.shipping.toFixed(2)}`}</span>
+                  <span>{orderData.shipping === 0 ? 'Free' : formatPrice(orderData.shipping)}</span>
                 </div>
-                <div className="total-row">
-                  <span>Tax</span>
-                  <span>${orderData.tax.toFixed(2)}</span>
-                </div>
+                {Number(orderData.tax) > 0 && (
+                  <div className="total-row">
+                    <span>Tax</span>
+                    <span>{formatPrice(orderData.tax)}</span>
+                  </div>
+                )}
                 <div className="total-row total-final">
                   <span>Total</span>
-                  <span>${orderData.total.toFixed(2)} USD</span>
+                  <span>{formatPrice(orderData.total)}</span>
                 </div>
               </div>
             </div>
@@ -255,7 +258,7 @@ export default function OrderConfirmation() {
                   <div className="receipt-totals">
                     <div className="total-row total-final">
                       <span>Total</span>
-                      <span>${orderData.total ? orderData.total.toFixed(2) : '0.00'} USD</span>
+                      <span>{formatPrice(orderData.total || 0)}</span>
                     </div>
                   </div>
                 )}

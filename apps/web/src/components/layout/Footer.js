@@ -209,6 +209,7 @@ export default function Footer() {
               <li><Link href="/shop">All Fragrances</Link></li>
               <li><Link href="/shop/men">Men</Link></li>
               <li><Link href="/shop/women">Women</Link></li>
+              <li><Link href="/blog">Blog</Link></li>
               <li><Link href="/about">About Us</Link></li>
             </ul>
           </div>

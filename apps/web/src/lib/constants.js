@@ -10,7 +10,7 @@ export const API_ENDPOINTS = {
 export const APP_CONFIG = {
   APP_NAME: 'Mushk Perfumes',
   APP_DESCRIPTION: 'Discover your signature scent with premium fragrances',
-  CURRENCY: 'USD',
+  CURRENCY: 'PKR',
   TAX_RATE: 0.1, // 10%
   SHIPPING_RATE: 5.99,
   FREE_SHIPPING_THRESHOLD: 75.00,

@@ -7,6 +7,7 @@ import { Button, Input, Select } from "@/components/admin/ui/Field";
 import Pagination from "@/components/admin/ui/Pagination";
 import ConfirmModal from "@/components/admin/ui/Confirm";
 import { useToast } from "@/components/admin/ui/Toast";
+import { formatPrice } from "@/lib/money";
 
 export default function ProductsPage() {
   const toast = useToast();
@@ -175,10 +176,10 @@ export default function ProductsPage() {
                 </td>
                 <td className="px-3 py-2 text-slate-600">{p.category || "—"}</td>
                 <td className="px-3 py-2 text-slate-900">
-                  ${Number(p.price).toFixed(2)}
+                  {formatPrice(Number(p.price))}
                   {p.originalPrice && p.originalPrice > p.price ? (
                     <span className="ml-1 text-xs text-slate-400 line-through">
-                      ${Number(p.originalPrice).toFixed(2)}
+                      {formatPrice(Number(p.originalPrice))}
                     </span>
                   ) : null}
                 </td>

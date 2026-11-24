@@ -1,5 +1,5 @@
 // Format currency
-export const formatCurrency = (amount, currency = 'USD') => {
+export const formatCurrency = (amount, currency = 'PKR') => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: currency,
