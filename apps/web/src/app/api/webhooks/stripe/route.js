@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { and, eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, orders } from "@mushk/db";
 import { isUuid } from "@mushk/db/helpers";
-import { sendOrderEmails } from "@/lib/email";
+import { markStripeSessionPaid } from "@/lib/payments";
 
 // Stripe webhook receiver. Configure the endpoint in the Stripe dashboard
 // (or `stripe listen --forward-to localhost:3000/api/webhooks/stripe` in dev)
@@ -36,26 +36,11 @@ export async function POST(request) {
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object;
-        const orderId = session.metadata?.orderId;
-        const update = {
-          paymentStatus: "paid",
-          status: "processing",
-          stripePaymentIntentId: session.payment_intent || "",
-          stripeSessionId: session.id,
-        };
-        // Only rows not already marked paid are returned, so a retried
-        // webhook doesn't send the order emails twice.
-        const match = isUuid(orderId)
-          ? eq(orders.id, orderId)
-          : eq(orders.stripeSessionId, session.id); // fallback if metadata is missing
-        const [paidOrder] = await db
-          .update(orders)
-          .set(update)
-          .where(and(match, ne(orders.paymentStatus, "paid")))
-          .returning();
-        if (paidOrder) await sendOrderEmails(paidOrder);
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        // Marks the order paid and sends the order emails (only once, even
+        // if the return page or a retried webhook already did it).
+        await markStripeSessionPaid(event.data.object);
         break;
       }
       case "checkout.session.expired":

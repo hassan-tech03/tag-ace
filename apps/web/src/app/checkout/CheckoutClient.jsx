@@ -68,7 +68,7 @@ export default function CheckoutClient() {
   const total = subtotal + shipping + tax;
 
   const handleStripePaymentSuccess = useCallback(
-    (sessionId) => {
+    async (sessionId) => {
       console.log('🚀 Stripe payment success callback triggered with sessionId:', sessionId);
       
       try {
@@ -132,8 +132,23 @@ export default function CheckoutClient() {
         
         console.log('✅ Final items for order:', itemsToUse);
         
+        // Verify the payment server-side: marks the order paid, sends the
+        // confirmation emails, and returns the real order number/totals.
+        let confirmed = null;
+        try {
+          const res = await fetch('/api/checkout/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId }),
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.ok && data.paid) confirmed = data.order;
+        } catch (err) {
+          console.error('Payment confirmation failed:', err);
+        }
+
         const orderData = {
-          orderNumber: `AR${Date.now().toString().slice(-6)}`,
+          orderNumber: confirmed?.orderNumber || checkoutData?.orderNumber || '',
           items: itemsToUse.map((item) => ({
             id: item.id,
             name: item.name,
@@ -143,10 +158,10 @@ export default function CheckoutClient() {
           })),
           customerInfo: formToUse,
           paymentMethod: "Credit Card (Stripe)",
-          subtotal: subtotalToUse,
-          shipping: shippingToUse,
-          tax: taxToUse,
-          total: totalToUse,
+          subtotal: confirmed?.subtotal ?? subtotalToUse,
+          shipping: confirmed?.shipping ?? shippingToUse,
+          tax: confirmed?.tax ?? taxToUse,
+          total: confirmed?.total ?? totalToUse,
           orderDate: new Date().toISOString(),
           stripeSessionId: sessionId,
         };
@@ -405,6 +420,12 @@ export default function CheckoutClient() {
       const data = await response.json().catch(() => ({}));
 
       if (response.ok && data.url) {
+        // Keep the real order number for the confirmation page.
+        if (data.orderNumber) {
+          const withNumber = JSON.stringify({ ...checkoutData, orderNumber: data.orderNumber });
+          sessionStorage.setItem('stripeCheckoutData', withNumber);
+          localStorage.setItem('stripeCheckoutDataBackup', withNumber);
+        }
         console.log('🔄 Redirecting to Stripe:', data.url);
         window.location.href = data.url;
       } else {
