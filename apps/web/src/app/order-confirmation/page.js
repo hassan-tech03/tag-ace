@@ -47,8 +47,7 @@ export default function OrderConfirmation() {
         try {
           orderData = JSON.parse(backupOrder);
           orderNumber = orderData.orderNumber;
-          console.log('✅ Order data found in localStorage backup:', orderData);
-          localStorage.removeItem('lastOrderBackup');
+          // Kept (not removed) so refreshing this page still shows the order.
         } catch (error) {
           console.error('❌ Error parsing localStorage backup:', error);
         }
@@ -62,51 +61,9 @@ export default function OrderConfirmation() {
       console.log('✅ Using real order data with', orderData.items.length, 'items');
       setOrderData(orderData);
       setOrderNumber(orderNumber);
-    } else {
-      // Create fallback data only if no real order data found
-      console.log('❌ No real order data found, creating fallback data');
-      const timestamp = Date.now();
-      const stableOrderNumber = `AR${timestamp.toString().slice(-5)}`;
-      
-      const sampleOrderData = {
-        orderNumber: stableOrderNumber,
-        items: [
-          {
-            id: 1,
-            name: "Love Edition For Her",
-            price: 30.00,
-            quantity: 1,
-            image: "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
-          },
-          {
-            id: 2,
-            name: "Arome Le Parfum",
-            price: 79.00,
-            quantity: 2,
-            image: "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
-          }
-        ],
-        customerInfo: {
-          firstName: "John",
-          lastName: "Doe",
-          email: "john@example.com",
-          phone: "+1 (555) 123-4567",
-          address: "123 Main Street",
-          city: "New York",
-          state: "NY",
-          zipCode: "10001",
-          country: "United States"
-        },
-        paymentMethod: 'Sample Order',
-        subtotal: 188.00,
-        shipping: 0,
-        tax: 15.04,
-        total: 203.04,
-        orderDate: new Date().toISOString()
-      };
-      setOrderData(sampleOrderData);
-      setOrderNumber(stableOrderNumber);
     }
+    // No order data (e.g. the page was opened directly): render the
+    // "no recent order" state instead of a made-up sample order.
     
     setIsInitialized(true);
   }, [isInitialized]);
@@ -148,6 +105,25 @@ export default function OrderConfirmation() {
     }
   };
 
+  if (isInitialized && !orderData) {
+    return (
+      <div className="order-confirmation-page">
+        <div className="container">
+          <div className="confirmation-content" style={{ textAlign: 'center', padding: '80px 16px' }}>
+            <h1 style={{ fontFamily: 'var(--font-playfair)', marginBottom: 12 }}>No recent order found</h1>
+            <p style={{ color: 'var(--color-text-muted)', marginBottom: 28 }}>
+              Your order details appear here right after checkout. If you've placed an order and need help, contact us with your order number.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link href="/shop" className="btn btn-dark px-4 py-2">Continue shopping</Link>
+              <Link href="/contact" className="btn btn-outline-dark px-4 py-2">Contact us</Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="order-confirmation-page">
       <div className="container">
@@ -165,7 +141,6 @@ export default function OrderConfirmation() {
             <div className="company-info">
               <h2>Mushk</h2>
               <p>Premium Fragrance Collection</p>
-              <p>Email: info@mushk.com | Phone: +1 (555) 123-4567</p>
             </div>
           </div>
 
@@ -315,19 +290,15 @@ export default function OrderConfirmation() {
             <h3>Important Information</h3>
             <div className="info-grid">
               <div className="info-item">
-                <h4>📦 Shipping Policy</h4>
-                <p>Free shipping on orders over $50. Standard delivery takes 3-5 business days.</p>
-              </div>
-              <div className="info-item">
-                <h4>🔄 Return Policy</h4>
-                <p>30-day return policy. Items must be unopened and in original packaging.</p>
+                <h4>📦 What happens next</h4>
+                <p>We'll confirm your order and prepare it for delivery. Keep your order number handy for any questions.</p>
               </div>
               <div className="info-item">
                 <h4>📞 Customer Support</h4>
-                <p>Need help? Contact us at support@mushk.com or call +1 (555) 123-4567</p>
+                <p>Need help? Reach us any time through our <Link href="/contact">contact page</Link>.</p>
               </div>
               <div className="info-item">
-                <h4>🎁 Gift Message</h4>
+                <h4>📝 Order Notes</h4>
                 <p>{orderData?.customerInfo?.specialInstructions || 'No special instructions provided'}</p>
               </div>
             </div>
@@ -397,9 +368,6 @@ export default function OrderConfirmation() {
               <Link href="/contact">
                 <button className="contact-btn">Contact Us</button>
               </Link>
-              <a href="tel:+15551234567" className="phone-link">
-                <button className="phone-btn">📞 Call Us</button>
-              </a>
             </div>
           </div>
         </div>

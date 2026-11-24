@@ -16,7 +16,9 @@ export default function GenderShop({ gender, title, description }) {
 
   const [selectedFamily, setSelectedFamily] = useState('all');
   const [selectedAvailability, setSelectedAvailability] = useState('all');
-  const [priceRange, setPriceRange] = useState([0, 500]);
+  // [min, max] as strings; '' means no bound (so pricey items are never
+  // hidden by a default cap).
+  const [priceRange, setPriceRange] = useState(['', '']);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('featured');
 
@@ -64,7 +66,9 @@ export default function GenderShop({ gender, title, description }) {
       const availabilityMatch =
         selectedAvailability === 'all' || p.availability === selectedAvailability;
       const price = Number(p.price || 0);
-      const priceMatch = price >= priceRange[0] && price <= priceRange[1];
+      const min = priceRange[0] === '' ? -Infinity : Number(priceRange[0]);
+      const max = priceRange[1] === '' ? Infinity : Number(priceRange[1]);
+      const priceMatch = price >= min && price <= max;
       return familyMatch && availabilityMatch && priceMatch;
     });
   }, [products, selectedFamily, selectedAvailability, priceRange]);
@@ -85,6 +89,30 @@ export default function GenderShop({ gender, title, description }) {
   }, [filtered, sortBy]);
 
   const labelCap = gender.charAt(0).toUpperCase() + gender.slice(1);
+
+  const activeFilterCount =
+    (selectedFamily !== 'all' ? 1 : 0) +
+    (selectedAvailability !== 'all' ? 1 : 0) +
+    (priceRange[0] !== '' || priceRange[1] !== '' ? 1 : 0);
+
+  const clearFilters = () => {
+    setSelectedFamily('all');
+    setSelectedAvailability('all');
+    setPriceRange(['', '']);
+  };
+
+  // Mobile drawer: lock page scroll while open, close on Escape.
+  useEffect(() => {
+    if (!isFilterOpen) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e) => e.key === 'Escape' && setIsFilterOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [isFilterOpen]);
 
   return (
     <div className="category-shop-page">
@@ -116,6 +144,7 @@ export default function GenderShop({ gender, title, description }) {
                 priceRange={priceRange}
                 setPriceRange={setPriceRange}
                 familySuffix=""
+                onClear={activeFilterCount > 0 ? clearFilters : null}
               />
             </aside>
 
@@ -137,6 +166,9 @@ export default function GenderShop({ gender, title, description }) {
                     <line x1="17" y1="16" x2="23" y2="16"></line>
                   </svg>
                   Filters
+                  {activeFilterCount > 0 && (
+                    <span className="filter-count-badge">{activeFilterCount}</span>
+                  )}
                 </button>
 
                 <div className="sort-controls">
@@ -187,6 +219,9 @@ export default function GenderShop({ gender, title, description }) {
                   {sorted.length === 0 && (
                     <div className="no-products">
                       <p>No products match your current filters.</p>
+                      <button type="button" className="clear-filters-link" onClick={clearFilters}>
+                        Clear filters
+                      </button>
                     </div>
                   )}
                 </>
@@ -197,11 +232,21 @@ export default function GenderShop({ gender, title, description }) {
       </div>
 
       {/* Mobile filters drawer */}
-      <div className={`mobile-filters-overlay ${isFilterOpen ? 'active' : ''}`}>
-        <div className="mobile-filters-sidebar">
+      <div
+        className={`mobile-filters-overlay ${isFilterOpen ? 'active' : ''}`}
+        onClick={() => setIsFilterOpen(false)}
+        aria-hidden={!isFilterOpen}
+      >
+        <div
+          className="mobile-filters-sidebar"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filters"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="filters-header">
             <h3>Filters</h3>
-            <button className="close-filters" onClick={() => setIsFilterOpen(false)}>
+            <button className="close-filters" onClick={() => setIsFilterOpen(false)} aria-label="Close filters">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -220,15 +265,25 @@ export default function GenderShop({ gender, title, description }) {
               priceRange={priceRange}
               setPriceRange={setPriceRange}
               familySuffix="-mobile"
+              showTitle={false}
             />
           </div>
 
           <div className="filters-footer">
             <button
+              type="button"
+              className="clear-filters-btn"
+              onClick={clearFilters}
+              disabled={activeFilterCount === 0}
+            >
+              Clear
+            </button>
+            <button
+              type="button"
               className="apply-filters-btn"
               onClick={() => setIsFilterOpen(false)}
             >
-              Apply Filters
+              Show {sorted.length} {sorted.length === 1 ? 'product' : 'products'}
             </button>
           </div>
         </div>
@@ -247,10 +302,21 @@ function FiltersBody({
   priceRange,
   setPriceRange,
   familySuffix,
+  showTitle = true,
+  onClear = null,
 }) {
   return (
     <div className="filters-container">
-      <h3>Filters</h3>
+      {showTitle && (
+        <div className="filters-title-row">
+          <h3>Filters</h3>
+          {onClear && (
+            <button type="button" className="clear-filters-link" onClick={onClear}>
+              Clear all
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="filter-group">
         <h4>Availability</h4>
@@ -294,16 +360,22 @@ function FiltersBody({
           <div className="price-inputs">
             <input
               type="number"
-              placeholder="Min Price"
+              inputMode="numeric"
+              min="0"
+              placeholder="Min"
+              aria-label="Minimum price"
               value={priceRange[0]}
-              onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+              onChange={(e) => setPriceRange([e.target.value.replace(/[^0-9]/g, ''), priceRange[1]])}
             />
             <span>to</span>
             <input
               type="number"
-              placeholder="Max Price"
+              inputMode="numeric"
+              min="0"
+              placeholder="Max"
+              aria-label="Maximum price"
               value={priceRange[1]}
-              onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 500])}
+              onChange={(e) => setPriceRange([priceRange[0], e.target.value.replace(/[^0-9]/g, '')])}
             />
           </div>
         </div>

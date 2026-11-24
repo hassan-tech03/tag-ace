@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export default function Contact() {
@@ -15,6 +15,24 @@ export default function Contact() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  // Store contact details from Admin → Site Content.
+  const [store, setStore] = useState({ address: '', phone: '', email: '' });
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/storefront/settings', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((b) => {
+        if (cancelled || !b?.storeInfo) return;
+        setStore({
+          address: b.storeInfo.address || '',
+          phone: b.storeInfo.phone || '',
+          email: b.storeInfo.email || '',
+        });
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -23,26 +41,25 @@ export default function Contact() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  // There is no message inbox in the backend yet, so the form opens the
+  // visitor's email app with the message addressed to the store.
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!store.email) return;
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      setSubmitStatus('success');
-      setFormData({ 
-        name: '', 
-        email: '', 
-        phone: '',
-        subject: '', 
-        message: '',
-        inquiryType: 'general'
-      });
-      setIsSubmitting(false);
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => setSubmitStatus(null), 5000);
-    }, 2000);
+    const subject = `[${formData.inquiryType}] ${formData.subject || 'Website enquiry'}`;
+    const body = [
+      formData.message,
+      '',
+      '—',
+      `Name: ${formData.name}`,
+      `Email: ${formData.email}`,
+      formData.phone ? `Phone: ${formData.phone}` : null,
+    ].filter((l) => l !== null).join('\n');
+    window.location.href = `mailto:${store.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    setSubmitStatus('success');
+    setIsSubmitting(false);
+    setTimeout(() => setSubmitStatus(null), 8000);
   };
 
   return (
@@ -59,16 +76,16 @@ export default function Contact() {
                 </p>
                 <div className="hero-stats">
                   <div className="stat-item">
-                    <div className="stat-number">24/7</div>
-                    <div className="stat-label">Customer Support</div>
+                    <div className="stat-number">COD</div>
+                    <div className="stat-label">Cash on Delivery</div>
                   </div>
                   <div className="stat-item">
-                    <div className="stat-number">&lt;2h</div>
-                    <div className="stat-label">Response Time</div>
+                    <div className="stat-number">2</div>
+                    <div className="stat-label">Collections: Men &amp; Women</div>
                   </div>
                   <div className="stat-item">
-                    <div className="stat-number">99%</div>
-                    <div className="stat-label">Satisfaction Rate</div>
+                    <div className="stat-number">100%</div>
+                    <div className="stat-label">Secure Checkout</div>
                   </div>
                 </div>
               </div>
@@ -88,68 +105,62 @@ export default function Contact() {
         </div>
       </div>
 
-      {/* Contact Information Cards */}
+      {/* Contact Information Cards (only once details are set in Site Content) */}
+      {(store.address || store.phone || store.email) && (
       <div className="contact-info-section">
         <div className="container">
-          <div className="row g-4">
-            <div className="col-lg-4 col-md-6">
-              <div className="contact-card">
-                <div className="contact-icon">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                  </svg>
-                </div>
-                <h3>Visit Our Store</h3>
-                <p>123 Fragrance Avenue<br />New York, NY 10001<br />United States</p>
-                <div className="contact-hours">
-                  <strong>Store Hours:</strong><br />
-                  Mon-Fri: 9:00 AM - 8:00 PM<br />
-                  Sat-Sun: 10:00 AM - 6:00 PM
+          <div className="row g-4 justify-content-center">
+            {store.address && (
+              <div className="col-lg-4 col-md-6">
+                <div className="contact-card">
+                  <div className="contact-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                      <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                  </div>
+                  <h3>Visit Us</h3>
+                  <p style={{ whiteSpace: 'pre-line' }}>{store.address}</p>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="col-lg-4 col-md-6">
-              <div className="contact-card">
-                <div className="contact-icon">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                  </svg>
-                </div>
-                <h3>Call Us</h3>
-                <p className="phone-number">+1 (555) 123-4567</p>
-                <p>Customer Service<br />Available 24/7</p>
-                <div className="contact-hours">
-                  <strong>International:</strong><br />
-                  +1 (555) 123-4568
+            {store.phone && (
+              <div className="col-lg-4 col-md-6">
+                <div className="contact-card">
+                  <div className="contact-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                  </div>
+                  <h3>Call Us</h3>
+                  <p className="phone-number">
+                    <a href={`tel:${store.phone.replace(/[^+0-9]/g, '')}`}>{store.phone}</a>
+                  </p>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="col-lg-4 col-md-6">
-              <div className="contact-card">
-                <div className="contact-icon">
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                  </svg>
-                </div>
-                <h3>Email Us</h3>
-                <p>
-                  <strong>General:</strong> info@mushk.com<br />
-                  <strong>Support:</strong> support@mushk.com<br />
-                  <strong>Orders:</strong> orders@mushk.com
-                </p>
-                <div className="contact-hours">
-                  <strong>Response Time:</strong><br />
-                  Usually within 2 hours
+            {store.email && (
+              <div className="col-lg-4 col-md-6">
+                <div className="contact-card">
+                  <div className="contact-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                  </div>
+                  <h3>Email Us</h3>
+                  <p>
+                    <a href={`mailto:${store.email}`}>{store.email}</a>
+                  </p>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
+      )}
 
       {/* Contact Form Section */}
       <div className="contact-form-section">
@@ -169,7 +180,7 @@ export default function Contact() {
                       <polyline points="22,4 12,14.01 9,11.01"></polyline>
                     </svg>
                     <div>
-                      <strong>Message sent successfully!</strong> We'll get back to you within 2 hours.
+                      <strong>Your email app has opened with your message.</strong> Press send there and we'll get back to you soon.
                     </div>
                   </div>
                 </div>
@@ -209,7 +220,7 @@ export default function Contact() {
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          placeholder="John Doe"
+                          placeholder="Your name"
                           required
                         />
                       </div>
@@ -224,7 +235,7 @@ export default function Contact() {
                           name="email"
                           value={formData.email}
                           onChange={handleInputChange}
-                          placeholder="john@example.com"
+                          placeholder="you@example.com"
                           required
                         />
                       </div>
@@ -243,7 +254,7 @@ export default function Contact() {
                           name="phone"
                           value={formData.phone}
                           onChange={handleInputChange}
-                          placeholder="+1 (555) 123-4567"
+                          placeholder="03XX XXXXXXX"
                         />
                       </div>
                     </div>
@@ -281,10 +292,15 @@ export default function Contact() {
 
                   {/* Submit Button */}
                   <div className="text-center">
-                    <button 
-                      type="submit" 
+                    {!store.email && (
+                      <p className="text-muted small mb-3">
+                        Our contact email will be available here shortly.
+                      </p>
+                    )}
+                    <button
+                      type="submit"
                       className="btn btn-primary btn-lg"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !store.email}
                     >
                       {isSubmitting ? (
                         <>
@@ -323,23 +339,18 @@ export default function Contact() {
 
               <div className="faq-grid">
                 <div className="faq-item">
-                  <h4>🚚 What is your shipping policy?</h4>
-                  <p>We offer free shipping on orders over $50. Standard delivery takes 3-5 business days within the US.</p>
-                </div>
-
-                <div className="faq-item">
-                  <h4>🔄 Can I return or exchange products?</h4>
-                  <p>Yes! We have a 30-day return policy. Items must be unopened and in original packaging for hygiene reasons.</p>
-                </div>
-
-                <div className="faq-item">
-                  <h4>🎁 Do you offer gift wrapping?</h4>
-                  <p>Absolutely! We provide complimentary gift wrapping for all orders. Just select the option at checkout.</p>
-                </div>
-
-                <div className="faq-item">
                   <h4>💳 What payment methods do you accept?</h4>
-                  <p>We accept all major credit cards, PayPal, Apple Pay, and offer cash on delivery for select locations.</p>
+                  <p>You can pay securely by debit or credit card at checkout, or choose Cash on Delivery and pay when your order arrives.</p>
+                </div>
+
+                <div className="faq-item">
+                  <h4>🛍️ How do I place an order?</h4>
+                  <p>Browse the Men or Women collection, add fragrances to your cart and check out with your delivery details. You'll get an order number as soon as it's placed.</p>
+                </div>
+
+                <div className="faq-item">
+                  <h4>📦 Can I change or cancel my order?</h4>
+                  <p>Get in touch with us as soon as possible using the details on this page and include your order number, and we'll do our best to help.</p>
                 </div>
               </div>
             </div>

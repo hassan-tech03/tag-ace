@@ -38,3 +38,43 @@
 .admin-shell textarea {
   font: inherit;
 }
+
+/* Light preflight, scoped to the admin shell. :where() keeps specificity at
+ * zero, so any Tailwind utility on the element still wins. */
+:where(.admin-shell) button {
+  background: transparent;
+  border: 0 solid transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  margin: 0;
+  line-height: inherit;
+}
+
+:where(.admin-shell) :is(ul, ol) {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+:where(.admin-shell) :is(p, figure, blockquote, dl, dd) {
+  margin: 0;
+}
+
+:where(.admin-shell) img,
+:where(.admin-shell) svg {
+  vertical-align: middle;
+}
+
+:where(.admin-shell) table {
+  border-collapse: collapse;
+}
+
+:where(.admin-shell) a {
+  color: inherit;
+}
+
+:where(.admin-shell) :focus-visible {
+  outline: 2px solid #c9a96e;
+  outline-offset: 2px;
+}

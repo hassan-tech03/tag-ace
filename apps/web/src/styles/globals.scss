@@ -2378,11 +2378,18 @@ body {
     top: 100px;
     overflow: hidden;
     box-sizing: border-box;
-    > h3 {
+    .filters-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+    h3 {
       font-size: 1.3rem;
       font-weight: 600;
       color: var(--color-charcoal);
-      margin-bottom: 28px;
+      margin: 0;
       font-family: var(--font-playfair);
     }
   }
@@ -3323,8 +3330,11 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-  width: min(320px, 92vw);
+  width: min(360px, 88vw);
   height: 100vh;
+  height: 100dvh;
+  max-width: 100%;
+  overflow: hidden;
   background: white;
   transform: translateX(-100%);
   transition: transform var(--transition);
@@ -3365,8 +3375,15 @@ body {
 
   .filters-content {
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
-    padding: 16px 24px;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 16px 20px;
+    .filters-container {
+      width: 100%;
+      max-width: 100%;
+    }
     .filter-group {
       margin-bottom: 24px;
       padding-bottom: 20px;
@@ -3406,12 +3423,17 @@ body {
       display: flex;
       align-items: center;
       gap: 8px;
+      width: 100%;
       input {
-        flex: 1;
-        padding: 9px 12px;
+        flex: 1 1 0;
+        min-width: 0;
+        width: 0;
+        padding: 11px 12px;
         border: 1.5px solid var(--color-border);
-        border-radius: 6px;
-        font-size: 13px;
+        border-radius: 8px;
+        // 16px stops iOS Safari from zooming into the field on focus.
+        font-size: 16px;
+        background: white;
         &:focus {
           outline: none;
           border-color: var(--color-gold);
@@ -3425,10 +3447,32 @@ body {
   }
 
   .filters-footer {
-    padding: 16px 24px;
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
     border-top: 1px solid var(--color-border);
+    background: white;
+    .clear-filters-btn {
+      flex: 0 0 auto;
+      background: white;
+      color: var(--color-charcoal);
+      border: 1.5px solid var(--color-border);
+      padding: 14px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      &:disabled {
+        opacity: 0.45;
+        cursor: default;
+      }
+    }
     .apply-filters-btn {
-      width: 100%;
+      flex: 1;
+      min-width: 0;
       background: var(--color-charcoal);
       color: white;
       border: none;
@@ -5983,3 +6027,61 @@ body {
   100% { background-position: -200% 0; }
 }
 
+
+// Filter extras: active-count badge, "clear" links
+.filter-toggle-btn .filter-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: var(--color-black);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.clear-filters-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-gold);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  &:hover {
+    color: var(--color-charcoal);
+  }
+}
+
+.no-products .clear-filters-link {
+  margin-top: 12px;
+}
+
+// Shop toolbar on small phones: filter button + sort on one row, count below.
+@media (max-width: 575px) {
+  .products-header {
+    gap: 10px 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    .sort-controls {
+      label {
+        display: none;
+      }
+      .sort-select {
+        max-width: 190px;
+        padding: 9px 12px;
+      }
+    }
+    .results-count {
+      order: 3;
+      width: 100%;
+    }
+  }
+}
