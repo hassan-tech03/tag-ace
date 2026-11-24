@@ -39,6 +39,9 @@ export async function POST(request) {
       },
     });
   } catch (err) {
+    if (err?.code === "resource_missing") {
+      return NextResponse.json({ error: "Unknown checkout session" }, { status: 404 });
+    }
     console.error("[checkout confirm]", err.message);
     return NextResponse.json({ error: "Could not confirm payment" }, { status: 502 });
   }
