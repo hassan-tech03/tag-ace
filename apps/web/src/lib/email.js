@@ -254,6 +254,58 @@ export async function sendOrderEmails(row) {
   }
 }
 
+// "Your order has been delivered" to the customer. Never throws.
+export async function sendOrderDeliveredEmail(row) {
+  try {
+    const order = {
+      ...row,
+      customer: { ...(row.customer || {}), email: row.customer?.email || row.customerEmail || "" },
+    };
+    if (!order.customer.email) return;
+    const store = await storeContact();
+    const c = order.customer;
+    const name = customerName(c) || "there";
+    const base = siteBase();
+    const h = (t) => `<h2 style="font-size:15px;margin:22px 0 6px;color:${C.ink}">${t}</h2>`;
+    const body = `
+<p style="margin:0 0 6px;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:${C.gold};font-weight:bold">Delivered</p>
+<h1 style="margin:0 0 12px;font-family:Georgia,serif;font-weight:normal;font-size:26px">Your order has arrived, ${esc(name)}!</h1>
+<p style="margin:0 0 6px;font-size:14px;line-height:1.7">Your order <strong>#${esc(order.orderNumber)}</strong> has been delivered. We hope you love your new fragrance${(order.items || []).length > 1 ? "s" : ""}.</p>
+${h("What you received")}
+${itemsTable(order.items)}
+${totalsTable(order)}
+<div style="margin:26px 0 8px;padding:16px;border-radius:10px;background:${C.cream};font-size:13px;line-height:1.6">
+<strong>Tip:</strong> keep your perfume away from heat and sunlight, and spray on moisturised skin so it lasts longer.${
+      base ? ` More tips on <a href="${base}/blog" style="color:${C.ink}">our blog</a>.` : ""
+    }
+</div>
+<p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:${C.muted}">Something not right with your order? Just reply to this email${
+      store.email ? ` or write to <a href="mailto:${esc(store.email)}" style="color:${C.ink}">${esc(store.email)}</a>` : ""
+    }${store.phone ? `, or call ${esc(store.phone)}` : ""} and we'll sort it out.</p>
+${
+  base
+    ? `<p style="margin:22px 0 8px;text-align:center"><a href="${base}/shop" style="display:inline-block;background:${C.ink};color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-size:14px;font-weight:bold">Shop again</a></p>`
+    : ""
+}`;
+    const text = [
+      `Hi ${name}, your Mushk Perfumes order #${order.orderNumber} has been delivered.`,
+      "",
+      ...(order.items || []).map((it) => `- ${it.name} x${it.quantity}`),
+      "",
+      `Something not right? Reply to this email${store.email ? ` or write to ${store.email}` : ""}.`,
+    ].join("\n");
+    await sendMail({
+      to: order.customer.email,
+      replyTo: store.email || undefined,
+      subject: `Delivered: your Mushk order #${order.orderNumber}`,
+      html: layout({ preheader: `Order #${order.orderNumber} has been delivered`, body }),
+      text,
+    });
+  } catch (err) {
+    console.error("[email] delivered email failed:", err.message);
+  }
+}
+
 export async function sendContactEmail({ name, email, phone, subject, message, inquiryType }) {
   const store = await storeContact();
   const to = process.env.CONTACT_EMAIL || store.email || process.env.SMTP_USER;

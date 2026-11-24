@@ -43,6 +43,13 @@
       "when": 1795518841039,
       "tag": "0005_store_support_phone",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795522600749,
+      "tag": "0006_order_delivered_at",
+      "breakpoints": true
     }
   ]
 }

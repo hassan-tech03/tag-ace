@@ -43,6 +43,16 @@ const PAYMENT_STATUS_OPTIONS = [
   { value: "refunded", label: "Refunded" },
 ];
 
+// Link to this payment in the Stripe dashboard (test or live, from the
+// session id prefix).
+function stripeDashboardUrl(order) {
+  const test = String(order.stripeSessionId || "").startsWith("cs_test_");
+  const base = `https://dashboard.stripe.com${test ? "/test" : ""}`;
+  return order.stripePaymentIntentId
+    ? `${base}/payments/${order.stripePaymentIntentId}`
+    : `${base}/search?query=${encodeURIComponent(order.stripeSessionId)}`;
+}
+
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -104,7 +114,9 @@ export default function OrderDetailPage() {
         }
         return;
       }
-      toast.success("Order updated");
+      toast.success(
+        data.deliveredEmailSent ? "Order marked delivered — customer has been emailed" : "Order updated"
+      );
       setOrder(data);
     } catch (err) {
       toast.error(err.message);
@@ -217,7 +229,16 @@ export default function OrderDetailPage() {
 
         <div className="space-y-4">
           <Card title="Status">
-            <Field label="Fulfillment status">
+            <Field
+              label="Fulfillment status"
+              hint={
+                status === "delivered" && order.status !== "delivered"
+                  ? "Saving will email the customer that their order was delivered."
+                  : order.deliveredAt
+                  ? `Delivered on ${new Date(order.deliveredAt).toLocaleString()}`
+                  : undefined
+              }
+            >
               <Select value={status} onChange={(e) => setStatus(e.target.value)}>
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -265,11 +286,15 @@ export default function OrderDetailPage() {
 
           <Card title="Payment">
             <KV label="Method" value={order.paymentMethod === "stripe" ? "Stripe Checkout" : "Cash on Delivery"} />
-            {order.stripeSessionId && (
-              <KV label="Stripe session" value={<code className="text-xs">{order.stripeSessionId}</code>} />
-            )}
-            {order.stripePaymentIntentId && (
-              <KV label="Payment intent" value={<code className="text-xs">{order.stripePaymentIntentId}</code>} />
+            {order.paymentMethod === "stripe" && (order.stripePaymentIntentId || order.stripeSessionId) && (
+              <a
+                href={stripeDashboardUrl(order)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 no-underline hover:bg-slate-50"
+              >
+                View payment in Stripe ↗
+              </a>
             )}
           </Card>
         </div>
