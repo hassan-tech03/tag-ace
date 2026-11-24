@@ -41,12 +41,10 @@ export default function Contact() {
     });
   };
 
-  // There is no message inbox in the backend yet, so the form opens the
-  // visitor's email app with the message addressed to the store.
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!store.email) return;
-    setIsSubmitting(true);
+  // Sends through /api/contact (emailed to the store, reply goes to the
+  // customer). If the server can't send email yet, falls back to opening the
+  // visitor's email app addressed to the store.
+  const openMailApp = () => {
     const subject = `[${formData.inquiryType}] ${formData.subject || 'Website enquiry'}`;
     const body = [
       formData.message,
@@ -57,9 +55,35 @@ export default function Contact() {
       formData.phone ? `Phone: ${formData.phone}` : null,
     ].filter((l) => l !== null).join('\n');
     window.location.href = `mailto:${store.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    setSubmitStatus('success');
-    setIsSubmitting(false);
-    setTimeout(() => setSubmitStatus(null), 8000);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, website: e.target.website?.value || '' }),
+      });
+      if (res.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', phone: '', subject: '', message: '', inquiryType: 'general' });
+        return;
+      }
+      if (res.status === 503 && store.email) {
+        openMailApp();
+        setSubmitStatus('mailapp');
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      setSubmitStatus({ error: data.error || 'Could not send your message. Please try again.' });
+    } catch {
+      setSubmitStatus({ error: 'Network error. Please check your connection and try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -172,7 +196,7 @@ export default function Contact() {
                 <p>Have a question about our fragrances? Need help with an order? We're here to help!</p>
               </div>
 
-              {submitStatus === 'success' && (
+              {(submitStatus === 'success' || submitStatus === 'mailapp') && (
                 <div className="alert alert-success" role="alert">
                   <div className="d-flex align-items-center">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="me-2">
@@ -180,14 +204,23 @@ export default function Contact() {
                       <polyline points="22,4 12,14.01 9,11.01"></polyline>
                     </svg>
                     <div>
-                      <strong>Your email app has opened with your message.</strong> Press send there and we'll get back to you soon.
+                      {submitStatus === 'success' ? (
+                        <><strong>Message sent!</strong> Thank you for reaching out, we'll reply to your email soon.</>
+                      ) : (
+                        <><strong>Your email app has opened with your message.</strong> Press send there and we'll get back to you soon.</>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
+              {submitStatus?.error && (
+                <div className="alert alert-danger" role="alert">{submitStatus.error}</div>
+              )}
 
               <div className="contact-form-card">
                 <form onSubmit={handleSubmit}>
+                  {/* Honeypot: hidden from people, bots tend to fill it in. */}
+                  <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
                   {/* Inquiry Type */}
                   <div className="form-group mb-4">
                     <label htmlFor="inquiryType" className="form-label">What can we help you with?</label>
@@ -292,15 +325,10 @@ export default function Contact() {
 
                   {/* Submit Button */}
                   <div className="text-center">
-                    {!store.email && (
-                      <p className="text-muted small mb-3">
-                        Our contact email will be available here shortly.
-                      </p>
-                    )}
                     <button
                       type="submit"
                       className="btn btn-primary btn-lg"
-                      disabled={isSubmitting || !store.email}
+                      disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <>

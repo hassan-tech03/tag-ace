@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function ReceiptPDF({ orderData, orderNumber }) {
+export default function ReceiptPDF({ orderData, orderNumber, supportEmail }) {
   const getNumericPrice = (price) => {
     if (typeof price === 'number') return price;
     if (typeof price === 'string') {
@@ -388,7 +388,7 @@ export default function ReceiptPDF({ orderData, orderNumber }) {
                   <Text style={styles.colBoxMuted}>Email: {ci.email}</Text>
                   <Text style={styles.colBoxMuted}>Phone: {ci.phone}</Text>
                   <Text style={[styles.colBoxTitle, { marginTop: 10 }]}>Support</Text>
-                  <Text style={styles.colBoxMuted}>mushkscents.com/contact</Text>
+                  <Text style={styles.colBoxMuted}>{supportEmail || 'mushkscents.com/contact'}</Text>
                 </View>
               </View>
             </>

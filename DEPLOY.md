@@ -39,6 +39,7 @@ The script pulls the code, installs packages, runs migrations, builds with a 2 G
 | SQL shell | `psql "$DATABASE_URL"` |
 | Reset admin password | edit `ADMIN_PASSWORD` in `apps/web/.env.local`, then `npm run seed:admin` |
 | Add the starter blog posts | `npm run seed:blog` (skips posts that already exist) |
+| Email settings | `SMTP_USER`, `SMTP_PASS` (Gmail App Password), `MAIL_FROM`, `ORDER_NOTIFY_EMAIL` in `apps/web/.env.local`, then `pm2 restart mushk-web --update-env` |
 
 The container's `pg_dump` is version 15, while the server is 16, so backups are JSON data exports (`packages/db/scripts/backup-json.mjs`). The schema comes from the migrations. Copy backups off the server from time to time: `scp 'hassan@169.58.171.233:/work/backups/*' .`
 

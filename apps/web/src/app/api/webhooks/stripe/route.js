@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db, orders } from "@mushk/db";
 import { isUuid } from "@mushk/db/helpers";
+import { sendOrderEmails } from "@/lib/email";
 
 // Stripe webhook receiver. Configure the endpoint in the Stripe dashboard
 // (or `stripe listen --forward-to localhost:3000/api/webhooks/stripe` in dev)
@@ -44,12 +45,17 @@ export async function POST(request) {
           stripePaymentIntentId: session.payment_intent || "",
           stripeSessionId: session.id,
         };
-        if (isUuid(orderId)) {
-          await db.update(orders).set(update).where(eq(orders.id, orderId));
-        } else {
-          // Fallback: locate by session id if metadata is missing.
-          await db.update(orders).set(update).where(eq(orders.stripeSessionId, session.id));
-        }
+        // Only rows not already marked paid are returned, so a retried
+        // webhook doesn't send the order emails twice.
+        const match = isUuid(orderId)
+          ? eq(orders.id, orderId)
+          : eq(orders.stripeSessionId, session.id); // fallback if metadata is missing
+        const [paidOrder] = await db
+          .update(orders)
+          .set(update)
+          .where(and(match, ne(orders.paymentStatus, "paid")))
+          .returning();
+        if (paidOrder) await sendOrderEmails(paidOrder);
         break;
       }
       case "checkout.session.expired":

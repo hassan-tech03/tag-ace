@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useStoreInfo } from '@/lib/storefront/useShippingRates';
 import { formatPrice } from "@/lib/money";
 
 export default function OrderConfirmation() {
+  const storeInfo = useStoreInfo();
   const [orderData, setOrderData] = useState(null);
   const [orderNumber, setOrderNumber] = useState('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -89,7 +91,7 @@ export default function OrderConfirmation() {
       const { createElement } = await import('react');
 
       const blob = await pdf(
-        createElement(ReceiptPDF, { orderData, orderNumber })
+        createElement(ReceiptPDF, { orderData, orderNumber, supportEmail: storeInfo.email })
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
@@ -298,7 +300,12 @@ export default function OrderConfirmation() {
               </div>
               <div className="info-item">
                 <h4>📞 Customer Support</h4>
-                <p>Need help? Reach us any time through our <Link href="/contact">contact page</Link>.</p>
+                <p>
+                  Need help? {storeInfo.email ? (
+                    <>Email us at <a href={`mailto:${storeInfo.email}`}>{storeInfo.email}</a> or use our </>
+                  ) : 'Reach us through our '}
+                  <Link href="/contact">contact page</Link>. A confirmation has also been sent to your email.
+                </p>
               </div>
               <div className="info-item">
                 <h4>📝 Order Notes</h4>

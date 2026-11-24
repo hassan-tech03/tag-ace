@@ -8,6 +8,7 @@ import { computeTotals, generateOrderNumber, ratesFromSettings } from "@/lib/ord
 import { handleError } from "@/lib/api";
 import { siteUrl } from "@/lib/siteUrl";
 import { STRIPE_CURRENCY } from "@/lib/money";
+import { sendOrderEmails } from "@/lib/email";
 
 // Public endpoint called by the storefront checkout. Persists an Order in
 // Postgres and, for Stripe orders, also creates a Checkout Session so the
@@ -41,6 +42,9 @@ export async function POST(request) {
     });
 
     if (data.paymentMethod === "cod") {
+      // Customer confirmation + store notification. Not awaited: the order is
+      // saved either way and email failures are only logged.
+      void sendOrderEmails(order);
       return NextResponse.json({
         orderId: order.id,
         orderNumber: order.orderNumber,
@@ -104,7 +108,7 @@ export async function POST(request) {
       cancel_url: `${domain}/checkout?payment_cancelled=true`,
       customer_email: data.customer.email,
       billing_address_collection: "required",
-      shipping_address_collection: { allowed_countries: ["US"] },
+      shipping_address_collection: { allowed_countries: ["PK"] },
       metadata: {
         orderId: order.id,
         orderNumber: order.orderNumber,
