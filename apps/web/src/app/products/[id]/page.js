@@ -7,7 +7,9 @@ import { useCartContext } from '../../../context/CartContext';
 import { useRouter } from 'next/navigation';
 import AddToCartModal from '../../../components/ui/AddToCartModal';
 import { formatPrice } from "@/lib/money";
-import { useShippingRates } from "@/lib/storefront/useShippingRates";
+import { useShippingRates, useStoreInfo } from "@/lib/storefront/useShippingRates";
+import { buildFaqs, DELIVERY_TIME, findFaqs } from "@/lib/faqs";
+import FaqAnswer from "@/components/storefront/FaqAnswer";
 import { SHOW_PRODUCT_RATINGS } from '@/lib/storefront/flags';
 
 // Normalises a DB product (already in storefront shape via the adapter) into
@@ -42,6 +44,7 @@ const normalizeDbProduct = (p) => {
 
 export default function ProductDetail({ params }) {
   const shippingRates = useShippingRates();
+  const storeInfo = useStoreInfo();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [resolvedParams, setResolvedParams] = useState(null);
@@ -376,29 +379,12 @@ export default function ProductDetail({ params }) {
     setOpenFAQ(openFAQ === index ? null : index);
   };
 
-  // FAQ data
-  const faqs = [
-    {
-      question: "How do I choose the right fragrance for me?",
-      answer: "We recommend consulting a fragrance professional to determine which scents or notes best fit your preferences. Consider your lifestyle, the occasions you'll wear it, and scents you naturally gravitate towards."
-    },
-    {
-      question: "Are your fragrances certified and safe to use?",
-      answer: "Yes, all our fragrances are certified and meet international safety standards. We use high-quality ingredients and follow strict manufacturing processes to ensure product safety and quality."
-    },
-    {
-      question: "How long does it take to see results from fragrances?",
-      answer: "Fragrances provide immediate results upon application. The scent develops over time with top, middle, and base notes revealing themselves throughout the day. Most fragrances last 4-8 hours depending on the concentration and your skin type."
-    },
-    {
-      question: "What is your return policy?",
-      answer: "We offer a 30-day return policy for unopened products. If you're not satisfied with your purchase, you can return it within 30 days for a full refund or exchange."
-    },
-    {
-      question: "How should I store my perfume?",
-      answer: "Store your perfume in a cool, dry place away from direct sunlight and heat. Keep the bottle tightly closed and avoid storing in bathrooms where humidity can affect the fragrance quality."
-    }
-  ];
+  // FAQs: shared store answers (src/lib/faqs.js), filled with live
+  // delivery rates and contact details.
+  const faqs = findFaqs(
+    buildFaqs({ rates: shippingRates, email: storeInfo.email, phone: storeInfo.phone }),
+    ['delivery-time', 'delivery-cost', 'payment-methods', 'cod-confirmation', 'return-policy', 'longevity', 'original']
+  ).map((f) => ({ question: f.q, answer: f.a }));
 
   return (
     <div className="product-detail-page">
@@ -596,7 +582,7 @@ export default function ProductDetail({ params }) {
                       <circle cx="5.5" cy="18.5" r="2.5"></circle>
                       <circle cx="18.5" cy="18.5" r="2.5"></circle>
                     </svg>
-                    <span>Fast delivery in 2-3 days</span>
+                    <span>Delivery in {DELIVERY_TIME.majorCities} in major cities</span>
                   </div>
                 </div>
               </div>
@@ -797,11 +783,14 @@ export default function ProductDetail({ params }) {
                       
                       <div className={`faq-answer ${openFAQ === index ? 'open' : ''}`}>
                         <div className="faq-answer-content">
-                          <p>{faq.answer}</p>
+                          <FaqAnswer text={faq.answer} />
                         </div>
                       </div>
                     </div>
                   ))}
+                </div>
+                <div className="faq-inline">
+                  <Link href="/faq" className="faq-more">See all FAQs →</Link>
                 </div>
               </div>
             </div>
@@ -819,7 +808,7 @@ export default function ProductDetail({ params }) {
                 <div className="help-card">
                   <h4>Still Have Questions?</h4>
                   <p>Feel free to ask any questions you have!</p>
-                  <button className="help-btn">HERE TO HELP</button>
+                  <Link href="/contact" className="help-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>HERE TO HELP</Link>
                 </div>
               </div>
             </div>

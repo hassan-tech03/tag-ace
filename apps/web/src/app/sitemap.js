@@ -12,6 +12,8 @@ const STATIC_PAGES = [
   { path: "/shop/men", changeFrequency: "daily", priority: 0.9 },
   { path: "/shop/women", changeFrequency: "daily", priority: 0.9 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/faq", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/shipping-returns", changeFrequency: "monthly", priority: 0.5 },
   { path: "/about", changeFrequency: "monthly", priority: 0.5 },
   { path: "/contact", changeFrequency: "monthly", priority: 0.5 },
 ];

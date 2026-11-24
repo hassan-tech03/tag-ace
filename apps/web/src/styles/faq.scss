@@ -1,0 +1,180 @@
+// ============================================================
+//  FAQ (/faq) and Shipping & Returns (/shipping-returns)
+// ============================================================
+
+.faq-page {
+  background: var(--color-white);
+  padding-bottom: 80px;
+}
+
+.faq-container {
+  max-width: 860px;
+  padding-top: 36px;
+}
+
+.faq-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 36px;
+}
+
+.faq-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  background: var(--color-white);
+  transition: all var(--transition);
+  &:hover {
+    border-color: var(--color-gold);
+    background: var(--color-gold-pale);
+  }
+}
+
+.faq-group {
+  scroll-margin-top: 120px;
+  margin-bottom: 40px;
+
+  h2 {
+    font-family: var(--font-playfair);
+    font-weight: 400;
+    font-size: 1.7rem;
+    color: var(--color-charcoal);
+    margin-bottom: 14px;
+  }
+}
+
+.faq-accordion {
+  border-top: 1px solid var(--color-border);
+}
+
+.faq-entry {
+  border-bottom: 1px solid var(--color-border);
+  scroll-margin-top: 120px;
+
+  summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    &::-webkit-details-marker {
+      display: none;
+    }
+    &:hover {
+      color: #8a6a32;
+    }
+  }
+
+  .faq-icon {
+    position: relative;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 14px;
+      height: 2px;
+      background: var(--color-gold);
+      transform: translate(-50%, -50%);
+      transition: transform var(--transition);
+    }
+    &::after {
+      transform: translate(-50%, -50%) rotate(90deg);
+    }
+  }
+
+  &[open] .faq-icon::after {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  .faq-answer {
+    margin: 0;
+    padding: 0 4px 20px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--color-text-mid);
+    a {
+      color: #8a6a32;
+      text-decoration: underline !important;
+      text-underline-offset: 3px;
+      &:hover {
+        color: var(--color-charcoal);
+      }
+    }
+  }
+}
+
+.faq-help {
+  margin-top: 24px;
+  padding: 30px 24px;
+  border-radius: 16px;
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  h3 {
+    font-family: var(--font-playfair);
+    font-weight: 400;
+    font-size: 1.5rem;
+    color: var(--color-charcoal);
+    margin-bottom: 6px;
+  }
+  p {
+    color: var(--color-text-mid);
+    margin-bottom: 18px;
+  }
+  &__buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+// FAQ list used on product and contact pages
+.faq-inline {
+  .faq-entry summary {
+    font-size: 15px;
+  }
+  .faq-more {
+    display: inline-block;
+    margin-top: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--color-charcoal);
+    border-bottom: 1px solid var(--color-gold);
+    padding-bottom: 2px;
+  }
+}
+
+.policy-article {
+  .blog-prose ol {
+    padding-left: 1.3em;
+  }
+}
+
+@media (max-width: 575px) {
+  .faq-container {
+    padding-top: 24px;
+  }
+  .faq-entry summary {
+    font-size: 15px;
+    padding: 16px 2px;
+  }
+}

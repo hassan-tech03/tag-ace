@@ -3,6 +3,7 @@ import { Playfair_Display } from "next/font/google";
 import "../styles/globals.scss";
 import "../styles/no-underlines.css";
 import "../styles/blog.scss";
+import "../styles/faq.scss";
 import ConditionalLayout from "../components/layout/ConditionalLayout";
 import { CartProvider } from "../context/CartContext";
 import { JsonLd, organizationJsonLd, pageMetadata, SITE_NAME, siteOrigin, websiteJsonLd } from "../lib/seo";
