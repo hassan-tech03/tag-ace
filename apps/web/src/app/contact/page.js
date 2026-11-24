@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useShippingRates } from '@/lib/storefront/useShippingRates';
+import { buildFaqs, findFaqs } from '@/lib/faqs';
+import FaqAnswer from '@/components/storefront/FaqAnswer';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -17,6 +21,7 @@ export default function Contact() {
   const [submitStatus, setSubmitStatus] = useState(null);
   // Store contact details from Admin → Site Content.
   const [store, setStore] = useState({ address: '', phone: '', email: '' });
+  const shippingRates = useShippingRates();
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +90,11 @@ export default function Contact() {
       setIsSubmitting(false);
     }
   };
+
+  const contactFaqs = findFaqs(
+    buildFaqs({ rates: shippingRates, email: store.email, phone: store.phone }),
+    ['how-to-order', 'payment-methods', 'delivery-time', 'change-cancel', 'return-policy', 'damaged-item']
+  );
 
   return (
     <div className="contact-page">
@@ -366,20 +376,15 @@ export default function Contact() {
               </div>
 
               <div className="faq-grid">
-                <div className="faq-item">
-                  <h4>💳 What payment methods do you accept?</h4>
-                  <p>You can pay securely by debit or credit card at checkout, or choose Cash on Delivery and pay when your order arrives.</p>
-                </div>
-
-                <div className="faq-item">
-                  <h4>🛍️ How do I place an order?</h4>
-                  <p>Browse the Men or Women collection, add fragrances to your cart and check out with your delivery details. You'll get an order number as soon as it's placed.</p>
-                </div>
-
-                <div className="faq-item">
-                  <h4>📦 Can I change or cancel my order?</h4>
-                  <p>Get in touch with us as soon as possible using the details on this page and include your order number, and we'll do our best to help.</p>
-                </div>
+                {contactFaqs.map((f) => (
+                  <div key={f.id} className="faq-item">
+                    <h4>{f.q}</h4>
+                    <FaqAnswer text={f.a} />
+                  </div>
+                ))}
+              </div>
+              <div className="faq-inline text-center">
+                <Link href="/faq" className="faq-more">See all FAQs →</Link>
               </div>
             </div>
           </div>
