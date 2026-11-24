@@ -6,6 +6,7 @@ import { createOrder } from "@mushk/db/queries";
 import { orderCreateSchema } from "@/lib/validation";
 import { computeTotals, generateOrderNumber } from "@/lib/orderUtils";
 import { handleError } from "@/lib/api";
+import { siteUrl } from "@/lib/siteUrl";
 
 // Public endpoint called by the storefront checkout. Persists an Order in
 // Postgres and, for Stripe orders, also creates a Checkout Session so the
@@ -93,7 +94,7 @@ export async function POST(request) {
       });
     }
 
-    const domain = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+    const domain = siteUrl(request);
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,

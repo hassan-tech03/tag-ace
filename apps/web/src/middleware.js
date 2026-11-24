@@ -11,10 +11,13 @@ export async function middleware(req) {
   const isAdminApi = pathname.startsWith("/api/admin");
   if (!isLogin && !isAdminPage && !isAdminApi) return NextResponse.next();
 
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
+  // NextAuth names the cookie "__Secure-next-auth.session-token" on HTTPS and
+  // "next-auth.session-token" on HTTP. Behind a proxy (no NEXTAUTH_URL set)
+  // getToken can't tell which one was used, so try both.
+  const secret = process.env.NEXTAUTH_SECRET;
+  const token =
+    (await getToken({ req, secret, secureCookie: true })) ||
+    (await getToken({ req, secret, secureCookie: false }));
 
   const isAuthed = !!token && (token.role === "admin" || token.role === "superadmin");
 

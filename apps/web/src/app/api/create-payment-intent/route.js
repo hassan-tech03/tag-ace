@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db, orders } from "@mushk/db";
 import { createOrder } from "@mushk/db/queries";
 import { computeTotals, generateOrderNumber } from "@/lib/orderUtils";
+import { siteUrl } from "@/lib/siteUrl";
 
 // Legacy endpoint used by the existing CheckoutClient.jsx. Behaviour preserved
 // for the storefront (still returns { sessionId, url }) but now also persists
@@ -116,7 +117,7 @@ export async function POST(request) {
       });
     }
 
-    const domain = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3000";
+    const domain = siteUrl(request);
     const session = await getStripe().checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
