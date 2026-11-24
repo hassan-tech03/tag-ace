@@ -2,15 +2,16 @@ import Link from "next/link";
 import { and, desc, eq, isNotNull, lte } from "drizzle-orm";
 import { db, posts } from "@mushk/db";
 import { formatPostDate, readingMinutes } from "@/lib/blog";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Blog · Mushk Perfumes",
+export const metadata = pageMetadata({
+  title: "Perfume Blog: Guides & Tips",
   description:
-    "Fragrance guides, tips and stories from Mushk Perfumes: how to choose, wear, layer and care for your perfume.",
-  alternates: { canonical: "/blog" },
-};
+    "Perfume guides and tips from Mushk Perfumes: how to choose a signature scent, make fragrance last in Pakistan's heat, oud, attar, layering and gifting.",
+  path: "/blog",
+});
 
 async function getPublishedPosts() {
   return db

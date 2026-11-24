@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { and, desc, eq, isNotNull, lte, ne } from "drizzle-orm";
 import { db, posts } from "@mushk/db";
 import { formatPostDate, readingMinutes, renderMarkdown } from "@/lib/blog";
+import { absoluteUrl, breadcrumbJsonLd, JsonLd, pageMetadata, SITE_NAME } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
@@ -16,20 +17,19 @@ async function getPost(slug) {
 
 export async function generateMetadata({ params }) {
   const post = await getPost(params.slug);
-  if (!post) return { title: "Article not found · Mushk Perfumes" };
-  const images = post.coverImage ? [{ url: post.coverImage }] : undefined;
-  return {
-    title: `${post.title} · Mushk Perfumes`,
+  if (!post) return { title: "Article not found", robots: { index: false, follow: true } };
+  const meta = pageMetadata({
+    title: post.title,
     description: post.excerpt,
-    alternates: { canonical: `/blog/${post.slug}` },
-    openGraph: {
-      type: "article",
-      title: post.title,
-      description: post.excerpt,
-      publishedTime: post.publishedAt?.toISOString(),
-      images,
-    },
-  };
+    path: `/blog/${post.slug}`,
+    image: post.coverImage || undefined,
+    type: "article",
+  });
+  meta.openGraph.publishedTime = post.publishedAt?.toISOString();
+  meta.openGraph.modifiedTime = post.updatedAt?.toISOString();
+  meta.openGraph.authors = [post.author];
+  meta.openGraph.tags = post.tags;
+  return meta;
 }
 
 export default async function BlogPostPage({ params }) {
@@ -44,9 +44,31 @@ export default async function BlogPostPage({ params }) {
     .limit(3);
 
   const html = renderMarkdown(post.content);
+  const url = absoluteUrl(`/blog/${post.slug}`);
+  const article = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    image: post.coverImage ? [absoluteUrl(post.coverImage)] : [absoluteUrl("/og-image.jpg")],
+    datePublished: post.publishedAt?.toISOString(),
+    dateModified: (post.updatedAt || post.publishedAt)?.toISOString(),
+    author: { "@type": "Organization", name: post.author || SITE_NAME, url: absoluteUrl("/") },
+    publisher: { "@type": "Organization", name: SITE_NAME, logo: { "@type": "ImageObject", url: absoluteUrl("/brand/mushk-logo.png") } },
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    keywords: (post.tags || []).join(", "),
+    inLanguage: "en-PK",
+  };
+  const crumbs = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "Blog", path: "/blog" },
+    { name: post.title, path: `/blog/${post.slug}` },
+  ]);
 
   return (
     <div className="blog-post-page">
+      <JsonLd data={article} />
+      <JsonLd data={crumbs} />
       <section className="page-header blog-post-header">
         <div className="container">
           <div className="breadcrumb">

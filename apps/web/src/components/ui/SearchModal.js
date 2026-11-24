@@ -74,7 +74,7 @@ export default function SearchModal({ isOpen, onClose }) {
       }
       if (e.key === 'Enter' && activeIdx >= 0 && results[activeIdx]) {
         onClose();
-        window.location.href = `/products/${results[activeIdx].id}`;
+        window.location.href = `/products/${results[activeIdx].slug || results[activeIdx].id}`;
       }
     },
     [isOpen, results, activeIdx, onClose]
@@ -164,7 +164,7 @@ export default function SearchModal({ isOpen, onClose }) {
                 {results.map((product, idx) => (
                   <li key={product.id}>
                     <Link
-                      href={`/products/${product.id}`}
+                      href={`/products/${product.slug || product.id}`}
                       className={`search-result-item${activeIdx === idx ? ' active' : ''}`}
                       onClick={onClose}
                     >

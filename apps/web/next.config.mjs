@@ -37,7 +37,16 @@ const nextConfig = {
 
   // The Unisex category was retired; keep old links working.
   async redirects() {
-    return [{ source: "/shop/unisex", destination: "/shop", permanent: true }];
+    return [
+      { source: "/shop/unisex", destination: "/shop", permanent: true },
+      // One canonical host for search engines: www -> apex.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.mushkscents.com" }],
+        destination: "https://mushkscents.com/:path*",
+        permanent: true,
+      },
+    ];
   },
 
   webpack: (config, { dev }) => {
