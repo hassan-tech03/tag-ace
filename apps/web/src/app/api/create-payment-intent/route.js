@@ -127,7 +127,7 @@ export async function POST(request) {
       cancel_url: `${domain}/checkout?payment_cancelled=true`,
       customer_email: info.email,
       billing_address_collection: "required",
-      shipping_address_collection: { allowed_countries: ["US"] },
+      shipping_address_collection: { allowed_countries: ["PK"] },
       metadata: {
         orderId: order.id,
         orderNumber: order.orderNumber,
