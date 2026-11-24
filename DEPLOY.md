@@ -1,5 +1,50 @@
 # Deploying to Contabo
 
+There are two ways to run the app, depending on what the server gives you:
+
+| Server | Use |
+|---|---|
+| **Managed container** (Node + PM2 + Postgres already provided, no Docker, public `/` → :3000 and `/api` → :4000). This is the current production setup. | [PM2 deploy](#pm2-deploy-managed-container) below |
+| **Full VPS** with root and Docker | [Docker Compose deploy](#docker-compose-deploy-full-vps) |
+
+## PM2 deploy (managed container)
+
+Live at `/work/mushk` on the server (`ssh hassan@169.58.171.233`).
+
+| Process | What it is |
+|---|---|
+| `mushk-web` | `next start` on :3000 (pages + all `/api` routes) |
+| `mushk-api` | `deploy/pm2/api-proxy.mjs` on :4000: the platform sends public `/api` here, and it forwards to :3000 |
+| `mushk-backup` | nightly 03:00 database backup to `/work/backups` (keeps 14 days) |
+
+- **Secrets:** `apps/web/.env.local` on the server (mode 600, never committed). `DATABASE_URL` points at the container's Postgres 16.
+- **Domain:** `NEXTAUTH_URL` and `NEXT_PUBLIC_DOMAIN` are left unset on purpose. NextAuth (`AUTH_TRUST_HOST=true`) and the Stripe return URLs take the public host from the proxy headers, so a domain can be attached without a rebuild.
+- PM2 processes come back after a container restart (`pm2 save` + `pm2 resurrect`).
+
+**Deploy a new version** (after pushing to `main`):
+
+```bash
+ssh hassan@169.58.171.233
+cd /work/mushk && ./deploy/scripts/deploy-pm2.sh
+```
+
+The script pulls the code, installs packages, runs migrations, builds with a 2 GB heap cap (the container has 3 GB), reloads PM2 and checks `/api/health` on :3000 and :4000.
+
+| Task | Command (in `/work/mushk`) |
+|---|---|
+| Status / logs | `pm2 ls` · `pm2 logs mushk-web` |
+| Restart | `pm2 restart mushk-web` |
+| Backup now | `pm2 restart mushk-backup` (or `npm run db:backup -- /work/backups`) |
+| Restore | `npm run db:migrate && npm run db:restore -- /work/backups/<file>.json.gz --yes` |
+| SQL shell | `psql "$DATABASE_URL"` |
+| Reset admin password | edit `ADMIN_PASSWORD` in `apps/web/.env.local`, then `npm run seed:admin` |
+
+The container's `pg_dump` is version 15, while the server is 16, so backups are JSON data exports (`packages/db/scripts/backup-json.mjs`). The schema comes from the migrations. Copy backups off the server from time to time: `scp 'hassan@169.58.171.233:/work/backups/*' .`
+
+---
+
+## Docker Compose deploy (full VPS)
+
 Everything runs on one VPS with Docker Compose:
 
 ```
