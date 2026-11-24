@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatPrice } from "@/lib/money";
 
 // Polyline-based area chart with no external chart dependency. Renders both a
 // filled "paid revenue" area and an orders count overlay (normalized).
@@ -132,10 +133,10 @@ export function RevenueChart({ series }) {
         )}
 
         <text x={padX} y={padY - 6} fontSize="10" fill="#64748b">
-          ${maxRevenue.toFixed(0)}
+          {formatPrice(maxRevenue)}
         </text>
         <text x={padX} y={padY + innerH + 14} fontSize="10" fill="#64748b">
-          $0
+          Rs 0
         </text>
       </svg>
 
@@ -154,7 +155,7 @@ export function RevenueChart({ series }) {
             })}
           </div>
           <div className="text-amber-300">
-            ${Number(tooltip.revenue || 0).toFixed(2)} revenue
+            {formatPrice(tooltip.revenue)} revenue
           </div>
           <div className="text-slate-300">
             {tooltip.orders} order{tooltip.orders === 1 ? "" : "s"}

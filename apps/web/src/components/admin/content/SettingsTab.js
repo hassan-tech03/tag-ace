@@ -114,7 +114,7 @@ export default function SettingsTab() {
         <Field label="Message">
           <Input
             value={form.announcementBar.text}
-            placeholder="Free shipping on orders over $100 🎉"
+            placeholder="Free delivery on orders over Rs 5,000 🎉"
             onChange={(e) => update("announcementBar", "text", e.target.value)}
           />
         </Field>
@@ -189,27 +189,27 @@ export default function SettingsTab() {
         description="Used by the order math when calculating totals server-side."
       >
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Field label="Free shipping threshold ($)" hint="0 disables this perk">
+          <Field label="Free delivery over (Rs)" hint="0 = never free">
             <Input
               type="number"
               min="0"
-              step="0.01"
+              step="1"
               value={form.shipping.freeShippingThreshold}
               onChange={(e) =>
                 update("shipping", "freeShippingThreshold", e.target.value)
               }
             />
           </Field>
-          <Field label="Flat shipping ($)">
+          <Field label="Delivery charge (Rs)">
             <Input
               type="number"
               min="0"
-              step="0.01"
+              step="1"
               value={form.shipping.flatRate}
               onChange={(e) => update("shipping", "flatRate", e.target.value)}
             />
           </Field>
-          <Field label="Tax rate" hint="0.08 = 8%">
+          <Field label="Tax rate" hint="0 = no tax line, 0.05 = 5%">
             <Input
               type="number"
               min="0"

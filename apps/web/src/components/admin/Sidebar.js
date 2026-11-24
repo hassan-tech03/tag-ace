@@ -27,7 +27,10 @@ export const NAV_GROUPS = [
   },
   {
     label: "Storefront",
-    items: [{ href: "/admin/content", label: "Site Content", icon: "layout" }],
+    items: [
+      { href: "/admin/content", label: "Site Content", icon: "layout" },
+      { href: "/admin/blog", label: "Blog", icon: "book" },
+    ],
   },
 ];
 
@@ -106,6 +109,13 @@ function Icon({ name }) {
           <rect x="3" y="3" width="18" height="18" rx="2" />
           <line x1="3" y1="9" x2="21" y2="9" />
           <line x1="9" y1="21" x2="9" y2="9" />
+        </svg>
+      );
+    case "book":
+      return (
+        <svg {...props}>
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
         </svg>
       );
     case "external":

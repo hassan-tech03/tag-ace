@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { formatPrice } from "@/lib/money";
 
 const POPULAR = ['Rose', 'Oud', 'Floral', 'Woody', 'Men', 'Women', 'Oriental'];
 
@@ -199,9 +200,9 @@ export default function SearchModal({ isOpen, onClose }) {
                         </span>
                       </div>
                       <div className="result-price">
-                        <span className="result-current">${Number(product.price || 0).toFixed(2)}</span>
+                        <span className="result-current">{formatPrice(Number(product.price || 0))}</span>
                         {product.originalPrice > product.price && (
-                          <span className="result-original">${Number(product.originalPrice).toFixed(2)}</span>
+                          <span className="result-original">{formatPrice(Number(product.originalPrice))}</span>
                         )}
                       </div>
                       <svg className="result-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -8,6 +8,27 @@
       "when": 1794387798575,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795516680190,
+      "tag": "0001_pkr_shipping_defaults",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795516702585,
+      "tag": "0002_convert_prices_to_pkr",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795516764863,
+      "tag": "0003_blog_posts",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartContext } from '../../context/CartContext';
 import SearchModal from '../ui/SearchModal';
+import { formatPrice } from "@/lib/money";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -124,6 +125,7 @@ export default function Header() {
                   <Link href="/shop/women" className="dropdown-link">Women's Fragrances</Link>
                 </div>
               </div>
+              <Link href="/blog" className="desktop-nav-link">Blog</Link>
               <Link href="/about" className="desktop-nav-link">About</Link>
               <Link href="/contact" className="desktop-nav-link">Contact</Link>
             </nav>
@@ -196,6 +198,10 @@ export default function Header() {
             )}
 
             <div className="nav-item">
+              <button className="nav-link nav-button" onClick={() => handleNavigation('/blog')}>BLOG</button>
+            </div>
+
+            <div className="nav-item">
               <button className="nav-link nav-button" onClick={() => handleNavigation('/about')}>ABOUT</button>
             </div>
 
@@ -255,7 +261,7 @@ export default function Header() {
                         <div className="item-brand">{(item.brand || 'MUSHK').toUpperCase()}</div>
                         <div className="item-name">{item.name}</div>
                         <div className="item-price">
-                          {typeof item.price === 'string' ? item.price : `$${(item.price || 0).toFixed(2)}`}
+                          {typeof item.price === 'string' ? item.price : formatPrice((item.price || 0))}
                         </div>
                         <div className="item-controls">
                           <button className="qty-btn" onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
@@ -275,7 +281,7 @@ export default function Header() {
             <div className="cart-footer">
               <div className="cart-total">
                 <span>Subtotal</span>
-                <span className="total-amount">${(getCartTotal() || 0).toFixed(2)} USD</span>
+                <span className="total-amount">{formatPrice((getCartTotal() || 0))}</span>
               </div>
               <p className="cart-note">Shipping &amp; taxes calculated at checkout</p>
               <div className="cart-buttons">

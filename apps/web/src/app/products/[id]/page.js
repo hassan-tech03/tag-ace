@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useCartContext } from '../../../context/CartContext';
 import { useRouter } from 'next/navigation';
 import AddToCartModal from '../../../components/ui/AddToCartModal';
+import { formatPrice } from "@/lib/money";
+import { useShippingRates } from "@/lib/storefront/useShippingRates";
 
 // Normalises a DB product (already in storefront shape via the adapter) into
 // the richer shape this page expects (with images[], rating, reviews count,
@@ -38,6 +40,7 @@ const normalizeDbProduct = (p) => {
 };
 
 export default function ProductDetail({ params }) {
+  const shippingRates = useShippingRates();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [resolvedParams, setResolvedParams] = useState(null);
@@ -512,9 +515,9 @@ export default function ProductDetail({ params }) {
 
                 {/* Price */}
                 <div className="product-price">
-                  <span className="current-price">${product.price.toFixed(2)}</span>
+                  <span className="current-price">{formatPrice(product.price)}</span>
                   {product.originalPrice && (
-                    <span className="original-price">${product.originalPrice.toFixed(2)}</span>
+                    <span className="original-price">{formatPrice(product.originalPrice)}</span>
                   )}
                   {product.originalPrice && (
                     <span className="discount">
@@ -574,7 +577,7 @@ export default function ProductDetail({ params }) {
                       <polyline points="3.27,6.96 12,12.01 20.73,6.96"></polyline>
                       <line x1="12" y1="22.08" x2="12" y2="12"></line>
                     </svg>
-                    <span>Free shipping on orders over $50</span>
+                    <span>{shippingRates.freeShippingThreshold > 0 ? `Free delivery on orders over ${formatPrice(shippingRates.freeShippingThreshold)}` : 'Fast delivery across Pakistan'}</span>
                   </div>
                   <div className="feature">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

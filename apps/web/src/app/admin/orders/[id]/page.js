@@ -11,9 +11,10 @@ import {
   Textarea,
 } from "@/components/admin/ui/Field";
 import { useToast } from "@/components/admin/ui/Toast";
+import { formatPrice } from "@/lib/money";
 
 function formatMoney(n) {
-  return `$${Number(n || 0).toFixed(2)}`;
+  return formatPrice(n);
 }
 
 function formatDate(d) {

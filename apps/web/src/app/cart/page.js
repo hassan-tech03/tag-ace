@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartContext } from '../../context/CartContext';
+import { formatPrice } from "@/lib/money";
 
 export default function Cart() {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal, clearCart } = useCartContext();
@@ -145,7 +146,7 @@ export default function Cart() {
                   </div>
 
                   <div className="item-total">
-                    ${(getNumericPrice(item.price) * item.quantity).toFixed(2)}
+                    {formatPrice((getNumericPrice(item.price) * item.quantity))}
                   </div>
                 </div>
                 );
@@ -171,7 +172,7 @@ export default function Cart() {
               <div className="summary-content">
                 <div className="subtotal-row">
                   <span className="subtotal-label">Subtotal</span>
-                  <span className="subtotal-amount">${subtotal.toFixed(2)} USD</span>
+                  <span className="subtotal-amount">{formatPrice(subtotal)}</span>
                 </div>
                 <p className="shipping-note">Taxes and shipping calculated at checkout.</p>
                 <Link href="/checkout">

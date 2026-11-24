@@ -19,6 +19,7 @@ import {
   generateCouponCode,
   toLocalDatetime,
 } from "@/lib/promoUtils";
+import { formatPrice } from "@/lib/money";
 
 const STATUS_BADGE = {
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -52,7 +53,7 @@ const EMPTY = {
 };
 
 function formatMoney(n) {
-  return `$${Number(n || 0).toFixed(2)}`;
+  return formatPrice(n);
 }
 
 function describeDiscount(c) {

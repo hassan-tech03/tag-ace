@@ -202,6 +202,32 @@ export const testimonialCreateSchema = z.object({
 
 export const testimonialUpdateSchema = updateSchema(testimonialCreateSchema);
 
+// Blog posts ---------------------------------------------------------------
+
+export const postCreateSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200),
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .max(200)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase letters, numbers and dashes"),
+  excerpt: z.string().max(500).optional().default(""),
+  content: z.string().max(100_000).optional().default(""),
+  // Absolute URL (Cloudinary) or a site path like /hero-section/s4.webp.
+  coverImage: z
+    .string()
+    .max(1000)
+    .refine((v) => v === "" || v.startsWith("/") || /^https?:\/\//.test(v), "Must be a URL or /path")
+    .optional()
+    .default(""),
+  author: z.string().max(120).optional().default("Mushk Perfumes"),
+  tags: z.array(z.string().trim().min(1).max(40)).max(12).optional().default([]),
+  status: z.enum(["draft", "published"]).default("draft"),
+  publishedAt: z.coerce.date().nullable().optional(),
+});
+
+export const postUpdateSchema = updateSchema(postCreateSchema);
+
 // Site settings ------------------------------------------------------------
 
 const urlOrEmpty = z.string().max(500).optional().default("");

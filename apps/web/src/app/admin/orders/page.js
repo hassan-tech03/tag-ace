@@ -6,6 +6,7 @@ import PageHeader from "@/components/admin/ui/PageHeader";
 import { Button, Input, Select } from "@/components/admin/ui/Field";
 import Pagination from "@/components/admin/ui/Pagination";
 import { useToast } from "@/components/admin/ui/Toast";
+import { formatPrice } from "@/lib/money";
 
 const STATUS_BADGE = {
   pending: "bg-amber-50 text-amber-700 border-amber-200",
@@ -25,7 +26,7 @@ const PAYMENT_BADGE = {
 };
 
 function formatMoney(n) {
-  return `$${Number(n || 0).toFixed(2)}`;
+  return formatPrice(n);
 }
 
 function formatDate(d) {

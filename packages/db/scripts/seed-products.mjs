@@ -346,7 +346,8 @@ async function main() {
       name: p.name,
       slug,
       brand: p.brand || "",
-      price: Number(p.price),
+      // Catalogue below is written in the old USD figures; store prices are PKR.
+      price: Math.round(Number(p.price) * 100),
       originalPrice: null,
       category: p.category,
       fragranceFamily: p.fragranceFamily || "",
