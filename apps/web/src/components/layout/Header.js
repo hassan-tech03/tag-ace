@@ -1,11 +1,13 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCartContext } from '../../context/CartContext';
 import SearchModal from '../ui/SearchModal';
 import { formatPrice } from "@/lib/money";
+import { imageUrl } from "@/lib/images";
+import { useDialog } from "@/hooks/useDialog";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,6 +20,8 @@ export default function Header() {
   const [contact, setContact] = useState({ phone: '', email: '' });
   const { cartItems, getCartItemsCount, getCartTotal, updateQuantity, removeFromCart } = useCartContext();
   const router = useRouter();
+  const cartRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -56,8 +60,17 @@ export default function Header() {
   };
 
   const toggleCart = () => setIsCartOpen(!isCartOpen);
+  const closeCart = () => setIsCartOpen(false);
   const openSearch = () => setIsSearchOpen(true);
   const closeSearch = () => setIsSearchOpen(false);
+
+  // Scroll lock, Escape to close, focus trap for both drawers.
+  useDialog(isCartOpen, closeCart, cartRef);
+  useDialog(isMobileMenuOpen, closeMobileMenu, menuRef);
+
+  const whatsappHref = contact.phone
+    ? `https://wa.me/92${contact.phone.replace(/\D/g, '').replace(/^0/, '')}`
+    : '';
 
   const toggleShop = (e) => {
     e.preventDefault();
@@ -115,10 +128,10 @@ export default function Header() {
             <nav className="desktop-nav d-none d-lg-flex">
               <Link href="/" className="desktop-nav-link">Home</Link>
               <div className="desktop-nav-item has-dropdown">
-                <span className="desktop-nav-link">
+                <Link href="/shop" className="desktop-nav-link" aria-haspopup="true">
                   Shop
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6,9 12,15 18,9"/></svg>
-                </span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg>
+                </Link>
                 <div className="nav-dropdown">
                   <Link href="/shop" className="dropdown-link">All Products</Link>
                   <Link href="/shop/men" className="dropdown-link">Men's Fragrances</Link>
@@ -167,8 +180,19 @@ export default function Header() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      <div className={`mobile-menu-overlay${isMobileMenuOpen ? ' active' : ''}`} onClick={closeMobileMenu}>
-        <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`mobile-menu-overlay${isMobileMenuOpen ? ' active' : ''}`}
+        onClick={closeMobileMenu}
+        inert={isMobileMenuOpen ? undefined : ''}
+      >
+        <div
+          className="mobile-menu"
+          ref={menuRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="mobile-menu-header">
             <Image src="/brand/mushk-logo.png" alt="Mushk Perfumes" width={379} height={339} style={{ height: '52px', width: 'auto' }} />
             <button className="mobile-close-btn" onClick={closeMobileMenu} aria-label="Close menu">
@@ -182,17 +206,22 @@ export default function Header() {
             </div>
 
             <div className="nav-item">
-              <span className="nav-link">SHOP</span>
-              <button className="expand-btn" onClick={toggleShop} aria-label="Toggle shop">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: shopExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}><polyline points="6,9 12,15 18,9"/></svg>
+              <button
+                className="nav-link nav-button nav-toggle"
+                onClick={toggleShop}
+                aria-expanded={shopExpanded}
+                aria-controls="mobile-shop-submenu"
+              >
+                <span>SHOP</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true" style={{ transform: shopExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}><polyline points="6,9 12,15 18,9"/></svg>
               </button>
             </div>
             {shopExpanded && (
-              <div className="mobile-submenu">
+              <div className="mobile-submenu" id="mobile-shop-submenu">
                 <div className="submenu-items">
                   <button className="submenu-link" onClick={() => handleNavigation('/shop')}>All Products</button>
-                  <button className="submenu-link" onClick={() => handleNavigation('/shop/men')}>Men</button>
-                  <button className="submenu-link" onClick={() => handleNavigation('/shop/women')}>Women</button>
+                  <button className="submenu-link" onClick={() => handleNavigation('/shop/men')}>Men&apos;s Fragrances</button>
+                  <button className="submenu-link" onClick={() => handleNavigation('/shop/women')}>Women&apos;s Fragrances</button>
                 </div>
               </div>
             )}
@@ -207,9 +236,37 @@ export default function Header() {
 
 
             <div className="nav-item">
+              <button className="nav-link nav-button" onClick={() => handleNavigation('/faq')}>FAQS</button>
+            </div>
+
+            <div className="nav-item">
               <button className="nav-link nav-button" onClick={() => handleNavigation('/contact')}>CONTACT</button>
             </div>
           </nav>
+
+          {/* Quick actions: search, cart, contact */}
+          <div className="mobile-menu-actions">
+            <button type="button" className="mobile-action" onClick={() => { closeMobileMenu(); openSearch(); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <span>Search fragrances</span>
+            </button>
+            <button type="button" className="mobile-action" onClick={() => { closeMobileMenu(); setIsCartOpen(true); }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              <span>Cart ({getCartItemsCount()})</span>
+            </button>
+            {whatsappHref && (
+              <a className="mobile-action" href={whatsappHref} target="_blank" rel="noopener noreferrer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <span>WhatsApp {contact.phone}</span>
+              </a>
+            )}
+            {contact.phone && (
+              <a className="mobile-action" href={`tel:${contact.phone.replace(/[^+0-9]/g, '')}`}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.38a16 16 0 0 0 6 6l.95-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <span>Call us</span>
+              </a>
+            )}
+          </div>
         </div>
       </div>
 
@@ -217,11 +274,22 @@ export default function Header() {
       <SearchModal isOpen={isSearchOpen} onClose={closeSearch} />
 
       {/* Cart Sidebar */}
-      <div className={`cart-overlay${isCartOpen ? ' active' : ''}`} onClick={toggleCart}>
-        <div className="cart-sidebar" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`cart-overlay${isCartOpen ? ' active' : ''}`}
+        onClick={closeCart}
+        inert={isCartOpen ? undefined : ''}
+      >
+        <div
+          className="cart-sidebar"
+          ref={cartRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="cart-drawer-title"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="cart-header">
-            <h3>Shopping Cart <span className="cart-header-count">({getCartItemsCount()})</span></h3>
-            <button className="cart-close-btn" onClick={toggleCart} aria-label="Close cart">
+            <h2 id="cart-drawer-title" className="cart-drawer-title">Shopping Cart <span className="cart-header-count">({getCartItemsCount()})</span></h2>
+            <button className="cart-close-btn" onClick={closeCart} aria-label="Close cart">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
@@ -234,9 +302,9 @@ export default function Header() {
                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
                   </svg>
                 </div>
-                <h4>Your cart is empty</h4>
+                <p className="empty-cart-title">Your cart is empty</p>
                 <p>Discover our exclusive fragrance collection</p>
-                <button className="continue-shopping" onClick={toggleCart}>Continue Shopping</button>
+                <button className="continue-shopping" onClick={closeCart}>Continue Shopping</button>
               </div>
             ) : (
               <div className="cart-items">
@@ -250,7 +318,7 @@ export default function Header() {
                     <div key={item.id} className="cart-item">
                       <div className="item-image">
                         <Image
-                          src={itemImg}
+                          src={imageUrl(itemImg, 160)}
                           alt={item.name}
                           width={72}
                           height={72}
@@ -264,9 +332,14 @@ export default function Header() {
                           {typeof item.price === 'string' ? item.price : formatPrice((item.price || 0))}
                         </div>
                         <div className="item-controls">
-                          <button className="qty-btn" onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
+                          <button className="qty-btn" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={`Decrease ${item.name} quantity`}>−</button>
                           <span className="qty">{item.quantity}</span>
-                          <button className="qty-btn" onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                          <button
+                            className="qty-btn"
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            disabled={Number(item.stock) > 0 && item.quantity >= Number(item.stock)}
+                            aria-label={`Increase ${item.name} quantity`}
+                          >+</button>
                           <button className="remove-btn" onClick={() => removeFromCart(item.id)}>Remove</button>
                         </div>
                       </div>
@@ -285,10 +358,10 @@ export default function Header() {
               </div>
               <p className="cart-note">Shipping &amp; taxes calculated at checkout</p>
               <div className="cart-buttons">
-                <Link href="/cart" onClick={toggleCart}>
+                <Link href="/cart" onClick={closeCart}>
                   <button className="view-cart-btn">VIEW CART</button>
                 </Link>
-                <Link href="/checkout" onClick={toggleCart}>
+                <Link href="/checkout" onClick={closeCart}>
                   <button className="checkout-btn">CHECKOUT</button>
                 </Link>
               </div>

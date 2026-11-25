@@ -24,5 +24,5 @@ export default function FaqAnswer({ text, className }) {
     last = m.index + m[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));
-  return <p className={className}>{parts}</p>;
+  return <p className={["faq-rich", className].filter(Boolean).join(" ")}>{parts}</p>;
 }

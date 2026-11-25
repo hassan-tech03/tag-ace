@@ -10,6 +10,7 @@ import { formatPrice } from "@/lib/money";
 import { useShippingRates, useStoreInfo } from "@/lib/storefront/useShippingRates";
 import { buildFaqs, DELIVERY_TIME, findFaqs } from "@/lib/faqs";
 import FaqAnswer from "@/components/storefront/FaqAnswer";
+import { imageUrl } from "@/lib/images";
 import { SHOW_PRODUCT_RATINGS } from '@/lib/storefront/flags';
 
 // Normalises a DB product (already in storefront shape via the adapter) into
@@ -35,6 +36,10 @@ const normalizeDbProduct = (p) => {
       p.shortDescription ||
       'A captivating fragrance crafted from premium ingredients.',
     images: imgs,
+    image: imgs[0],
+    slug: p.slug || '',
+    stock: Number(p.stock || 0),
+    availability: Number(p.stock || 0) > 0 ? 'in-stock' : 'out-of-stock',
     badge: p.badge || null,
     category: p.gender
       ? p.gender.charAt(0).toUpperCase() + p.gender.slice(1)
@@ -55,9 +60,10 @@ export default function ProductDetail({ params }) {
   const [likedReviews, setLikedReviews] = useState(new Set());
   const [openFAQ, setOpenFAQ] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [stockNotice, setStockNotice] = useState('');
   const { addToCart } = useCartContext();
   const router = useRouter();
-  
+
   // Resolve params and get product
   useEffect(() => {
     let cancelled = false;
@@ -117,7 +123,7 @@ export default function ProductDetail({ params }) {
       if (typeof window !== 'undefined') {
         try {
           const GLightbox = (await import('glightbox')).default;
-          
+
           GLightbox({
             selector: '.glightbox',
             touchNavigation: true,
@@ -129,12 +135,12 @@ export default function ProductDetail({ params }) {
         }
       }
     };
-    
+
     if (product) {
       loadGLightbox();
     }
   }, [product]);
-  
+
   // Loading state — stay here while we're either resolving params or
   // fetching the product. Avoids a brief flash of "Not Found" on slow DB.
   if (!resolvedParams || productLoading) {
@@ -188,8 +194,8 @@ export default function ProductDetail({ params }) {
                   The product you&apos;re looking for doesn&apos;t exist or may have been removed.
                 </p>
                 <div className="error-actions">
-                  <Link 
-                    href="/shop" 
+                  <Link
+                    href="/shop"
                     style={{
                       background: '#8B5A7C',
                       color: 'white',
@@ -209,8 +215,8 @@ export default function ProductDetail({ params }) {
                   >
                     Back to Shop
                   </Link>
-                  <Link 
-                    href="/" 
+                  <Link
+                    href="/"
                     style={{
                       background: 'transparent',
                       color: '#8B5A7C',
@@ -253,7 +259,7 @@ export default function ProductDetail({ params }) {
       'Jessica Brown', 'William Jones', 'Ashley Davis', 'Christopher Wilson', 'Amanda Moore',
       'Daniel Jackson', 'Stephanie White', 'Matthew Harris', 'Jennifer Clark', 'Ryan Lewis'
     ];
-    
+
     const reviewTexts = [
       'I would buy again For Her. It\'s a Nice product.',
       'Best Product. I like this perfume so much.',
@@ -276,7 +282,7 @@ export default function ProductDetail({ params }) {
       'Long-lasting fragrance that doesn\'t fade.',
       'Absolutely love this perfume, my new favorite!'
     ];
-    
+
     // Stable numeric seed from the product id - works for legacy numeric ids
     // and Mongo ObjectIds alike. Using `+` directly would string-concatenate
     // for Mongo ids and produce NaN after `%`.
@@ -297,35 +303,35 @@ export default function ProductDetail({ params }) {
       const daysAgo = Math.floor(Math.random() * 90) + 1; // 1-90 days ago
       const date = new Date();
       date.setDate(date.getDate() - daysAgo);
-      
+
       reviews.push({
         id: i + 1,
         name: reviewers[reviewerIndex],
         rating: rating,
         text: reviewTexts[textIndex],
-        date: date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: '2-digit', 
-          day: '2-digit' 
+        date: date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
         }),
         helpful: Math.floor(Math.random() * 10) + 1,
         verified: true
       });
     }
-    
+
     return reviews;
   };
 
   // Filter and sort reviews
   const filterAndSortReviews = (reviews) => {
     let filteredReviews = [...reviews];
-    
+
     // Filter by rating
     if (reviewFilter !== 'All') {
       const rating = parseInt(reviewFilter.replace('★ ', ''));
       filteredReviews = filteredReviews.filter(review => review.rating === rating);
     }
-    
+
     // Sort reviews
     switch (sortBy) {
       case 'Newest':
@@ -345,22 +351,24 @@ export default function ProductDetail({ params }) {
         filteredReviews.sort((a, b) => b.helpful - a.helpful);
         break;
     }
-    
+
     return filteredReviews;
   };
 
+  const isOutOfStock = !!product && product.stock <= 0;
+  const maxQty = product && product.stock > 0 ? product.stock : 1;
+
   const handleAddToCart = () => {
-    if (product) {
-      addToCart(product, quantity);
-      setShowModal(true);
-    }
+    if (!product || isOutOfStock) return;
+    const res = addToCart(product, quantity);
+    setStockNotice(res?.capped ? `Only ${res.max} in stock — your cart now has the maximum.` : '');
+    setShowModal(true);
   };
 
   const handleBuyNow = () => {
-    if (product) {
-      addToCart(product, quantity);
-      router.push('/cart');
-    }
+    if (!product || isOutOfStock) return;
+    addToCart(product, quantity);
+    router.push('/cart');
   };
 
   const handleLikeReview = (reviewId) => {
@@ -415,7 +423,7 @@ export default function ProductDetail({ params }) {
                   )}
                   <div className="main-image">
                     <Image
-                      src={product.images[selectedImage]}
+                      src={imageUrl(product.images[selectedImage], 1100)}
                       alt={product.name}
                       width={600}
                       height={600}
@@ -424,8 +432,8 @@ export default function ProductDetail({ params }) {
                       unoptimized={/^https?:\/\//.test(product.images[selectedImage] || '')}
                     />
                     {/* Zoom Icon */}
-                    <a 
-                      href={product.images[selectedImage]} 
+                    <a
+                      href={product.images[selectedImage]}
                       className="glightbox zoom-icon"
                       data-gallery="product-gallery"
                     >
@@ -439,16 +447,17 @@ export default function ProductDetail({ params }) {
                   </div>
                 </div>
 
-                {/* Thumbnail Images */}
+                {/* Thumbnail Images (only when there's more than one) */}
+                {product.images.length > 1 && (
                 <div className="thumbnail-images">
                   {product.images.map((image, index) => (
-                    <div 
+                    <div
                       key={index}
                       className={`thumbnail ${selectedImage === index ? 'active' : ''}`}
                       onClick={() => setSelectedImage(index)}
                     >
                       <Image
-                        src={image}
+                        src={imageUrl(image, 200)}
                         alt={`${product.name} ${index + 1}`}
                         width={100}
                         height={100}
@@ -458,13 +467,14 @@ export default function ProductDetail({ params }) {
                     </div>
                   ))}
                 </div>
+                )}
 
                 {/* Hidden images for lightbox gallery */}
                 <div style={{ display: 'none' }}>
                   {product.images.slice(1).map((image, index) => (
-                    <a 
+                    <a
                       key={index}
-                      href={image} 
+                      href={image}
                       className="glightbox"
                       data-gallery="product-gallery"
                     ></a>
@@ -475,7 +485,7 @@ export default function ProductDetail({ params }) {
 
             {/* Product Info */}
             <div className="col-lg-6">
-              <div className="product-info">
+              <div className="product-info pdp-sticky-info">
                 {/* Category */}
                 {product.category && (
                   <div className="product-category">
@@ -525,35 +535,47 @@ export default function ProductDetail({ params }) {
                   <div className="quantity-selector">
                     <label>Quantity:</label>
                     <div className="quantity-controls">
-                      <button 
+                      <button
                         className="qty-btn minus"
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1 || isOutOfStock}
+                        aria-label="Decrease quantity"
                       >
                         −
                       </button>
-                      <span className="qty-display">{quantity}</span>
-                      <button 
+                      <span className="qty-display" aria-live="polite">{quantity}</span>
+                      <button
                         className="qty-btn plus"
-                        onClick={() => setQuantity(quantity + 1)}
+                        onClick={() => setQuantity(Math.min(maxQty, quantity + 1))}
+                        disabled={quantity >= maxQty || isOutOfStock}
+                        aria-label="Increase quantity"
                       >
                         +
                       </button>
                     </div>
                   </div>
 
+                  {!isOutOfStock && product.stock <= 5 && (
+                    <p className="stock-note">Only {product.stock} left in stock</p>
+                  )}
+                  {stockNotice && <p className="stock-note">{stockNotice}</p>}
+
                   <div className="action-buttons">
-                    <button 
+                    <button
                       className="btn add-to-cart-btn"
                       onClick={handleAddToCart}
+                      disabled={isOutOfStock}
                     >
-                      ADD TO CART
+                      {isOutOfStock ? 'SOLD OUT' : 'ADD TO CART'}
                     </button>
-                    <button 
-                      className="btn buy-now-btn"
-                      onClick={handleBuyNow}
-                    >
-                      BUY IT NOW
-                    </button>
+                    {!isOutOfStock && (
+                      <button
+                        className="btn buy-now-btn"
+                        onClick={handleBuyNow}
+                      >
+                        BUY IT NOW
+                      </button>
+                    )}
                   </div>
 
                 </div>
@@ -561,28 +583,35 @@ export default function ProductDetail({ params }) {
                 {/* Product Features */}
                 <div className="product-features">
                   <div className="feature">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                      <polyline points="3.27,6.96 12,12.01 20.73,6.96"></polyline>
-                      <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg>
-                    <span>{shippingRates.freeShippingThreshold > 0 ? `Free delivery on orders over ${formatPrice(shippingRates.freeShippingThreshold)}` : 'Fast delivery across Pakistan'}</span>
-                  </div>
-                  <div className="feature">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                      <polyline points="9,22 9,12 15,12 15,22"></polyline>
-                    </svg>
-                    <span>30-day return policy</span>
-                  </div>
-                  <div className="feature">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <rect x="1" y="3" width="15" height="13"></rect>
                       <polygon points="16,8 20,8 23,11 23,16 16,16 16,8"></polygon>
                       <circle cx="5.5" cy="18.5" r="2.5"></circle>
                       <circle cx="18.5" cy="18.5" r="2.5"></circle>
                     </svg>
+                    <span>{shippingRates.freeShippingThreshold > 0 ? `Free delivery on orders over ${formatPrice(shippingRates.freeShippingThreshold)}` : 'Delivery across Pakistan'}</span>
+                  </div>
+                  <div className="feature">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="1 4 1 10 7 10"></polyline>
+                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                    </svg>
+                    <span>Damaged or leaking? <Link href="/shipping-returns">We'll replace it</Link></span>
+                  </div>
+                  <div className="feature">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
                     <span>Delivery in {DELIVERY_TIME.majorCities} in major cities</span>
+                  </div>
+                  <div className="feature">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                      <circle cx="12" cy="12" r="2.5"></circle>
+                      <path d="M6 12h.01M18 12h.01"></path>
+                    </svg>
+                    <span>Cash on Delivery available</span>
                   </div>
                 </div>
               </div>
@@ -599,7 +628,7 @@ export default function ProductDetail({ params }) {
             <div className="col-12">
               <div className="reviews-container">
                 <h2 className="reviews-title">Customer Reviews</h2>
-                
+
                 {/* Reviews Summary */}
                 <div className="reviews-summary">
                   <div className="rating-overview">
@@ -614,7 +643,7 @@ export default function ProductDetail({ params }) {
                       </div>
                       <span className="review-count">{product.reviews} Reviews</span>
                     </div>
-                    
+
                     <div className="rating-breakdown">
                       <div className="rating-bar">
                         <span className="star-label">5</span>
@@ -653,7 +682,7 @@ export default function ProductDetail({ params }) {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="review-actions">
                     <p className="review-prompt">Review this product</p>
                     <p className="review-subtext">Share your thoughts with other customers.</p>
@@ -674,11 +703,11 @@ export default function ProductDetail({ params }) {
                       </button>
                     ))}
                   </div>
-                  
+
                   <div className="sort-dropdown">
                     <label>Sort by</label>
-                    <select 
-                      value={sortBy} 
+                    <select
+                      value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                       className="sort-select"
                     >
@@ -715,13 +744,13 @@ export default function ProductDetail({ params }) {
                           Review on {review.date}
                         </div>
                       </div>
-                      
+
                       <div className="review-content">
                         <p className="review-text">{review.text}</p>
                       </div>
-                      
+
                       <div className="review-actions">
-                        <button 
+                        <button
                           className={`helpful-btn ${likedReviews.has(review.id) ? 'liked' : ''}`}
                           onClick={() => handleLikeReview(review.id)}
                         >
@@ -752,21 +781,21 @@ export default function ProductDetail({ params }) {
                   <p className="faqs-subtitle">FREQUENTLY ASKED QUESTIONS</p>
                   <h2 className="faqs-title">You've Got Any Questions?</h2>
                 </div>
-                
+
                 <div className="faqs-list">
                   {faqs.map((faq, index) => (
                     <div key={index} className="faq-item">
-                      <button 
+                      <button
                         className={`faq-question ${openFAQ === index ? 'active' : ''}`}
                         onClick={() => toggleFAQ(index)}
                       >
                         <span>{faq.question}</span>
-                        <svg 
-                          width="20" 
-                          height="20" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
                           strokeWidth="2"
                           className={`faq-icon ${openFAQ === index ? 'rotated' : ''}`}
                         >
@@ -780,7 +809,7 @@ export default function ProductDetail({ params }) {
                           )}
                         </svg>
                       </button>
-                      
+
                       <div className={`faq-answer ${openFAQ === index ? 'open' : ''}`}>
                         <div className="faq-answer-content">
                           <FaqAnswer text={faq.answer} />
@@ -794,7 +823,7 @@ export default function ProductDetail({ params }) {
                 </div>
               </div>
             </div>
-            
+
             <div className="col-lg-6">
               <div className="faqs-image">
                 <Image
@@ -804,7 +833,7 @@ export default function ProductDetail({ params }) {
                   height={400}
                   className="img-fluid"
                 />
-                
+
                 <div className="help-card">
                   <h4>Still Have Questions?</h4>
                   <p>Feel free to ask any questions you have!</p>
@@ -817,9 +846,10 @@ export default function ProductDetail({ params }) {
       </section>
 
       {/* Add to Cart Modal */}
-      <AddToCartModal 
+      <AddToCartModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
+        notice={stockNotice}
         product={product}
         quantity={quantity}
       />

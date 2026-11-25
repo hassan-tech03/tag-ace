@@ -3,6 +3,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice } from "@/lib/money";
+import { imageUrl } from "@/lib/images";
+import { useDialog } from "@/hooks/useDialog";
 
 const POPULAR = ['Rose', 'Oud', 'Floral', 'Woody', 'Men', 'Women', 'Oriental'];
 
@@ -13,10 +15,12 @@ export default function SearchModal({ isOpen, onClose }) {
   const [searching, setSearching] = useState(false);
   const inputRef = useRef(null);
   const requestRef = useRef(0);
+  const modalRef = useRef(null);
+  useDialog(isOpen, onClose, modalRef);
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 60);
+      setTimeout(() => inputRef.current?.focus(), 30);
       setQuery('');
       setResults([]);
       setActiveIdx(-1);
@@ -89,7 +93,14 @@ export default function SearchModal({ isOpen, onClose }) {
 
   return (
     <div className="search-modal-overlay" onClick={onClose}>
-      <div className="search-modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="search-modal"
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search fragrances"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         <div className="search-modal-input-row">
           <svg className="search-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -136,12 +147,16 @@ export default function SearchModal({ isOpen, onClose }) {
               <p className="search-section-label" style={{ marginTop: '28px' }}>Browse Categories</p>
               <div className="search-categories">
                 {[
-                  { label: "Men's", href: '/shop/men', icon: '♂' },
-                  { label: "Women's", href: '/shop/women', icon: '♀' },
-                  { label: 'All Products', href: '/shop', icon: '✦' },
+                  { label: "Men's Fragrances", href: '/shop/men' },
+                  { label: "Women's Fragrances", href: '/shop/women' },
+                  { label: 'All Perfumes', href: '/shop' },
                 ].map((c) => (
                   <Link key={c.href} href={c.href} className="search-category-chip" onClick={onClose}>
-                    <span className="chip-icon">{c.icon}</span>
+                    <svg className="chip-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M10 2h4v3h-4z" />
+                      <path d="M9 5h6l1 3H8z" />
+                      <rect x="6" y="8" width="12" height="14" rx="2" />
+                    </svg>
                     {c.label}
                   </Link>
                 ))}
@@ -150,8 +165,9 @@ export default function SearchModal({ isOpen, onClose }) {
           )}
 
           {query && searching && results.length === 0 && (
-            <div className="search-no-results" style={{ paddingTop: 24 }}>
-              <p className="no-results-title">Searching…</p>
+            <div className="search-loading" role="status" aria-live="polite">
+              <span className="search-spinner" aria-hidden="true" />
+              <span>Searching…</span>
             </div>
           )}
 
@@ -170,7 +186,7 @@ export default function SearchModal({ isOpen, onClose }) {
                     >
                       <div className="result-image">
                         <Image
-                          src={product.image || '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp'}
+                          src={imageUrl(product.image, 120) || '/brand/mushk-icon.png'}
                           alt={product.name}
                           width={56}
                           height={56}
@@ -213,7 +229,7 @@ export default function SearchModal({ isOpen, onClose }) {
                 ))}
               </ul>
               <Link href={`/shop`} className="search-view-all" onClick={onClose}>
-                View all results in shop
+                Browse all perfumes
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="9,18 15,12 9,6" />
                 </svg>

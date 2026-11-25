@@ -314,7 +314,7 @@ function buildLongDescription(p) {
     list && list.length ? `${label}: ${list.join(", ")}` : "";
   const lines = [
     p.shortDescription,
-    `An ${p.fragranceFamily.toLowerCase()} ${p.category === "men" ? "men's" : "women's"} fragrance crafted by ${p.brand}.`,
+    `${/^[aeiou]/i.test(p.fragranceFamily) ? "An" : "A"} ${p.fragranceFamily.toLowerCase()} ${p.category === "men" ? "men's" : "women's"} fragrance crafted by ${p.brand}.`,
     "",
     noteLine("Top notes", p.notes.top),
     noteLine("Heart notes", p.notes.middle),

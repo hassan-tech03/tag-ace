@@ -6122,3 +6122,571 @@ body {
     color: var(--color-gold);
   }
 }
+
+// ============================================================
+//  Product card v2 — layout fixes (QA 1.2, 3.9, 3.10, 4.2)
+//  The card is <article> > (link: image + info) + actions. The whole card
+//  opens the product; Add to Cart is a separate button below the price.
+// ============================================================
+.product-item.product-card-v2 {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+
+  > .product-link {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .product-info {
+    flex: 1 1 auto !important;
+    padding-bottom: 12px !important;
+  }
+
+  .soldout-chip {
+    background: rgba(26, 26, 26, 0.9) !important;
+    color: var(--color-white) !important;
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    padding: 5px 10px !important;
+    border-radius: 999px !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  .card-actions {
+    padding: 0 18px 18px !important;
+  }
+
+  .card-add-btn {
+    width: 100% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    min-height: 44px !important;
+    background: var(--color-charcoal) !important;
+    color: var(--color-white) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    font-family: var(--font-sans) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.8px !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: background 0.25s ease, color 0.25s ease !important;
+
+    &:hover:not(:disabled) {
+      background: var(--color-gold) !important;
+      color: var(--color-black) !important;
+    }
+    &:disabled {
+      background: transparent !important;
+      color: var(--color-text-muted) !important;
+      border: 1px solid var(--color-border) !important;
+      cursor: not-allowed !important;
+    }
+  }
+
+  // Touch screens: no hover lift or image swap, so the two cards in a
+  // mobile row always line up.
+  @media (hover: none) {
+    &:hover {
+      transform: none !important;
+      box-shadow: none !important;
+      border-color: transparent !important;
+      .product-image .main-image { opacity: 1 !important; transform: none !important; }
+      .product-image .hover-image { opacity: 0 !important; }
+    }
+  }
+
+  @media (max-width: 575px) {
+    .product-info { padding: 14px 12px 10px !important; }
+    .card-actions { padding: 0 12px 12px !important; }
+    .card-add-btn { font-size: 11px !important; letter-spacing: 0.5px !important; padding: 8px 10px !important; }
+  }
+}
+
+.swiper-product-card .product-item.product-card-v2 .card-actions { padding: 0 14px 16px !important; }
+
+// ============================================================
+//  Header fixes (QA 3.2, 3.3, 7.1, 7.4)
+// ============================================================
+// Shop dropdown also opens with the keyboard (focus inside it).
+.desktop-nav-item.has-dropdown:focus-within {
+  > .desktop-nav-link svg { transform: rotate(180deg); }
+  .nav-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
+
+.cart-sidebar {
+  .cart-drawer-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-charcoal);
+    font-family: var(--font-playfair);
+    margin: 0;
+  }
+  .empty-cart .empty-cart-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-charcoal);
+    font-family: var(--font-playfair);
+    margin: 0;
+  }
+  .qty-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+}
+
+.mobile-menu {
+  overflow-y: auto;
+
+  // Whole SHOP row toggles the submenu (44px+ target).
+  .mobile-nav .nav-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    svg { color: var(--color-text-muted); flex-shrink: 0; }
+  }
+
+  .mobile-menu-actions {
+    padding: 12px 16px 24px;
+    display: grid;
+    gap: 8px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .mobile-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-white);
+    color: var(--color-charcoal);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition);
+    svg { color: var(--color-gold); flex-shrink: 0; }
+    &:hover {
+      border-color: var(--color-gold);
+      background: var(--color-gold-pale);
+    }
+  }
+}
+
+// 404 page
+.not-found-page {
+  padding: 96px 0 110px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, var(--color-gold-pale), transparent 60%), var(--color-white);
+  .not-found-code {
+    font-family: var(--font-playfair);
+    font-size: clamp(4rem, 12vw, 7rem);
+    line-height: 1;
+    color: var(--color-gold);
+    margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--font-playfair);
+    font-weight: 400;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    color: var(--color-charcoal);
+    margin-bottom: 12px;
+  }
+  .not-found-text {
+    color: var(--color-text-mid);
+    margin-bottom: 26px;
+  }
+  .not-found-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+  }
+  .not-found-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 8px 22px;
+    justify-content: center;
+    flex-wrap: wrap;
+    a {
+      color: var(--color-charcoal);
+      font-size: 14px;
+      border-bottom: 1px solid var(--color-gold);
+      padding-bottom: 2px;
+      &:hover { color: #8a6a32; }
+    }
+  }
+}
+
+// ============================================================
+//  Hero slider fixes (QA 2.1–2.5, 3.1, 5.8)
+// ============================================================
+.hero-slider {
+  touch-action: pan-y;
+
+  .slide {
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+
+    // Copy fades out fast and the new copy fades in after the image, so
+    // two slides' text are never visible together.
+    .slide-text {
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    &.active .slide-text {
+      opacity: 1;
+      transform: none;
+      transition: opacity 0.6s ease 0.35s, transform 0.6s ease 0.35s;
+    }
+
+    .slide-title {
+      // Scales down on phones instead of running off both edges.
+      font-size: clamp(2.1rem, 8.4vw, 5.5rem);
+      overflow-wrap: break-word;
+      em {
+        display: inline-block;
+        margin-left: -0.04em; // optical alignment of the italic line
+      }
+    }
+
+    .slide-button {
+      text-decoration: none !important;
+    }
+  }
+
+  // Desktop: arrows at the sides, dots at the bottom.
+  .hero-controls {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+    > * { pointer-events: auto; }
+  }
+
+  // Tablet & mobile: one row under the copy — arrow · dots · arrow.
+  @media (max-width: 991px) {
+    .slide .container { align-items: flex-start; padding-top: 12vh; }
+    .slide .slide-text { padding: 0 8px; }
+
+    .hero-controls {
+      inset: auto;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .slider-nav,
+    .slider-nav.prev,
+    .slider-nav.next {
+      position: static;
+      transform: none;
+      width: 40px;
+      height: 40px;
+      &:hover { transform: none; }
+    }
+    .slide-indicators {
+      position: static;
+      transform: none;
+    }
+  }
+}
+
+// ============================================================
+//  Category cards (QA 3.5, 3.6, 5.2)
+// ============================================================
+.categories-section .category-item {
+  .category-image {
+    img { object-fit: cover !important; object-position: center !important; }
+    // Same readable scrim on every card.
+    &::after {
+      background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.72) 100%) !important;
+      opacity: 1 !important;
+    }
+  }
+  .category-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  // "Shop now" on every card, always visible (touch has no hover).
+  .shop-now-cta {
+    position: static !important;
+    margin-top: 12px;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+// ============================================================
+//  Product carousels (QA 2.6–2.10): same controls in both sections —
+//  arrows and dots together in one row under the cards.
+// ============================================================
+.products-swiper,
+.popular-products-swiper {
+  overflow: hidden !important;
+  padding: 8px 0 4px !important;
+  .swiper-slide { height: auto !important; }
+  .swiper-slide > .product-item { height: 100% !important; }
+}
+
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 18px 0 8px;
+}
+
+.carousel-arrow {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-charcoal);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  &:hover:not(.swiper-button-disabled) {
+    background: var(--color-gold);
+    border-color: var(--color-gold);
+  }
+  &.swiper-button-disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: auto !important;
+  position: static !important;
+  .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    margin: 0 !important;
+    background: #d6cfc4;
+    opacity: 1;
+    transition: all var(--transition);
+    &.swiper-pagination-bullet-active {
+      background: var(--color-gold);
+      width: 22px;
+      border-radius: 4px;
+    }
+  }
+}
+
+// Old per-section arrow styles are no longer used.
+.best-sellers-section .custom-navigation,
+.popular-perfumes-section .popular-swiper-button-prev,
+.popular-perfumes-section .popular-swiper-button-next { display: none !important; }
+.best-sellers-section .section-header .nav-tabs { margin-bottom: 28px; }
+
+// ============================================================
+//  Checkout (QA 3.8, 5.6)
+// ============================================================
+.checkout-page {
+  .checkout-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    .breadcrumb { margin: 0; }
+  }
+  .checkout-title {
+    font-family: var(--font-playfair);
+    font-weight: 400;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    color: var(--color-charcoal);
+    margin: 0;
+  }
+  .order-items .order-item {
+    .item-thumb {
+      position: relative;
+      flex-shrink: 0;
+      width: 64px;
+      height: 64px;
+    }
+    .item-thumb .item-image { width: 64px; height: 64px; }
+    .item-thumb .item-quantity {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      z-index: 1;
+      background: var(--color-charcoal);
+      color: white;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 11px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 2px var(--color-white);
+    }
+  }
+  .payment-icons .card-icon { color: var(--color-charcoal); }
+}
+
+// ============================================================
+//  Misc polish (QA 3.7, 3.11, 3.14, 5.1, 6.7)
+// ============================================================
+// FAQ / policy pages: header and body share one column.
+.faq-page .page-header .container,
+.faq-page .policy-article {
+  max-width: 860px;
+}
+.faq-page .policy-article { margin: 0 auto; }
+
+// Links inside FAQ answers (product, contact, /faq) use the brand colour.
+.faq-rich a,
+.faq-answer a,
+.faq-item p a,
+.faq-answer-content a {
+  color: #8a6a32 !important;
+  text-decoration: underline !important;
+  text-decoration-color: var(--color-gold) !important;
+  text-underline-offset: 3px;
+  &:hover { color: var(--color-charcoal) !important; }
+}
+
+// Textareas only grow vertically and never past their card.
+textarea {
+  resize: vertical;
+  max-width: 100%;
+}
+
+// Back-to-top button never covers the copyright line on phones.
+@media (max-width: 767px) {
+  .footer .footer-bottom { padding-bottom: 88px !important; }
+}
+
+// Product page: info column follows the tall gallery on desktop.
+@media (min-width: 992px) {
+  .product-detail-section .pdp-sticky-info {
+    position: sticky;
+    top: 120px;
+  }
+  .product-detail-section .main-image img {
+    max-height: 78vh;
+    object-fit: contain;
+    width: 100%;
+  }
+}
+.product-detail-section .stock-note {
+  font-size: 13px;
+  color: #a05a2c;
+  margin: 10px 0 0;
+}
+.product-detail-section .product-features .feature a {
+  color: inherit;
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+}
+
+// Footer contact lines + payment marks (QA 4.3, 4.6)
+.footer .footer-brand .contact-info .contact-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  svg { color: var(--color-gold); flex-shrink: 0; }
+}
+.footer .payment-methods {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  .payment-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 34px;
+    min-width: 54px;
+    padding: 0 12px;
+    background: var(--color-white);
+    border-radius: 6px;
+  }
+  .payment-mark--cod {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    svg { color: var(--color-gold); }
+  }
+}
+
+// About hero stats use <p> (not headings) for the numbers.
+.about-us-page .about-hero .hero-stats .stat-item p.stat-number,
+.about-hero .hero-stats .stat-item p.stat-number {
+  font-family: var(--font-playfair);
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--color-gold);
+  margin-bottom: 4px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+// Search modal (QA 1.4, 4.4)
+.search-modal {
+  .search-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 4px;
+    color: var(--color-text-muted);
+    font-size: 14px;
+  }
+  .search-spinner {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-gold);
+    animation: mushk-spin 0.7s linear infinite;
+  }
+  .search-category-chip .chip-icon-svg {
+    color: var(--color-gold);
+    flex-shrink: 0;
+  }
+}
+@keyframes mushk-spin { to { transform: rotate(360deg); } }

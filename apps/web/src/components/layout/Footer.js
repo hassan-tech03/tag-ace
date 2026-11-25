@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { CARD_PAYMENTS_ENABLED } from '@/lib/paymentConfig';
 
 const strokeIcon = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' };
 
@@ -129,7 +130,7 @@ export default function Footer() {
     <>
       {/* Floating Back to Top Button */}
       {showBackToTop && (
-        <button 
+        <button
           className="floating-back-to-top"
           onClick={scrollToTop}
           aria-label="Back to top"
@@ -160,15 +161,22 @@ export default function Footer() {
             </p>
             {(info.address || info.phone || info.email) && (
               <div className="contact-info">
-                {info.address && <p>📍 {info.address}</p>}
+                {info.address && (
+                  <p className="contact-line">
+                    <svg {...strokeIcon} width={15} height={15} aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                    <span>{info.address}</span>
+                  </p>
+                )}
                 {info.phone && (
-                  <p>
-                    📞 <a href={`tel:${info.phone.replace(/[^+0-9]/g, '')}`}>{info.phone}</a>
+                  <p className="contact-line">
+                    <svg {...strokeIcon} width={15} height={15} aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.62 3.38 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.38a16 16 0 0 0 6 6l.95-.93a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
+                    <a href={`tel:${info.phone.replace(/[^+0-9]/g, '')}`}>{info.phone}</a>
                   </p>
                 )}
                 {info.email && (
-                  <p>
-                    ✉ <a href={`mailto:${info.email}`}>{info.email}</a>
+                  <p className="contact-line">
+                    <svg {...strokeIcon} width={15} height={15} aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+                    <a href={`mailto:${info.email}`}>{info.email}</a>
                   </p>
                 )}
               </div>
@@ -222,8 +230,8 @@ export default function Footer() {
               Subscribe to our newsletter to receive news on update.
             </p>
             <div className="newsletter-form">
-              <input 
-                type="email" 
+              <input
+                type="email"
                 placeholder="Enter your email"
                 className="newsletter-input"
               />
@@ -241,9 +249,20 @@ export default function Footer() {
         <div className="footer-bottom">
           <div className="footer-bottom-left">
             <div className="payment-methods">
-              <div className="payment-card">VISA</div>
-              <div className="payment-card">MASTERCARD</div>
-              <div className="payment-card">CASH ON DELIVERY</div>
+              {CARD_PAYMENTS_ENABLED && (
+                <>
+                  <span className="payment-mark" title="Visa" aria-label="Visa">
+                    <svg width="44" height="16" viewBox="0 0 44 16" aria-hidden="true"><text x="22" y="13" textAnchor="middle" fontFamily="Arial, Helvetica, sans-serif" fontSize="14" fontStyle="italic" fontWeight="800" fill="#1a1f71" letterSpacing="0.5">VISA</text></svg>
+                  </span>
+                  <span className="payment-mark" title="Mastercard" aria-label="Mastercard">
+                    <svg width="34" height="22" viewBox="0 0 34 22" aria-hidden="true"><circle cx="13" cy="11" r="9" fill="#eb001b" /><circle cx="21" cy="11" r="9" fill="#f79e1b" /><path d="M17 3.9a9 9 0 0 1 0 14.2 9 9 0 0 1 0-14.2z" fill="#ff5f00" /></svg>
+                  </span>
+                </>
+              )}
+              <span className="payment-mark payment-mark--cod" title="Cash on Delivery">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="2.5" /><path d="M6 12h.01M18 12h.01" /></svg>
+                <span>Cash on Delivery</span>
+              </span>
             </div>
           </div>
           <div className="footer-bottom-center">
