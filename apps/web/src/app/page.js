@@ -47,12 +47,12 @@ function CarouselControls({ prevClass, nextClass, dotsClass, label }) {
 function HeroPicture({ slide, priority }) {
   const common = { alt: '', sizes: '100vw', priority };
   const srcSet = (src, width, height) => getImageProps({ ...common, src, width, height }).props.srcSet;
-  const { props: imgProps } = getImageProps({ ...common, src: slide.image, width: 2880, height: 1400 });
+  const { props: imgProps } = getImageProps({ ...common, src: slide.image, width: 3200, height: 1200 });
   return (
     <picture>
       <source media="(max-width: 576px)" srcSet={srcSet(slide.mobileImage, 1080, 1440)} sizes="100vw" />
       <source media="(max-width: 991px)" srcSet={srcSet(slide.tabletImage, 1600, 1400)} sizes="100vw" />
-      <source srcSet={srcSet(slide.image, 2880, 1400)} sizes="100vw" />
+      <source srcSet={srcSet(slide.image, 3200, 1200)} sizes="100vw" />
       {/* eslint-disable-next-line jsx-a11y/alt-text */}
       <img {...imgProps} className="hero-img" />
     </picture>
