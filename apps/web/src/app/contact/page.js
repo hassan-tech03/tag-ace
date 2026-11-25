@@ -380,6 +380,9 @@ export default function Contact() {
                         </>
                       )}
                     </button>
+                    <p className="form-privacy-note">
+                      We only use your details to reply to you. See our <Link href="/privacy-policy">Privacy Policy</Link>.
+                    </p>
                   </div>
                 </form>
               </div>

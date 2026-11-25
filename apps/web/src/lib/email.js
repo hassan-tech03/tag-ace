@@ -194,6 +194,7 @@ function adminEmailContent(order) {
 <tr><td style="color:${C.muted};vertical-align:top">Phone</td><td>${c.phone ? `<a href="tel:${esc(String(c.phone).replace(/[^+0-9]/g, ""))}" style="color:${C.ink}">${esc(c.phone)}</a>` : "—"}</td></tr>
 <tr><td style="color:${C.muted};vertical-align:top">Address</td><td>${addressHtml(order.shippingAddress) || "—"}</td></tr>
 ${order.customerNotes ? `<tr><td style="color:${C.muted};vertical-align:top">Notes</td><td>${esc(order.customerNotes)}</td></tr>` : ""}
+<tr><td style="color:${C.muted};vertical-align:top">News &amp; offers</td><td>${c.marketingOptIn ? "Yes, opted in" : "No"}</td></tr>
 </table>
 ${itemsTable(order.items)}
 ${totalsTable(order)}
@@ -207,6 +208,7 @@ ${
     `Customer: ${customerName(c)} <${c.email}> ${c.phone || ""}`,
     `Address: ${addressText(order.shippingAddress)}`,
     order.customerNotes ? `Notes: ${order.customerNotes}` : "",
+    `News & offers: ${c.marketingOptIn ? "opted in" : "no"}`,
     "",
     ...(order.items || []).map((it) => `- ${it.name} x${it.quantity}: ${formatPrice(Number(it.price) * Number(it.quantity))}`),
     "",
@@ -325,5 +327,22 @@ ${phone ? `<tr><td style="color:${C.muted}">Phone</td><td>${esc(phone)}</td></tr
     subject: `Website message: ${subject || inquiryType || "New message"}`,
     html: layout({ preheader: `${name}: ${String(message).slice(0, 80)}`, body }),
     text: `From: ${name} <${email}>${phone ? `\nPhone: ${phone}` : ""}\nType: ${inquiryType}\n\n${message}`,
+  });
+}
+
+// Footer newsletter sign-up: emailed to the store so the owner keeps the list.
+export async function sendNewsletterSignupEmail(email) {
+  const store = await storeContact();
+  const to = process.env.CONTACT_EMAIL || store.email || process.env.SMTP_USER;
+  const body = `
+<p style="margin:0 0 6px;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:${C.gold};font-weight:bold">Newsletter sign-up</p>
+<h1 style="margin:0 0 14px;font-family:Georgia,serif;font-weight:normal;font-size:22px"><a href="mailto:${esc(email)}" style="color:${C.ink}">${esc(email)}</a></h1>
+<p style="margin:0;font-size:14px;line-height:1.6;color:${C.muted}">This person asked to receive news and offers from ${esc(store.name)} via the website footer. Remove them from your list if they ask to unsubscribe.</p>`;
+  return sendMail({
+    to,
+    replyTo: email,
+    subject: `Newsletter sign-up: ${email}`,
+    html: layout({ preheader: `${email} joined the newsletter`, body }),
+    text: `Newsletter sign-up: ${email}\n\nThis person asked to receive news and offers via the website footer.`,
   });
 }

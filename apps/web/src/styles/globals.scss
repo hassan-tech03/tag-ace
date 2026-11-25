@@ -6738,3 +6738,42 @@ textarea {
   }
 }
 @keyframes mushk-spin { to { transform: rotate(360deg); } }
+
+// ============================================================
+//  Newsletter form status + checkout hints (privacy policy work)
+// ============================================================
+.footer .newsletter-form-wrap {
+  .hp-field {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+  }
+  .newsletter-status {
+    min-height: 1.2em;
+    margin: 8px 0 0;
+    font-size: 12.5px;
+    &.done { color: var(--color-gold); }
+    &.error { color: #f0a3a3; }
+  }
+  .newsletter-privacy {
+    margin: 2px 0 0;
+    font-size: 11.5px;
+    opacity: 0.7;
+    a { color: inherit; text-decoration: underline; }
+  }
+}
+.checkout-page .form-hint,
+.form-options .form-hint {
+  margin: 4px 0 0 30px;
+  font-size: 12px;
+  color: #8a8279;
+  a { color: inherit; text-decoration: underline; }
+}
+.form-privacy-note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: #8a8279;
+  a { color: inherit; text-decoration: underline; }
+}

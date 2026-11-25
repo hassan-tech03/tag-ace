@@ -58,6 +58,72 @@ const SOCIALS = [
   },
 ];
 
+// Footer newsletter: sign-ups are emailed to the store (see /api/newsletter).
+function NewsletterForm() {
+  const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot
+  const [status, setStatus] = useState({ state: 'idle', message: '' });
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (status.state === 'sending') return;
+    setStatus({ state: 'sending', message: '' });
+    try {
+      const res = await fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, website }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Could not sign you up. Please try again.');
+      setEmail('');
+      setStatus({ state: 'done', message: "Thanks! You're on the list." });
+    } catch (err) {
+      setStatus({ state: 'error', message: err.message });
+    }
+  };
+
+  return (
+    <form className="newsletter-form-wrap" onSubmit={submit} noValidate={false}>
+      <div className="newsletter-form">
+        <input
+          type="email"
+          name="email"
+          required
+          autoComplete="email"
+          placeholder="Enter your email"
+          aria-label="Email address for newsletter"
+          className="newsletter-input"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          className="hp-field"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+        />
+        <button type="submit" className="newsletter-btn" aria-label="Subscribe" disabled={status.state === 'sending'}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <p className={`newsletter-status ${status.state}`} role="status" aria-live="polite">
+        {status.message}
+      </p>
+      <p className="newsletter-privacy">
+        By subscribing you agree to our <Link href="/privacy-policy">Privacy Policy</Link>.
+      </p>
+    </form>
+  );
+}
+
 export default function Footer() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   // Contact details and social links come from Admin → Site Content
@@ -207,6 +273,7 @@ export default function Footer() {
               <li><Link href="/contact">Contact Us</Link></li>
               <li><Link href="/faq">FAQs</Link></li>
               <li><Link href="/shipping-returns">Shipping & Returns</Link></li>
+              <li><Link href="/privacy-policy">Privacy Policy</Link></li>
               <li><Link href="/cart">Your Cart</Link></li>
             </ul>
           </div>
@@ -227,21 +294,9 @@ export default function Footer() {
           <div className="footer-section newsletter-section">
             <h4>Newsletter</h4>
             <p className="newsletter-text">
-              Subscribe to our newsletter to receive news on update.
+              New launches and offers by email. Unsubscribe any time.
             </p>
-            <div className="newsletter-form">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="newsletter-input"
-              />
-              <button className="newsletter-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22,2 15,22 11,13 2,9 22,2"></polygon>
-                </svg>
-              </button>
-            </div>
+            <NewsletterForm />
           </div>
         </div>
 
