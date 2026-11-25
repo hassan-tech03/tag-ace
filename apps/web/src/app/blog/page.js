@@ -3,6 +3,7 @@ import { and, desc, eq, isNotNull, lte } from "drizzle-orm";
 import { db, posts } from "@mushk/db";
 import { formatPostDate, readingMinutes } from "@/lib/blog";
 import { pageMetadata } from "@/lib/seo";
+import Arrow from '@/components/ui/Arrow';
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +76,7 @@ export default async function BlogPage() {
                   </div>
                   <h2>{featured.title}</h2>
                   <p>{featured.excerpt}</p>
-                  <span className="blog-readmore">Read article →</span>
+                  <span className="blog-readmore with-arrow">Read article <Arrow /></span>
                 </div>
               </Link>
             )}

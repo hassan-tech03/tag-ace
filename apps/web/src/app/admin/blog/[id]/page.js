@@ -6,6 +6,7 @@ import { Button } from "@/components/admin/ui/Field";
 import PostForm from "@/components/admin/PostForm";
 import { db, posts } from "@mushk/db";
 import { isUuid, serialize } from "@mushk/db/helpers";
+import Arrow from '@/components/ui/Arrow';
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function EditPostPage({ params }) {
     <div>
       <PageHeader title="Edit post" description={initial.title}>
         <Link href="/admin/blog">
-          <Button variant="secondary">← Back to blog</Button>
+          <Button variant="secondary"><Arrow dir="left" /> Back to blog</Button>
         </Link>
       </PageHeader>
       <PostForm initial={initial} postId={params.id} />

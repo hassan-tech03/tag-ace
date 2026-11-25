@@ -8,6 +8,7 @@ import {
   StatusBreakdown,
 } from "@/components/admin/AnalyticsCharts";
 import { formatPrice } from "@/lib/money";
+import Arrow from '@/components/ui/Arrow';
 
 const RANGES = [
   { id: "7d", label: "7d" },
@@ -182,8 +183,8 @@ export default function DashboardPage() {
         <section className="bg-white border border-slate-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-900">Top products</h2>
-            <Link href="/admin/products" className="text-xs text-amber-700 hover:underline">
-              View all →
+            <Link href="/admin/products" className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+              View all <Arrow />
             </Link>
           </div>
           <BarList
@@ -199,8 +200,8 @@ export default function DashboardPage() {
         <section className="bg-white border border-slate-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-slate-900">Top categories</h2>
-            <Link href="/admin/categories" className="text-xs text-amber-700 hover:underline">
-              View all →
+            <Link href="/admin/categories" className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+              View all <Arrow />
             </Link>
           </div>
           <BarList
@@ -217,8 +218,8 @@ export default function DashboardPage() {
       <section className="bg-white border border-slate-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <h2 className="text-sm font-semibold text-slate-900">Recent orders</h2>
-          <Link href="/admin/orders" className="text-xs text-amber-700 hover:underline">
-            View all →
+          <Link href="/admin/orders" className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+            View all <Arrow />
           </Link>
         </div>
         <div className="overflow-x-auto">
@@ -288,8 +289,8 @@ export default function DashboardPage() {
           <div className="text-xl font-semibold text-slate-900 mt-1">
             {data?.counts?.products ?? "—"}
           </div>
-          <Link href="/admin/products" className="text-xs text-amber-700 hover:underline mt-2 inline-block">
-            Manage products →
+          <Link href="/admin/products" className="text-xs text-amber-700 hover:underline mt-2 inline-flex items-center gap-1">
+            Manage products <Arrow />
           </Link>
         </div>
         <div className="bg-white border border-slate-200 rounded-lg p-4 text-sm">
@@ -297,8 +298,8 @@ export default function DashboardPage() {
           <div className="text-xl font-semibold text-slate-900 mt-1">
             {data?.counts?.activeCoupons ?? "—"}
           </div>
-          <Link href="/admin/coupons" className="text-xs text-amber-700 hover:underline mt-2 inline-block">
-            Manage coupons →
+          <Link href="/admin/coupons" className="text-xs text-amber-700 hover:underline mt-2 inline-flex items-center gap-1">
+            Manage coupons <Arrow />
           </Link>
         </div>
         <div className="bg-white border border-slate-200 rounded-lg p-4 text-sm">

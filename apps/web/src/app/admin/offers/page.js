@@ -19,6 +19,7 @@ import {
   offerStatus,
   toLocalDatetime,
 } from "@/lib/promoUtils";
+import Arrow from '@/components/ui/Arrow';
 
 const STATUS_BADGE = {
   active: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -432,11 +433,11 @@ export default function OffersPage() {
                     {o.subtitle && (
                       <div className="text-xs text-slate-600 mt-0.5">{o.subtitle}</div>
                     )}
-                    <div className="text-xs text-slate-500 mt-2">
+                    <div className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
                       {o.startsAt
                         ? new Date(o.startsAt).toLocaleDateString()
                         : "Always"}
-                      {" → "}
+                      <Arrow />
                       {o.endsAt ? new Date(o.endsAt).toLocaleDateString() : "No end"}
                     </div>
                     <div className="mt-3 flex items-center gap-2">

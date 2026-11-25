@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHeader from "@/components/admin/ui/PageHeader";
 import TestimonialsTab from "@/components/admin/content/TestimonialsTab";
 import SettingsTab from "@/components/admin/content/SettingsTab";
+import Arrow from '@/components/ui/Arrow';
 
 const TABS = [
   { id: "testimonials", label: "Testimonials" },
@@ -23,8 +24,8 @@ export default function ContentPage() {
 
       <div className="mb-5 rounded-md bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
         Looking for homepage slides or hero banners?{" "}
-        <Link href="/admin/offers" className="underline font-medium">
-          Manage them under Special Offers →
+        <Link href="/admin/offers" className="underline font-medium inline-flex items-center gap-1">
+          Manage them under Special Offers <Arrow />
         </Link>
       </div>
 

@@ -12,6 +12,7 @@ import { buildFaqs, DELIVERY_TIME, findFaqs } from "@/lib/faqs";
 import FaqAnswer from "@/components/storefront/FaqAnswer";
 import { imageUrl } from "@/lib/images";
 import { SHOW_PRODUCT_RATINGS } from '@/lib/storefront/flags';
+import Arrow from '@/components/ui/Arrow';
 
 // Normalises a DB product (already in storefront shape via the adapter) into
 // the richer shape this page expects (with images[], rating, reviews count,
@@ -819,7 +820,7 @@ export default function ProductDetail({ params }) {
                   ))}
                 </div>
                 <div className="faq-inline">
-                  <Link href="/faq" className="faq-more">See all FAQs →</Link>
+                  <Link href="/faq" className="faq-more with-arrow">See all FAQs <Arrow /></Link>
                 </div>
               </div>
             </div>

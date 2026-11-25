@@ -7,6 +7,7 @@ import PageHeader from "@/components/admin/ui/PageHeader";
 import { Button } from "@/components/admin/ui/Field";
 import { useToast } from "@/components/admin/ui/Toast";
 import { formatPrice } from "@/lib/money";
+import Arrow from '@/components/ui/Arrow';
 
 function formatMoney(n) {
   return formatPrice(n);
@@ -94,7 +95,7 @@ export default function CustomerDetailPage() {
     <div>
       <PageHeader title={fullName} description={c.email}>
         <Link href="/admin/customers">
-          <Button variant="secondary">← Back to customers</Button>
+          <Button variant="secondary"><Arrow dir="left" /> Back to customers</Button>
         </Link>
       </PageHeader>
 
