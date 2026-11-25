@@ -273,6 +273,7 @@ export default function OrderDetailPage() {
             <KV label="Name" value={customerName} />
             <KV label="Email" value={order.customer?.email} />
             <KV label="Phone" value={order.customer?.phone || "—"} />
+            <KV label="News & offers" value={order.customer?.marketingOptIn ? "Opted in" : "No"} />
           </Card>
 
           <Card title="Shipping address">

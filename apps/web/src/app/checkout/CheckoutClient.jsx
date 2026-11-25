@@ -8,6 +8,7 @@ import { useCartContext } from "../../context/CartContext";
 import { formatPrice } from "@/lib/money";
 import { imageUrl } from "@/lib/images";
 import { CARD_PAYMENTS_ENABLED } from "@/lib/paymentConfig";
+import { loadSavedDetails, rememberDetails } from "@/lib/savedCheckout";
 import { shippingFor } from "@/lib/orderUtils";
 import { useShippingRates } from "@/lib/storefront/useShippingRates";
 
@@ -218,6 +219,12 @@ export default function CheckoutClient() {
   );
 
   // Check for payment success/failure from Stripe Checkout - HIGHEST PRIORITY
+  // Pre-fill from details the customer chose to save on this device.
+  useEffect(() => {
+    const saved = loadSavedDetails();
+    if (saved) setFormData((prev) => ({ ...prev, ...saved, saveInfo: true }));
+  }, []);
+
   useEffect(() => {
     console.log('🔍 Checking URL parameters...');
     console.log('🔍 Current URL:', window.location.href);
@@ -326,6 +333,7 @@ export default function CheckoutClient() {
             firstName: formData.firstName,
             lastName: formData.lastName,
             phone: formData.phone,
+            marketingOptIn: Boolean(formData.newsletter),
           },
           shippingAddress,
           billingAddress,
@@ -342,6 +350,7 @@ export default function CheckoutClient() {
         setIsLoading(false);
         return;
       }
+      rememberDetails(formData, formData.saveInfo);
 
       // Build the local snapshot used by /order-confirmation. We keep the
       // existing sessionStorage shape so the confirmation page works unchanged.
@@ -440,6 +449,7 @@ export default function CheckoutClient() {
       const data = await response.json().catch(() => ({}));
 
       if (response.ok && data.url) {
+        rememberDetails(formData, formData.saveInfo);
         // Keep the real order number for the confirmation page.
         if (data.orderNumber) {
           const withNumber = JSON.stringify({ ...checkoutData, orderNumber: data.orderNumber });
@@ -540,6 +550,9 @@ export default function CheckoutClient() {
                       <span className="checkmark"></span>
                       Email me with news and offers
                     </label>
+                    <p className="form-hint">
+                      You can unsubscribe any time. See our <Link href="/privacy-policy">Privacy Policy</Link>.
+                    </p>
                   </div>
                 </div>
 
@@ -669,6 +682,7 @@ export default function CheckoutClient() {
                       <span className="checkmark"></span>
                       Save this information for next time
                     </label>
+                    <p className="form-hint">Saved on this device only, never your payment details.</p>
                   </div>
                 </div>
 

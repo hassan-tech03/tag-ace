@@ -103,6 +103,7 @@ export const orderCreateSchema = z.object({
     firstName: z.string().max(120).optional().default(""),
     lastName: z.string().max(120).optional().default(""),
     phone: z.string().max(40).optional().default(""),
+    marketingOptIn: z.boolean().optional().default(false),
   }),
   shippingAddress: addressSchema,
   billingAddress: addressSchema.optional(),

@@ -109,7 +109,23 @@ export default function OrderConfirmation() {
     }
   };
 
-  if (isInitialized && !orderData) {
+  // The order lives in browser storage, so render the same neutral state on
+  // the server and on first client paint (rendering the receipt with
+  // `new Date()` before this caused hydration mismatches and a flash of an
+  // empty "Order Confirmed!").
+  if (!isInitialized) {
+    return (
+      <div className="order-confirmation-page">
+        <div className="container">
+          <div className="confirmation-content" style={{ textAlign: 'center', padding: '80px 16px' }}>
+            <p style={{ color: 'var(--color-text-muted)' }}>Loading your order…</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!orderData) {
     return (
       <div className="order-confirmation-page">
         <div className="container">

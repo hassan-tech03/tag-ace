@@ -66,6 +66,7 @@ export async function POST(request) {
         firstName: info.firstName || "",
         lastName: info.lastName || "",
         phone: info.phone || "",
+        marketingOptIn: Boolean(info.newsletter),
       },
       shippingAddress,
       billingAddress,
