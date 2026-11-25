@@ -6,6 +6,7 @@
 // buildFaqs(ctx), so the answers never go stale.
 
 import { formatPrice } from "@/lib/money";
+import { CARD_PAYMENTS_ENABLED } from "@/lib/paymentConfig";
 
 export const DELIVERY_TIME = {
   majorCities: "2–4 working days",
@@ -48,7 +49,9 @@ export function buildFaqs(ctx = {}) {
         {
           id: "payment-methods",
           q: "What payment methods do you accept?",
-          a: "You can pay Cash on Delivery anywhere in Pakistan, or pay securely online by debit or credit card (Visa and Mastercard). Card payments are processed by Stripe; your card details never reach our servers.",
+          a: CARD_PAYMENTS_ENABLED
+            ? "You can pay Cash on Delivery anywhere in Pakistan, or pay securely online by debit or credit card (Visa and Mastercard). Card payments are processed by Stripe; your card details never reach our servers."
+            : "We currently accept Cash on Delivery anywhere in Pakistan: you pay the rider in cash when your order arrives. Online card payments are coming soon.",
         },
         {
           id: "cod-confirmation",
@@ -115,7 +118,9 @@ export function buildFaqs(ctx = {}) {
         {
           id: "refunds",
           q: "How do refunds work?",
-          a: "Approved refunds for card payments go back to the same card; your bank may take 5–10 working days to show it. For Cash on Delivery orders we'll arrange the refund to your bank account or mobile wallet.",
+          a: CARD_PAYMENTS_ENABLED
+            ? "Approved refunds for card payments go back to the same card; your bank may take 5–10 working days to show it. For Cash on Delivery orders we'll arrange the refund to your bank account or mobile wallet."
+            : "For approved refunds on Cash on Delivery orders, we'll arrange the refund to your bank account or mobile wallet.",
         },
       ],
     },

@@ -13,21 +13,21 @@ export default function AboutUs() {
             <div className="col-lg-8 mx-auto text-center">
               <h1 className="hero-title">About Mushk</h1>
               <p className="hero-description">
-                Premium fragrances that tell your story. Discover the art of scent 
+                Premium fragrances that tell your story. Discover the art of scent
                 and let every moment become a beautiful memory.
               </p>
               <div className="hero-stats">
                 <div className="stat-item">
-                  <h3>10+</h3>
-                  <p>Years Experience</p>
+                  <p className="stat-number">2</p>
+                  <p>Collections: Men &amp; Women</p>
                 </div>
                 <div className="stat-item">
-                  <h3>50K+</h3>
-                  <p>Happy Customers</p>
+                  <p className="stat-number">COD</p>
+                  <p>Across Pakistan</p>
                 </div>
                 <div className="stat-item">
-                  <h3>100+</h3>
-                  <p>Unique Fragrances</p>
+                  <p className="stat-number">100%</p>
+                  <p>Original Mushk blends</p>
                 </div>
               </div>
             </div>
@@ -50,8 +50,8 @@ export default function AboutUs() {
                   className="story-img"
                 />
                 <div className="story-badge">
-                  <span className="badge-number">50K+</span>
-                  <span className="badge-label">Happy<br/>Customers</span>
+                  <span className="badge-number">100%</span>
+                  <span className="badge-label">Original<br/>blends</span>
                 </div>
               </div>
             </div>
@@ -66,8 +66,8 @@ export default function AboutUs() {
                   a memory that lasts forever.
                 </p>
                 <p className="story-body">
-                  From our humble beginnings to becoming a trusted name in premium fragrances,
-                  we&apos;ve remained committed to quality, craftsmanship, and customer satisfaction.
+                  Every Mushk fragrance is our own original blend, made for men and women who
+                  want a scent that lasts, and delivered to your door anywhere in Pakistan.
                 </p>
                 <div className="story-highlights">
                   <div className="highlight-item">
@@ -78,7 +78,7 @@ export default function AboutUs() {
                     </div>
                     <div className="highlight-text">
                       <h4>Premium Quality</h4>
-                      <p>Only the finest ingredients from around the world</p>
+                      <p>Carefully chosen, long-lasting fragrance oils</p>
                     </div>
                   </div>
                   <div className="highlight-item">
@@ -88,8 +88,8 @@ export default function AboutUs() {
                       </svg>
                     </div>
                     <div className="highlight-text">
-                      <h4>Artisan Craftsmanship</h4>
-                      <p>Each fragrance is carefully crafted by master perfumers</p>
+                      <h4>Our Own Blends</h4>
+                      <p>Every fragrance is an original Mushk creation, not a copy</p>
                     </div>
                   </div>
                 </div>
@@ -145,75 +145,6 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="our-team">
-        <div className="container">
-          <h2 className="section-title">Meet Our Team</h2>
-          <p className="section-subtitle">The passionate people behind Mushk</p>
-          <div className="row">
-            <div className="col-lg-4 col-md-6">
-              <div className="team-card">
-                <div className="team-image">
-                  <Image
-                    src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
-                    alt="Sarah Johnson"
-                    width={400}
-                    height={300}
-                    className="img-fluid"
-                  />
-                </div>
-                <div className="team-info">
-                  <h3>Sarah Johnson</h3>
-                  <p className="team-role">Founder & Master Perfumer</p>
-                  <p className="team-description">
-                    Leading our creative vision with 15+ years of experience in luxury fragrance creation.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <div className="team-card">
-                <div className="team-image">
-                  <Image
-                    src="/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303_360x.webp"
-                    alt="Michael Chen"
-                    width={400}
-                    height={300}
-                    className="img-fluid"
-                  />
-                </div>
-                <div className="team-info">
-                  <h3>Michael Chen</h3>
-                  <p className="team-role">Head of Operations</p>
-                  <p className="team-description">
-                    Ensuring smooth operations and exceptional service delivery to our valued customers.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-lg-4 col-md-6">
-              <div className="team-card">
-                <div className="team-image">
-                  <Image
-                    src="/259.webp"
-                    alt="Emma Rodriguez"
-                    width={400}
-                    height={300}
-                    className="img-fluid"
-                  />
-                </div>
-                <div className="team-info">
-                  <h3>Emma Rodriguez</h3>
-                  <p className="team-role">Creative Director</p>
-                  <p className="team-description">
-                    Bringing our brand to life through compelling storytelling and innovative design.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Mission Section */}
       <section className="our-mission">
@@ -277,8 +208,8 @@ export default function AboutUs() {
                   className="mission-img"
                 />
                 <div className="mission-badge">
-                  <span className="badge-number">10+</span>
-                  <span className="badge-label">Years of<br/>Excellence</span>
+                  <span className="badge-number">COD</span>
+                  <span className="badge-label">Across<br/>Pakistan</span>
                 </div>
               </div>
             </div>

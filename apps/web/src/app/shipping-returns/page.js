@@ -2,6 +2,7 @@ import Link from "next/link";
 import { DELIVERY_TIME, RETURN_REPORT_WINDOW } from "@/lib/faqs";
 import { getFaqContext } from "@/lib/faqContext";
 import { formatPrice } from "@/lib/money";
+import { CARD_PAYMENTS_ENABLED } from "@/lib/paymentConfig";
 import { breadcrumbJsonLd, JsonLd, pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -76,9 +77,11 @@ export default async function ShippingReturnsPage() {
               <li>
                 <strong>Cash on Delivery</strong> is available everywhere we deliver. Our team will call or WhatsApp you to confirm the order before dispatch.
               </li>
-              <li>
-                <strong>Debit or credit card</strong> (Visa, Mastercard) payments are processed securely by Stripe.
-              </li>
+              {CARD_PAYMENTS_ENABLED && (
+                <li>
+                  <strong>Debit or credit card</strong> (Visa, Mastercard) payments are processed securely by Stripe.
+                </li>
+              )}
             </ul>
 
             <h2>Returns &amp; exchanges</h2>
@@ -105,7 +108,9 @@ export default async function ShippingReturnsPage() {
 
             <h3>Refunds</h3>
             <ul>
-              <li>Card payments are refunded to the same card. Your bank may take 5–10 working days to show it.</li>
+              {CARD_PAYMENTS_ENABLED && (
+                <li>Card payments are refunded to the same card. Your bank may take 5–10 working days to show it.</li>
+              )}
               <li>Cash on Delivery orders are refunded to your bank account or mobile wallet.</li>
             </ul>
 

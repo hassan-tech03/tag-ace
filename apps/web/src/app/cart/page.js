@@ -48,7 +48,7 @@ export default function Cart() {
                 <path d="M16 10a4 4 0 0 1-8 0"></path>
               </svg>
             </div>
-            <h2>Your Cart is Empty</h2>
+            <h2>Your cart is empty</h2>
             <p>Add some products to get started!</p>
             <div className="empty-cart-actions">
               <Link href="/shop" className="continue-shopping-btn">

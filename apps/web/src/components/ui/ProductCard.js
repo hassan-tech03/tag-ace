@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useCartContext } from '../../context/CartContext';
 import { formatPrice as formatPKR } from "@/lib/money";
+import { imageUrl } from "@/lib/images";
 import { SHOW_PRODUCT_RATINGS } from '@/lib/storefront/flags';
 
 // Modern product card with:
@@ -64,27 +65,13 @@ const ProductCard = ({ product, className = '' }) => {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) return;
-    addToCart(product, 1);
-
-    const toast = document.createElement('div');
-    toast.className = 'cart-toast';
-    toast.innerHTML = `
-      <div class="toast-content">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20,6 9,17 4,12"></polyline>
-        </svg>
-        <span>Added to cart</span>
-      </div>
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 50);
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => {
-        if (toast.parentNode) toast.parentNode.removeChild(toast);
-      }, 300);
-    }, 2000);
+    const res = addToCart(product, 1);
+    showToast(res?.capped ? `Only ${res.max} in stock` : 'Added to cart');
   };
+
+  const href = `/products/${product.slug || product.id}`;
+  const mainImage = product.image || FALLBACK_IMAGE;
+  const secondImage = product.hoverImage || product.images?.[1] || '';
 
   const cardClasses = [
     'product-item',
@@ -95,79 +82,43 @@ const ProductCard = ({ product, className = '' }) => {
     .filter(Boolean)
     .join(' ');
 
+  // Whole card (image + text) opens the product; Add to Cart is its own
+  // button below, so a tap on the photo never adds to the cart by accident.
   return (
-    <Link
-      href={`/products/${product.slug || product.id}`}
-      className="product-link"
-      aria-label={product.name}
-    >
-      <article className={cardClasses}>
+    <article className={cardClasses}>
+      <Link href={href} className="product-link">
         <div className="product-image">
-          {/* Top-left badge stack */}
           <div className="badge-stack">
-            {discount > 0 && <span className="discount-chip">-{discount}%</span>}
-            {product.badge && !isOutOfStock && (
-              <span className="sale-badge">{product.badge}</span>
+            {isOutOfStock ? (
+              <span className="soldout-chip">Sold out</span>
+            ) : (
+              <>
+                {discount > 0 && <span className="discount-chip">-{discount}%</span>}
+                {product.badge && <span className="sale-badge">{product.badge}</span>}
+              </>
             )}
           </div>
 
           <Image
-            src={product.image || '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp'}
+            src={imageUrl(mainImage, 600)}
             alt={product.name}
             width={400}
             height={400}
             className="main-image"
             loading="lazy"
-            unoptimized={!!product.image}
+            unoptimized={/^https?:/.test(mainImage)}
           />
-          <Image
-            src={
-              product.hoverImage ||
-              product.images?.[1] ||
-              product.image ||
-              '/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303_360x.webp'
-            }
-            alt=""
-            aria-hidden="true"
-            width={400}
-            height={400}
-            className="hover-image"
-            loading="lazy"
-            unoptimized={!!(product.hoverImage || product.images?.[1] || product.image)}
-          />
-
-          {isOutOfStock && (
-            <div className="out-of-stock-overlay">
-              <span>Sold Out</span>
-            </div>
+          {secondImage && secondImage !== mainImage && (
+            <Image
+              src={imageUrl(secondImage, 600)}
+              alt={`${product.name}, another view`}
+              width={400}
+              height={400}
+              className="hover-image"
+              loading="lazy"
+              unoptimized={/^https?:/.test(secondImage)}
+            />
           )}
-
-          {/* Quick add CTA slides up on hover / shown on touch via CSS */}
-          <div className="quick-add">
-            <button
-              type="button"
-              className="quick-add-btn"
-              onClick={handleAddToCart}
-              disabled={isOutOfStock}
-              aria-label={isOutOfStock ? 'Sold out' : `Add ${product.name} to cart`}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
-              <span>{isOutOfStock ? 'Sold Out' : 'Add to Cart'}</span>
-            </button>
-          </div>
         </div>
 
         <div className="product-info">
@@ -190,9 +141,55 @@ const ProductCard = ({ product, className = '' }) => {
             )}
           </div>
         </div>
-      </article>
-    </Link>
+      </Link>
+
+      <div className="card-actions">
+        <button
+          type="button"
+          className="card-add-btn"
+          onClick={handleAddToCart}
+          disabled={isOutOfStock}
+          aria-label={isOutOfStock ? `${product.name} is sold out` : `Add ${product.name} to cart`}
+        >
+          {isOutOfStock ? (
+            <span>Sold out</span>
+          ) : (
+            <>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <span>Add to cart</span>
+            </>
+          )}
+        </button>
+      </div>
+    </article>
   );
 };
+
+const FALLBACK_IMAGE = '/brand/mushk-icon.png';
+
+function showToast(message) {
+  const toast = document.createElement('div');
+  toast.className = 'cart-toast';
+  toast.setAttribute('role', 'status');
+  toast.innerHTML = `
+    <div class="toast-content">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20,6 9,17 4,12"></polyline>
+      </svg>
+      <span></span>
+    </div>
+  `;
+  toast.querySelector('span').textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 50);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
 
 export default ProductCard;

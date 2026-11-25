@@ -37,20 +37,34 @@ export const useCart = () => {
     }
   }, [cartItems, isLoaded]);
 
+  // Max units of a product the cart may hold: its stock when known.
+  const maxFor = (item) => {
+    const stock = Number(item?.stock);
+    return Number.isFinite(stock) && stock > 0 ? stock : Infinity;
+  };
+
+  // Adds `quantity` units, capped at the product's stock. Returns
+  // { quantity, capped, max } so callers can tell the shopper when the cap
+  // was hit.
   const addToCart = (product, quantity = 1) => {
-    setCartItems(prevItems => {
-      const existingItem = prevItems.find(item => item.id === product.id);
-      
-      if (existingItem) {
-        return prevItems.map(item =>
+    const max = maxFor(product);
+    const existing = cartItems.find((item) => item.id === product.id);
+    const wanted = (existing?.quantity || 0) + quantity;
+    const next = Math.min(wanted, max);
+    const image = product.image || (Array.isArray(product.images) ? product.images[0] : "") || "";
+
+    setCartItems((prevItems) => {
+      const found = prevItems.find((item) => item.id === product.id);
+      if (found) {
+        return prevItems.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, stock: product.stock ?? item.stock, quantity: Math.min(item.quantity + quantity, max) }
             : item
         );
-      } else {
-        return [...prevItems, { ...product, quantity }];
       }
+      return [...prevItems, { ...product, image, quantity: Math.min(quantity, max) }];
     });
+    return { quantity: next, capped: wanted > max, max };
   };
 
   const removeFromCart = (productId) => {
@@ -63,19 +77,17 @@ export const useCart = () => {
     } else {
       setCartItems(prevItems =>
         prevItems.map(item =>
-          item.id === productId ? { ...item, quantity } : item
+          item.id === productId ? { ...item, quantity: Math.min(quantity, maxFor(item)) } : item
         )
       );
     }
   };
 
   const clearCart = () => {
-    console.log('Clearing cart...'); // Debug log
     setCartItems([]);
     // Force localStorage update
     try {
       localStorage.setItem('cart', JSON.stringify([]));
-      console.log('Cart cleared successfully'); // Debug log
     } catch (error) {
       console.error('Error clearing cart:', error);
     }

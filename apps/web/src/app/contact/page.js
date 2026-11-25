@@ -118,8 +118,8 @@ export default function Contact() {
                     <div className="stat-label">Collections: Men &amp; Women</div>
                   </div>
                   <div className="stat-item">
-                    <div className="stat-number">100%</div>
-                    <div className="stat-label">Secure Checkout</div>
+                    <div className="stat-number">2–6</div>
+                    <div className="stat-label">Working days delivery</div>
                   </div>
                 </div>
               </div>
@@ -170,6 +170,28 @@ export default function Contact() {
                   <h3>Call Us</h3>
                   <p className="phone-number">
                     <a href={`tel:${store.phone.replace(/[^+0-9]/g, '')}`}>{store.phone}</a>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {store.phone && (
+              <div className="col-lg-4 col-md-6">
+                <div className="contact-card">
+                  <div className="contact-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                  </div>
+                  <h3>WhatsApp Us</h3>
+                  <p>
+                    <a
+                      href={`https://wa.me/92${store.phone.replace(/\D/g, '').replace(/^0/, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Chat on WhatsApp
+                    </a>
                   </p>
                 </div>
               </div>

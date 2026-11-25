@@ -37,7 +37,7 @@ export async function GET(request) {
       eq(products.status, "active"),
       // Exact slug match: "men" must not also match "women".
       category ? eq(products.category, category.toLowerCase()) : undefined,
-      searchAny(search, [products.name, products.description, products.brand]),
+      searchAny(search, [products.name, products.description, products.shortDescription, products.fragranceFamily, products.brand]),
       badge ? ilike(products.badge, badge.replace(/[\\%_]/g, (c) => `\\${c}`)) : undefined,
       hotDeal === "true" ? eq(products.isHotDeal, true) : undefined,
       newArrival === "true" ? eq(products.isNewArrival, true) : undefined,

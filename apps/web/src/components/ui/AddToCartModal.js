@@ -3,8 +3,9 @@
 import { useEffect } from 'react';
 import Image from 'next/image';
 import { formatPrice } from "@/lib/money";
+import { imageUrl } from "@/lib/images";
 
-const AddToCartModal = ({ isOpen, onClose, product, quantity }) => {
+const AddToCartModal = ({ isOpen, onClose, product, quantity, notice }) => {
   // Helper function to extract numeric price from string or number
   const getNumericPrice = (price) => {
     if (typeof price === 'number') {
@@ -59,10 +60,12 @@ const AddToCartModal = ({ isOpen, onClose, product, quantity }) => {
           <div className="product-info">
             <div className="product-image">
               <Image
-                src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
+                src={imageUrl(product.image || product.images?.[0], 160) || "/brand/mushk-icon.png"}
                 alt={product.name}
                 width={80}
                 height={80}
+                unoptimized
+                style={{ objectFit: "cover" }}
               />
             </div>
             <div className="product-details">
@@ -77,10 +80,11 @@ const AddToCartModal = ({ isOpen, onClose, product, quantity }) => {
                   }
                 </span>
               </div>
+              {notice && <p className="stock-note" style={{ marginTop: 8 }}>{notice}</p>}
             </div>
           </div>
         </div>
-        
+
         <div className="modal-actions">
           <button className="continue-shopping" onClick={onClose}>
             Continue Shopping

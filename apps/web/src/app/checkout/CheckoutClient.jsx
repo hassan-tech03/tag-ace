@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCartContext } from "../../context/CartContext";
 import { formatPrice } from "@/lib/money";
+import { imageUrl } from "@/lib/images";
+import { CARD_PAYMENTS_ENABLED } from "@/lib/paymentConfig";
 import { shippingFor } from "@/lib/orderUtils";
 import { useShippingRates } from "@/lib/storefront/useShippingRates";
 
@@ -86,11 +88,11 @@ export default function CheckoutClient() {
   const handleStripePaymentSuccess = useCallback(
     async (sessionId) => {
       console.log('🚀 Stripe payment success callback triggered with sessionId:', sessionId);
-      
+
       try {
         // Try to get backed up checkout data from multiple sources
         let checkoutData = null;
-        
+
         // First try sessionStorage
         const backupData = sessionStorage.getItem('stripeCheckoutData');
         if (backupData) {
@@ -103,7 +105,7 @@ export default function CheckoutClient() {
         } else {
           console.log('⚠️ No backup data in sessionStorage');
         }
-        
+
         // If not found, try localStorage
         if (!checkoutData) {
           const localBackupData = localStorage.getItem('stripeCheckoutDataBackup');
@@ -118,7 +120,7 @@ export default function CheckoutClient() {
             console.log('⚠️ No backup data in localStorage');
           }
         }
-        
+
         // Use backup data if available, otherwise use current data (NO FALLBACK VALUES)
         let itemsToUse = checkoutData?.cartItems || cartItems;
         const formToUse = checkoutData?.formData || formData;
@@ -126,15 +128,15 @@ export default function CheckoutClient() {
         const shippingToUse = checkoutData?.shipping || shipping;
         const taxToUse = checkoutData?.tax || tax;
         const totalToUse = checkoutData?.total || total;
-        
+
         console.log('📦 Items to use for order:', itemsToUse);
         console.log('📋 Form data to use:', formToUse);
         console.log('💰 Totals:', { subtotalToUse, shippingToUse, taxToUse, totalToUse });
-        
+
         // If no items found, try to use current cart items
         if (!itemsToUse || !Array.isArray(itemsToUse) || itemsToUse.length === 0) {
           console.log('⚠️ No items in backup, trying current cart');
-          
+
           // Try current cart first
           if (cartItems && cartItems.length > 0) {
             itemsToUse = cartItems;
@@ -145,9 +147,9 @@ export default function CheckoutClient() {
             return;
           }
         }
-        
+
         console.log('✅ Final items for order:', itemsToUse);
-        
+
         // Verify the payment server-side: marks the order paid, sends the
         // confirmation emails, and returns the real order number/totals.
         let confirmed = null;
@@ -187,25 +189,25 @@ export default function CheckoutClient() {
         // Save order data to BOTH sessionStorage AND localStorage for backup
         sessionStorage.setItem("lastOrder", JSON.stringify(orderData));
         localStorage.setItem("lastOrderBackup", JSON.stringify(orderData));
-        
+
         console.log('✅ Order data saved to both storages');
-        
+
         // Clean up backup data
         sessionStorage.removeItem('stripeCheckoutData');
         localStorage.removeItem('stripeCheckoutDataBackup');
-        
+
         console.log('🧹 Cleaned up backup data');
-        
+
         // Clear cart
         clearCart();
         console.log('🛒 Cart cleared');
-        
+
         // Navigate to confirmation IMMEDIATELY without delay
         console.log('🔄 Navigating to order confirmation...');
-        
+
         // Use replace instead of href to avoid back button issues
         window.location.replace("/order-confirmation");
-        
+
       } catch (error) {
         console.error('❌ Error in handleStripePaymentSuccess:', error);
         alert('Error processing order. Please contact support.');
@@ -219,7 +221,7 @@ export default function CheckoutClient() {
     console.log('🔍 Checking URL parameters...');
     console.log('🔍 Current URL:', window.location.href);
     console.log('🔍 Search params:', window.location.search);
-    
+
     const paymentSuccess = searchParams.get("payment_success");
     const paymentCancelled = searchParams.get("payment_cancelled");
     const sessionId = searchParams.get("session_id");
@@ -228,7 +230,7 @@ export default function CheckoutClient() {
 
     if (paymentSuccess === "true" && sessionId) {
       console.log('✅ Processing Stripe success with session ID:', sessionId);
-      
+
       // Process immediately without any delay
       handleStripePaymentSuccess(sessionId);
       return; // Exit early to prevent other useEffects from running
@@ -247,17 +249,17 @@ export default function CheckoutClient() {
     // Don't redirect if we're processing a Stripe payment
     const isStripeSuccess = searchParams.get("payment_success") === "true";
     const isStripeCancel = searchParams.get("payment_cancelled") === "true";
-    
+
     if (isStripeSuccess || isStripeCancel) {
       console.log('🔄 Stripe payment flow detected, skipping cart redirect');
       return;
     }
-    
+
     if (isLoaded && cartItems.length === 0 && !isLoading) {
       // Don't redirect if we're in the middle of processing an order or just cleared cart
       const isProcessingOrder = sessionStorage.getItem('lastOrder');
       const justClearedCart = sessionStorage.getItem('cartJustCleared');
-      
+
       if (!isProcessingOrder && !justClearedCart) {
         console.log('🔄 Cart is empty, redirecting to cart page');
         router.push("/cart");
@@ -413,11 +415,11 @@ export default function CheckoutClient() {
         total: parseFloat(total.toFixed(2)),
         timestamp: Date.now()
       };
-      
+
       console.log('📦 Cart items being backed up:', cartItems);
       console.log('📋 Form data being backed up:', formData);
       console.log('💰 Totals being backed up:', { subtotal, shipping, tax, total });
-      
+
       // Save to BOTH sessionStorage and localStorage
       sessionStorage.setItem('stripeCheckoutData', JSON.stringify(checkoutData));
       localStorage.setItem('stripeCheckoutDataBackup', JSON.stringify(checkoutData));
@@ -476,17 +478,13 @@ export default function CheckoutClient() {
     <div className="checkout-page">
       {/* Header */}
       <div className="checkout-header">
-        <div className="container">
-          <nav className="breadcrumb">
+        <div className="container checkout-header-row">
+          <h1 className="checkout-title">Checkout</h1>
+          <nav className="breadcrumb" aria-label="Breadcrumb">
             <Link href="/cart">Cart</Link>
             <span>/</span>
-            <span>Checkout</span>
+            <span aria-current="page">Checkout</span>
           </nav>
-          <div className="checkout-logo">
-            <Link href="/">
-              <Image src="/brand/mushk-logo.png" alt="Mushk Perfumes" width={379} height={339} style={{ height: '56px', width: 'auto' }} />
-            </Link>
-          </div>
         </div>
       </div>
 
@@ -701,6 +699,7 @@ export default function CheckoutClient() {
                       </label>
                     </div>
 
+                    {CARD_PAYMENTS_ENABLED && (
                     <div className="payment-option">
                       <label className="radio-label">
                         <input
@@ -715,7 +714,7 @@ export default function CheckoutClient() {
                           <div className="payment-title">
                             <span>Credit Card</span>
                             <div className="payment-icons">
-                              <span className="card-icon">💳</span>
+                              <svg className="card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
                               <span className="stripe-text">Stripe</span>
                             </div>
                           </div>
@@ -725,6 +724,7 @@ export default function CheckoutClient() {
                         </div>
                       </label>
                     </div>
+                    )}
                   </div>
 
                   {paymentMethod === "stripe" && (
@@ -800,15 +800,17 @@ export default function CheckoutClient() {
                       .join(" • ");
                     return (
                       <div key={item.id} className="order-item">
-                        <div className="item-image">
-                          <Image
-                            src={itemImg}
-                            alt={item.name}
-                            width={60}
-                            height={60}
-                            unoptimized={isAbsolute}
-                          />
-                          <span className="item-quantity">{item.quantity}</span>
+                        <div className="item-thumb">
+                          <div className="item-image">
+                            <Image
+                              src={imageUrl(itemImg, 140)}
+                              alt={item.name}
+                              width={60}
+                              height={60}
+                              unoptimized={isAbsolute}
+                            />
+                          </div>
+                          <span className="item-quantity" aria-label={`Quantity ${item.quantity}`}>{item.quantity}</span>
                         </div>
                         <div className="item-details">
                           <h4>{item.name}</h4>
@@ -903,20 +905,18 @@ export default function CheckoutClient() {
 
                 <div className="security-badges">
                   <div className="security-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                      <circle cx="12" cy="16" r="1"></circle>
                       <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    <span>Secure Checkout</span>
+                    <span>Secure checkout</span>
                   </div>
                   <div className="security-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 12l2 2 4-4"></path>
-                      <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path>
-                      <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                      <polyline points="9 12 11 14 15 10"></polyline>
                     </svg>
-                    <span>SSL Protected</span>
+                    <span>SSL encrypted</span>
                   </div>
                 </div>
               </div>

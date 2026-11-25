@@ -10,6 +10,36 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+// Mobile/tablet product carousels: whole cards per view (no half-cut peek),
+// one dot per page, arrows + dots together in one row below.
+const CAROUSEL_SETTINGS = {
+  watchOverflow: true,
+  slidesPerView: 2,
+  slidesPerGroup: 2,
+  spaceBetween: 12,
+  breakpoints: {
+    768: { slidesPerView: 3, slidesPerGroup: 3, spaceBetween: 16 },
+  },
+};
+
+function CarouselControls({ prevClass, nextClass, dotsClass, label }) {
+  return (
+    <div className="carousel-controls">
+      <button type="button" className={`carousel-arrow ${prevClass}`} aria-label={`Previous ${label}`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <polyline points="15,18 9,12 15,6"></polyline>
+        </svg>
+      </button>
+      <div className={`carousel-dots ${dotsClass}`}></div>
+      <button type="button" className={`carousel-arrow ${nextClass}`} aria-label={`Next ${label}`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <polyline points="9,18 15,12 9,6"></polyline>
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeTab, setActiveTab] = useState('women');
@@ -22,6 +52,10 @@ export default function Home() {
   // instead of dummy data.
   const [bestSellers, setBestSellers] = useState({ women: [], men: [] });
   const [popularProducts, setPopularProducts] = useState([]);
+  const [popularTitle, setPopularTitle] = useState('New Arrivals');
+  const [counts, setCounts] = useState({ women: null, men: null });
+  const [autoplayKey, setAutoplayKey] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
   const [testimonials, setTestimonials] = useState([]);
   const [bestSellersLoading, setBestSellersLoading] = useState(true);
   const [popularLoading, setPopularLoading] = useState(true);
@@ -29,25 +63,35 @@ export default function Home() {
   useEffect(() => {
     let cancelled = false;
     async function loadAll() {
-      const fetchProducts = (qs) =>
+      const fetchPage = (qs) =>
         fetch(`/api/storefront/products?${qs}`, { cache: 'no-store' })
           .then((r) => (r.ok ? r.json() : null))
-          .then((b) => (b?.items ? b.items : []))
-          .catch(() => []);
+          .then((b) => ({ items: b?.items || [], total: Number(b?.total || 0) }))
+          .catch(() => ({ items: [], total: 0 }));
 
       try {
-        const [women, men, popular, reviews] = await Promise.all([
-          fetchProducts('category=women&limit=8&sort=-createdAt'),
-          fetchProducts('category=men&limit=8&sort=-createdAt'),
-          fetchProducts('limit=8&sort=-createdAt'),
+        const [womenRes, menRes, newRes, saleRes, reviews] = await Promise.all([
+          fetchPage('category=women&limit=8&sort=-createdAt'),
+          fetchPage('category=men&limit=8&sort=-createdAt'),
+          fetchPage('newArrival=true&limit=8&sort=-createdAt'),
+          fetchPage('hotDeal=true&limit=8&sort=-createdAt'),
           fetch('/api/storefront/testimonials?limit=12', { cache: 'no-store' })
             .then((r) => (r.ok ? r.json() : null))
             .then((b) => (b?.items ? b.items : []))
             .catch(() => []),
         ]);
         if (cancelled) return;
-        setBestSellers({ women, men });
-        setPopularProducts(popular);
+        setBestSellers({ women: womenRes.items, men: menRes.items });
+        setCounts({ women: womenRes.total, men: menRes.total });
+        // Second section shows different products from Best Sellers:
+        // New Arrivals, or On Sale when nothing is marked new.
+        if (newRes.items.length > 0) {
+          setPopularTitle('New Arrivals');
+          setPopularProducts(newRes.items);
+        } else {
+          setPopularTitle('On Sale');
+          setPopularProducts(saleRes.items);
+        }
         setTestimonials(reviews);
       } catch (err) {
         if (process.env.NODE_ENV === 'development') {
@@ -71,10 +115,10 @@ export default function Home() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 992);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -112,12 +156,35 @@ export default function Home() {
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   }, [slides.length]);
 
+  // Manual navigation restarts the autoplay timer, so a click is never
+  // followed by an immediate automatic jump (which made the arrows look
+  // reversed).
+  const goNext = () => {
+    nextSlide();
+    setAutoplayKey((k) => k + 1);
+  };
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    setAutoplayKey((k) => k + 1);
   };
 
   const goToSlide = (index) => {
     setCurrentSlide(index);
+    setAutoplayKey((k) => k + 1);
+  };
+
+  // Swipe on touch screens.
+  const touchStartX = useRef(null);
+  const onHeroTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const onHeroTouchEnd = (e) => {
+    if (touchStartX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) goNext();
+    else prevSlide();
   };
 
   const handleTabClick = (tab) => {
@@ -148,52 +215,64 @@ export default function Home() {
     image: t.image || '',
   }));
 
-  // Auto-slide functionality
+  // Auto-slide every 6s; paused while hovered/focused; restarted after any
+  // manual navigation (autoplayKey).
   useEffect(() => {
-    const interval = setInterval(() => {
-      nextSlide();
-    }, 5000); // Change slide every 5 seconds
-
+    if (heroPaused) return undefined;
+    const interval = setInterval(nextSlide, 6000);
     return () => clearInterval(interval);
-  }, [nextSlide]);
+  }, [nextSlide, autoplayKey, heroPaused]);
 
   return (
     <div>
       {/* One page heading for search engines / screen readers. */}
       <h1 className="visually-hidden">Mushk Perfumes · Premium Perfumes for Men &amp; Women in Pakistan</h1>
       {/* Hero Slider Section */}
-      <section className="hero-slider">
+      <section
+        className="hero-slider"
+        aria-roledescription="carousel"
+        aria-label="Featured collections"
+        onMouseEnter={() => setHeroPaused(true)}
+        onMouseLeave={() => setHeroPaused(false)}
+        onFocus={() => setHeroPaused(true)}
+        onBlur={() => setHeroPaused(false)}
+        onTouchStart={onHeroTouchStart}
+        onTouchEnd={onHeroTouchEnd}
+      >
         <div className="slider-container">
           {slides.map((slide, index) => (
             <div
               key={slide.id}
               className={`slide ${index === currentSlide ? 'active' : ''}`}
               style={{ background: slide.background }}
+              aria-roledescription="slide"
+              aria-label={`${index + 1} of ${slides.length}`}
+              aria-hidden={index !== currentSlide}
+              inert={index !== currentSlide ? '' : undefined}
             >
               {/* Background Image */}
               <div className="slide-bg-image">
-                <Image 
-                  src={slide.image} 
-                  alt={slide.title}
+                <Image
+                  src={slide.image}
+                  alt=""
                   fill
+                  sizes="100vw"
                   priority={index === 0}
                   style={{ objectFit: 'cover', objectPosition: 'center right' }}
                 />
               </div>
-              
+
               {/* Content Overlay */}
               <div className="container">
                 <div className="slide-content">
                   <div className="slide-text">
                     <p className="slide-subtitle">{slide.subtitle}</p>
-                    <h2 className="slide-title">
+                    <p className="slide-title">
                       {slide.title}<br />
                       <em>{slide.title2}</em>
-                    </h2>
-                    <Link href="/shop">
-                      <button className="slide-button">
-                        {slide.buttonText}
-                      </button>
+                    </p>
+                    <Link href="/shop" className="slide-button">
+                      {slide.buttonText}
                     </Link>
                   </div>
                 </div>
@@ -202,27 +281,31 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Navigation Arrows */}
-        <button className="slider-nav prev" onClick={prevSlide}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="15,18 9,12 15,6"></polyline>
-          </svg>
-        </button>
-        <button className="slider-nav next" onClick={nextSlide}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <polyline points="9,18 15,12 9,6"></polyline>
-          </svg>
-        </button>
-
-        {/* Slide Indicators */}
-        <div className="slide-indicators">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              className={`indicator ${index === currentSlide ? 'active' : ''}`}
-              onClick={() => goToSlide(index)}
-            />
-          ))}
+        {/* Controls: side arrows on desktop; one row (arrow · dots · arrow)
+            under the copy on tablet/mobile so nothing covers the heading. */}
+        <div className="hero-controls">
+          <button type="button" className="slider-nav prev" onClick={prevSlide} aria-label="Previous slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+          </button>
+          <div className="slide-indicators">
+            {slides.map((s, index) => (
+              <button
+                key={index}
+                type="button"
+                className={`indicator ${index === currentSlide ? 'active' : ''}`}
+                onClick={() => goToSlide(index)}
+                aria-label={`Go to slide ${index + 1}: ${s.title} ${s.title2}`}
+                aria-current={index === currentSlide ? 'true' : undefined}
+              />
+            ))}
+          </div>
+          <button type="button" className="slider-nav next" onClick={goNext} aria-label="Next slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
         </div>
       </section>
 
@@ -230,44 +313,31 @@ export default function Home() {
       <section className="categories-section">
         <div className="container">
           <div className="categories-grid">
-            <div className="category-item large">
-              <Link href="/shop/women" className="category-link">
-                <div className="category-image">
-                  <Image src="/259.webp" alt="Women Perfumes" width={600} height={400} />
-                </div>
-                <div className="category-content">
-                  <h3>Women Perfumes</h3>
-                  <span className="item-count">7 Items</span>
-                </div>
-                <span className="shop-now-cta">Shop Now</span>
-              </Link>
-            </div>
-
-            <div className="category-item">
-              <Link href="/shop/men" className="category-link">
-                <div className="category-image">
-                  <Image src="/11.webp" alt="Men Colognes" width={300} height={300} />
-                </div>
-                <div className="category-content">
-                  <h3>Men Colognes</h3>
-                  <span className="item-count">5 Items</span>
-                </div>
-                <span className="shop-now-cta">Shop Now</span>
-              </Link>
-            </div>
-
-            <div className="category-item">
-              <Link href="/shop" className="category-link">
-                <div className="category-image">
-                  <Image src="/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303.webp" alt="Gift Sets" width={300} height={300} />
-                </div>
-                <div className="category-content">
-                  <h3>Gift Sets</h3>
-                  <span className="item-count">10 Items</span>
-                </div>
-                <span className="shop-now-cta">Shop Now</span>
-              </Link>
-            </div>
+            {[
+              { href: '/shop/women', title: "Women's Perfumes", img: '/259.webp', count: counts.women, large: true },
+              { href: '/shop/men', title: "Men's Perfumes", img: '/11.webp', count: counts.men },
+              {
+                href: '/shop',
+                title: 'All Perfumes',
+                img: '/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303.webp',
+                count: counts.women == null || counts.men == null ? null : counts.women + counts.men,
+              },
+            ].map((c) => (
+              <div key={c.href} className={`category-item${c.large ? ' large' : ''}`}>
+                <Link href={c.href} className="category-link">
+                  <div className="category-image">
+                    <Image src={c.img} alt="" fill sizes="(max-width: 992px) 100vw, 50vw" />
+                  </div>
+                  <div className="category-content">
+                    <h3>{c.title}</h3>
+                    {c.count != null && (
+                      <span className="item-count">{c.count} {c.count === 1 ? 'fragrance' : 'fragrances'}</span>
+                    )}
+                    <span className="shop-now-cta">Shop now</span>
+                  </div>
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -278,11 +348,11 @@ export default function Home() {
           <div className="section-header">
             <h2>Our Best Sellers</h2>
             <div className="section-title-line"></div>
-            
+
             {/* Bootstrap Tabs */}
             <ul className="nav nav-tabs justify-content-center" id="productTabs" role="tablist">
               <li className="nav-item" role="presentation">
-                <button 
+                <button
                   className={`nav-link ${activeTab === 'women' ? 'active' : ''}`}
                   onClick={() => handleTabClick('women')}
                   type="button"
@@ -291,7 +361,7 @@ export default function Home() {
                 </button>
               </li>
               <li className="nav-item" role="presentation">
-                <button 
+                <button
                   className={`nav-link ${activeTab === 'men' ? 'active' : ''}`}
                   onClick={() => handleTabClick('men')}
                   type="button"
@@ -300,24 +370,9 @@ export default function Home() {
                 </button>
               </li>
             </ul>
-            
-            {/* Custom Navigation for Mobile - Between Tabs and Cards */}
-            {isMobile && (
-              <div className="custom-navigation">
-                <button className="custom-nav-btn prev-btn" onClick={() => swiperRef.current?.slidePrev()}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="15,18 9,12 15,6"></polyline>
-                  </svg>
-                </button>
-                <button className="custom-nav-btn next-btn" onClick={() => swiperRef.current?.slideNext()}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="9,18 15,12 9,6"></polyline>
-                  </svg>
-                </button>
-              </div>
-            )}
+
           </div>
-          
+
           <div className="products-container">
             {isChanging && (
               <div className="loading-overlay">
@@ -342,28 +397,26 @@ export default function Home() {
                 <p>Add fragrances under <strong>Admin → Products</strong> and tag them with the <em>{activeTab}</em> category to make them appear here.</p>
               </div>
             ) : isMobile ? (
-              <Swiper
-                modules={[Navigation, Pagination]}
-                spaceBetween={20}
-                slidesPerView={1.2}
-                onSwiper={(swiper) => {
-                  swiperRef.current = swiper;
-                }}
-                navigation={{ enabled: false }}
-                pagination={{ clickable: true }}
-                breakpoints={{
-                  480: { slidesPerView: 1.5 },
-                  640: { slidesPerView: 2 },
-                  768: { slidesPerView: 2.5 },
-                }}
-                className={`products-swiper ${isChanging ? 'changing' : ''}`}
-              >
-                {currentProducts.map((product) => (
-                  <SwiperSlide key={`${activeTab}-${product.id}`}>
-                    <ProductCard product={product} className="swiper-product-card" />
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              <>
+                <Swiper
+                  key={activeTab}
+                  modules={[Navigation, Pagination]}
+                  {...CAROUSEL_SETTINGS}
+                  navigation={{ prevEl: '.bs-prev', nextEl: '.bs-next' }}
+                  pagination={{ el: '.bs-dots', clickable: true }}
+                  onSwiper={(swiper) => {
+                    swiperRef.current = swiper;
+                  }}
+                  className={`products-swiper ${isChanging ? 'changing' : ''}`}
+                >
+                  {currentProducts.map((product) => (
+                    <SwiperSlide key={`${activeTab}-${product.id}`}>
+                      <ProductCard product={product} className="swiper-product-card" />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+                <CarouselControls prevClass="bs-prev" nextClass="bs-next" dotsClass="bs-dots" label="best sellers" />
+              </>
             ) : (
               <div className={`products-grid ${isChanging ? 'changing' : ''}`}>
                 {currentProducts.map((product, index) => (
@@ -385,9 +438,11 @@ export default function Home() {
         <section className="popular-perfumes-section">
           <div className="container">
             <div className="section-header">
-              <h2>Popular Perfumes</h2>
+              <h2>{popularTitle}</h2>
               <div className="section-title-line"></div>
-              <p className="section-subtitle">Each fragrance crafted to complement your unique essence</p>
+              <p className="section-subtitle">
+                {popularTitle === 'New Arrivals' ? 'The latest additions to the Mushk collection' : 'Our favourite fragrances, now at a special price'}
+              </p>
             </div>
 
             {popularLoading ? (
@@ -414,23 +469,9 @@ export default function Home() {
                 <div className="popular-products-container">
                   <Swiper
                     modules={[Navigation, Pagination]}
-                    spaceBetween={20}
-                    slidesPerView={1}
-                    centeredSlides={false}
-                    watchOverflow={true}
-                    navigation={{
-                      nextEl: '.popular-swiper-button-next',
-                      prevEl: '.popular-swiper-button-prev',
-                    }}
-                    pagination={{
-                      clickable: true,
-                      el: '.popular-swiper-pagination',
-                    }}
-                    breakpoints={{
-                      320: { slidesPerView: 1, spaceBetween: 15 },
-                      576: { slidesPerView: 1.5, spaceBetween: 15 },
-                      768: { slidesPerView: 2, spaceBetween: 20 },
-                    }}
+                    {...CAROUSEL_SETTINGS}
+                    navigation={{ prevEl: '.np-prev', nextEl: '.np-next' }}
+                    pagination={{ el: '.np-dots', clickable: true }}
                     className="popular-products-swiper"
                   >
                     {popularProducts.map((product) => (
@@ -440,18 +481,7 @@ export default function Home() {
                     ))}
                   </Swiper>
 
-                  <div className="popular-swiper-button-prev swiper-nav-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="15,18 9,12 15,6"></polyline>
-                    </svg>
-                  </div>
-                  <div className="popular-swiper-button-next swiper-nav-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9,18 15,12 9,6"></polyline>
-                    </svg>
-                  </div>
-
-                  <div className="popular-swiper-pagination"></div>
+                  <CarouselControls prevClass="np-prev" nextClass="np-next" dotsClass="np-dots" label={popularTitle.toLowerCase()} />
                 </div>
 
                 <div className="view-all-container">
@@ -472,7 +502,7 @@ export default function Home() {
             <div className="section-title-line"></div>
             <p className="section-subtitle">Discover why thousands of customers love our fragrances</p>
           </div>
-          
+
           <div className="reviews-container">
             <Swiper
               modules={[Navigation, Autoplay]}
@@ -541,7 +571,7 @@ export default function Home() {
                 </SwiperSlide>
               ))}
             </Swiper>
-            
+
             {/* Custom Navigation - Positioned Below Cards */}
             <div className="reviews-navigation">
               <div className="reviews-swiper-button-prev reviews-nav-btn">
@@ -556,7 +586,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          
+
           <div className="reviews-stats">
             <div className="stat-item">
               <div className="stat-number">4.9</div>
