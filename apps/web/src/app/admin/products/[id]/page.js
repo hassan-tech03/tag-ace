@@ -6,6 +6,7 @@ import ProductForm from "@/components/admin/ProductForm";
 import { eq } from "drizzle-orm";
 import { db, products } from "@mushk/db";
 import { isUuid, serialize } from "@mushk/db/helpers";
+import Arrow from '@/components/ui/Arrow';
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function EditProductPage({ params }) {
     <div>
       <PageHeader title="Edit product" description={initial.name}>
         <Link href="/admin/products">
-          <Button variant="secondary">← Back to products</Button>
+          <Button variant="secondary"><Arrow dir="left" /> Back to products</Button>
         </Link>
       </PageHeader>
       <ProductForm initial={initial} productId={params.id} />

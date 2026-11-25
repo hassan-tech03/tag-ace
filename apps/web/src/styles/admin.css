@@ -92,3 +92,12 @@
   list-style: revert;
   padding-left: 1.3em;
 }
+
+/* Inline SVG arrow (components/ui/Arrow.js) */
+.ui-arrow {
+  flex: none;
+  display: inline-block;
+}
+.ui-arrow--left {
+  transform: scaleX(-1);
+}

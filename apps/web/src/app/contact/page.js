@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useShippingRates } from '@/lib/storefront/useShippingRates';
 import { buildFaqs, findFaqs } from '@/lib/faqs';
 import FaqAnswer from '@/components/storefront/FaqAnswer';
+import Arrow from '@/components/ui/Arrow';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -406,7 +407,7 @@ export default function Contact() {
                 ))}
               </div>
               <div className="faq-inline text-center">
-                <Link href="/faq" className="faq-more">See all FAQs →</Link>
+                <Link href="/faq" className="faq-more with-arrow">See all FAQs <Arrow /></Link>
               </div>
             </div>
           </div>

@@ -12,6 +12,7 @@ import {
 } from "@/components/admin/ui/Field";
 import { useToast } from "@/components/admin/ui/Toast";
 import { formatPrice } from "@/lib/money";
+import Arrow from '@/components/ui/Arrow';
 
 function formatMoney(n) {
   return formatPrice(n);
@@ -142,7 +143,7 @@ export default function OrderDetailPage() {
         description={`Placed ${formatDate(order.createdAt)}`}
       >
         <Link href="/admin/orders">
-          <Button variant="secondary">← Back to orders</Button>
+          <Button variant="secondary"><Arrow dir="left" /> Back to orders</Button>
         </Link>
       </PageHeader>
 

@@ -3,6 +3,32 @@
 // ============================================================
 @import "bootstrap/scss/bootstrap";
 
+// Arrow drawn as a CSS mask in currentColor (follows hover colour). Used
+// instead of a "→" glyph, which sits low next to uppercase button text.
+@mixin arrow-icon($size: 14px) {
+  content: "";
+  flex: none;
+  width: $size;
+  height: $size;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='4' y1='12' x2='20' y2='12'/%3E%3Cpolyline points='14 6 20 12 14 18'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='4' y1='12' x2='20' y2='12'/%3E%3Cpolyline points='14 6 20 12 14 18'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+// Inline SVG arrow component (components/ui/Arrow.js)
+.ui-arrow {
+  flex: none;
+  display: inline-block;
+}
+.ui-arrow--left {
+  transform: scaleX(-1);
+}
+.with-arrow {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 0.45em;
+}
+
 // ============================================================
 //  Universal text-decoration reset
 // ============================================================
@@ -1269,8 +1295,7 @@ body {
       font-family: var(--font-sans);
 
       &::after {
-        content: "→";
-        font-size: 14px;
+        @include arrow-icon(14px);
         transition: transform var(--transition);
       }
 
@@ -1850,8 +1875,7 @@ body {
     text-decoration: none !important;
 
     &::after {
-      content: "→";
-      font-size: 14px;
+      @include arrow-icon(14px);
       transition: transform var(--transition);
     }
     &:hover {
