@@ -332,12 +332,12 @@ export default function Home() {
         <div className="container">
           <div className="categories-grid">
             {[
-              { href: '/shop/women', title: "Women's Perfumes", img: '/259.webp', count: counts.women, large: true },
-              { href: '/shop/men', title: "Men's Perfumes", img: '/11.webp', count: counts.men },
+              { href: '/shop/women', title: "Women's Perfumes", img: '/images/site/cat-women.jpg', count: counts.women, large: true },
+              { href: '/shop/men', title: "Men's Perfumes", img: '/images/site/cat-men.jpg', count: counts.men },
               {
                 href: '/shop',
                 title: 'All Perfumes',
-                img: '/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303.webp',
+                img: '/images/site/cat-all.jpg',
                 count: counts.women == null || counts.men == null ? null : counts.women + counts.men,
               },
             ].map((c) => (

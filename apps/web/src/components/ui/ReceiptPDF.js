@@ -333,7 +333,7 @@ export default function ReceiptPDF({ orderData, orderNumber, supportEmail }) {
             <View key={i} style={[styles.tableRow, i % 2 === 1 && styles.tableRowAlt]}>
               <View style={styles.colProduct}>
                 <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemSub}>MUSHK • 100ML</Text>
+                <Text style={styles.itemSub}>{['MUSHK', item.size].filter(Boolean).join(' • ').toUpperCase()}</Text>
               </View>
               <Text style={[styles.cellText, styles.colQty, { textAlign: 'center' }]}>{item.quantity}</Text>
               <Text style={[styles.cellText, styles.colPrice, { textAlign: 'right' }]}>

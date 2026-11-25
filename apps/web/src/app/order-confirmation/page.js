@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useStoreInfo } from '@/lib/storefront/useShippingRates';
 import { formatPrice } from "@/lib/money";
+import { imageUrl } from "@/lib/images";
 
 export default function OrderConfirmation() {
   const storeInfo = useStoreInfo();
@@ -212,15 +213,16 @@ export default function OrderConfirmation() {
                   <div key={index} className="receipt-item">
                     <div className="item-image">
                       <Image
-                        src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
+                        src={item.image ? imageUrl(item.image, 160) : '/images/site/placeholder.jpg'}
                         alt={item.name}
                         width={80}
                         height={80}
+                        unoptimized={/^https?:\/\//i.test(item.image || '')}
                       />
                     </div>
                     <div className="item-details">
                       <h4>{item.name}</h4>
-                      <p>MUSHK • 100ML</p>
+                      <p>{['MUSHK', item.size].filter(Boolean).join(' • ').toUpperCase()}</p>
                       <p className="quantity">Qty: {item.quantity}</p>
                     </div>
                     <div className="item-price">

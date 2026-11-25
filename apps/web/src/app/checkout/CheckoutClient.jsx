@@ -173,6 +173,7 @@ export default function CheckoutClient() {
             price: item.price,
             quantity: item.quantity,
             image: item.image,
+            size: item.size || "",
           })),
           customerInfo: formToUse,
           paymentMethod: "Credit Card (Stripe)",
@@ -352,6 +353,7 @@ export default function CheckoutClient() {
           price: item.price,
           quantity: item.quantity,
           image: item.image,
+          size: item.size || "",
         })),
         customerInfo: formData,
         paymentMethod: "Cash on Delivery",
@@ -793,9 +795,9 @@ export default function CheckoutClient() {
                     const itemImg =
                       item.image ||
                       item.images?.[0] ||
-                      "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp";
+                      "/images/site/placeholder.jpg";
                     const isAbsolute = /^https?:\/\//i.test(itemImg);
-                    const meta = [item.brand || "MUSHK", item.size || "100ML"]
+                    const meta = [item.brand || "MUSHK", item.size]
                       .filter(Boolean)
                       .join(" • ");
                     return (

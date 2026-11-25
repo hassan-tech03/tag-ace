@@ -128,8 +128,8 @@ export default function Contact() {
             <div className="col-lg-6 order-1 order-lg-2">
               <div className="hero-image">
                 <Image
-                  src="/hero-section/s5.webp"
-                  alt="Contact Mushk"
+                  src="/images/site/contact.jpg"
+                  alt="Crystal and Dream Escape by Mushk Perfumes"
                   width={600}
                   height={400}
                   className="img-fluid rounded-4"
