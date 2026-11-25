@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EmailLink from "@/components/storefront/EmailLink";
 import { DELIVERY_TIME, RETURN_REPORT_WINDOW } from "@/lib/faqs";
 import { getFaqContext } from "@/lib/faqContext";
 import { formatPrice } from "@/lib/money";
@@ -16,7 +17,19 @@ export const metadata = pageMetadata({
 
 export default async function ShippingReturnsPage() {
   const { rates = { freeShippingThreshold: 5000, flatRate: 250 }, email, phone } = await getFaqContext();
-  const contact = [email && `email ${email}`, phone && `call or WhatsApp ${phone}`].filter(Boolean).join(" or ");
+  // Email rendered client-side (Cloudflare email obfuscation breaks hydration).
+  const contact =
+    email || phone ? (
+      <>
+        {email && (
+          <>
+            email <EmailLink email={email} />
+          </>
+        )}
+        {email && phone && " or "}
+        {phone && `call or WhatsApp ${phone}`}
+      </>
+    ) : null;
 
   return (
     <div className="faq-page">
