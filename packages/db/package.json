@@ -17,6 +17,7 @@
     "studio": "drizzle-kit studio",
     "seed:admin": "node scripts/seed-admin.mjs",
     "seed:products": "node scripts/seed-products.mjs",
+    "seed:catalog": "node scripts/seed-catalog.mjs",
     "backup": "node scripts/backup-json.mjs",
     "restore": "node scripts/restore-json.mjs",
     "seed:blog": "node scripts/seed-blog.mjs"
