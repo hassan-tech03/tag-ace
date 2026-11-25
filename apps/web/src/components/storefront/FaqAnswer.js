@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EmailLink from "./EmailLink";
 
 // Renders an FAQ answer, turning "[text](/path)" into links.
 export default function FaqAnswer({ text, className }) {
@@ -24,5 +25,15 @@ export default function FaqAnswer({ text, className }) {
     last = m.index + m[0].length;
   }
   if (last < text.length) parts.push(text.slice(last));
-  return <p className={["faq-rich", className].filter(Boolean).join(" ")}>{parts}</p>;
+
+  // Email addresses are rendered client-side (see EmailLink).
+  const withEmails = [];
+  parts.forEach((part) => {
+    if (typeof part !== "string") return withEmails.push(part);
+    part.split(/([\w.+-]+@[\w-]+\.[\w.]+)/).forEach((chunk, j) => {
+      if (/^[\w.+-]+@[\w-]+\.[\w.]+$/.test(chunk)) withEmails.push(<EmailLink key={`e${i++}-${j}`} email={chunk} />);
+      else if (chunk) withEmails.push(chunk);
+    });
+  });
+  return <p className={["faq-rich", className].filter(Boolean).join(" ")}>{withEmails}</p>;
 }
