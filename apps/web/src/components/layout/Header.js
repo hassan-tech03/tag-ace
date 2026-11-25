@@ -312,7 +312,7 @@ export default function Header() {
                   const itemImg =
                     item.image ||
                     item.images?.[0] ||
-                    '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp';
+                    '/images/site/placeholder.jpg';
                   const isAbsolute = /^https?:\/\//i.test(itemImg);
                   return (
                     <div key={item.id} className="cart-item">

@@ -213,7 +213,7 @@ export const postCreateSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase letters, numbers and dashes"),
   excerpt: z.string().max(500).optional().default(""),
   content: z.string().max(100_000).optional().default(""),
-  // Absolute URL (Cloudinary) or a site path like /hero-section/s4.webp.
+  // Absolute URL (Cloudinary) or a site path like /images/site/blog-oud.jpg.
   coverImage: z
     .string()
     .max(1000)

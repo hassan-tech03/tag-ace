@@ -43,8 +43,8 @@ export default function AboutUs() {
               <div className="story-image-wrap">
                 <div className="story-img-accent"></div>
                 <Image
-                  src="/hero-section/s1_8f554bb3-d45a-45f9-8c3e-cd63a7ebe0b2.webp"
-                  alt="Mushk Story"
+                  src="/images/site/about-story.jpg"
+                  alt="Monark and Velvet Bloom by Mushk Perfumes"
                   width={600}
                   height={520}
                   className="story-img"
@@ -201,8 +201,8 @@ export default function AboutUs() {
               <div className="mission-image-wrap">
                 <div className="mission-img-accent"></div>
                 <Image
-                  src="/hero-section/s4.webp"
-                  alt="Our Mission"
+                  src="/images/site/about-mission.jpg"
+                  alt="Eternal and Sunset Island by Mushk Perfumes"
                   width={600}
                   height={520}
                   className="mission-img"

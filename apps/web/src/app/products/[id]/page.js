@@ -18,12 +18,7 @@ import Arrow from '@/components/ui/Arrow';
 // the richer shape this page expects (with images[], rating, reviews count,
 // description). DB fields take precedence; placeholders fill the gaps.
 const normalizeDbProduct = (p) => {
-  const fallbackImages = [
-    '/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp',
-    '/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303_360x.webp',
-    '/259.webp',
-    '/11.webp',
-  ];
+  const fallbackImages = ['/images/site/placeholder.jpg'];
   const imgs = Array.isArray(p.images) && p.images.length > 0 ? p.images : fallbackImages;
   return {
     id: p.id,
@@ -828,10 +823,10 @@ export default function ProductDetail({ params }) {
             <div className="col-lg-6">
               <div className="faqs-image">
                 <Image
-                  src="/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp"
-                  alt="Perfume Application"
+                  src="/images/site/faq.jpg"
+                  alt="Dream Escape by Mushk Perfumes"
                   width={600}
-                  height={400}
+                  height={600}
                   className="img-fluid"
                 />
 

@@ -82,7 +82,7 @@ export async function POST(request) {
     const lineItems = totals.items.map((item) => {
       const productData = {
         name: item.name,
-        description: "MUSHK • 100ML",
+        description: item.size ? `MUSHK • ${String(item.size).toUpperCase()}` : "Mushk Perfumes",
       };
       if (isPublicImage(item.image)) {
         productData.images = [item.image];

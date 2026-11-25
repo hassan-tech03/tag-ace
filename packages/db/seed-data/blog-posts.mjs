@@ -2,16 +2,13 @@
 // (upserts by slug). Content is Markdown. Cover images are files in
 // apps/web/public or the Cloudinary product image.
 
-const OUD_NOIR =
-  "https://res.cloudinary.com/dfy225ucr/image/upload/v1794390114/mushk/products/oud-noir-sample.jpg";
-
 export const BLOG_POSTS = [
   {
     slug: "how-to-find-your-signature-scent",
     title: "How to Find Your Signature Scent",
     excerpt:
       "A signature scent is the fragrance people remember you by. Here is a simple, practical way to find yours without getting lost in the testers.",
-    coverImage: "/hero-section/s1_8f554bb3-d45a-45f9-8c3e-cd63a7ebe0b2.webp",
+    coverImage: "/images/site/blog-signature-scent.jpg",
     tags: ["Guides", "Beginners"],
     publishedAt: "2026-11-22T10:00:00+05:00",
     content: `A signature scent is the fragrance that quietly becomes part of who you are. Walk into a room and people know you have arrived. Finding it is less about following trends and more about understanding what you genuinely enjoy.
@@ -48,7 +45,7 @@ Ready to explore? Browse our [men's collection](/shop/men) and [women's collecti
     title: "Top, Heart and Base Notes: How a Perfume Unfolds",
     excerpt:
       "Every perfume tells its story in three acts. Understanding notes helps you choose better and know what to expect hours after you spray.",
-    coverImage: "/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303.webp",
+    coverImage: "/images/site/blog-notes.jpg",
     tags: ["Guides", "Fragrance Basics"],
     publishedAt: "2026-11-19T10:00:00+05:00",
     content: `Perfume is not a single smell. It is a sequence that changes as the different ingredients evaporate at different speeds. Perfumers describe this in three layers called **notes**.
@@ -90,7 +87,7 @@ On every product page in our store you will find the fragrance family listed, wh
     title: "Parfum, EDP, EDT or Attar? Concentrations Explained",
     excerpt:
       "Eau de Parfum, Eau de Toilette, Parfum and attar differ mainly in how much fragrance oil they contain. Here is what that means for strength and longevity.",
-    coverImage: OUD_NOIR,
+    coverImage: "/images/site/blog-concentrations.jpg",
     tags: ["Fragrance Basics"],
     publishedAt: "2026-11-15T10:00:00+05:00",
     content: `Two bottles can carry the same name and smell noticeably different. The reason is usually **concentration**: the percentage of perfume oil mixed with alcohol or a carrier.
@@ -125,7 +122,7 @@ Higher concentration usually means longer lasting, but not necessarily louder. A
     title: "How to Make Your Perfume Last Longer in Pakistan's Summer",
     excerpt:
       "Heat and humidity make fragrance fade faster. These simple habits help your perfume last through long, hot days.",
-    coverImage: "/hero-section/s4.webp",
+    coverImage: "/images/site/blog-summer.jpg",
     tags: ["Tips", "Summer"],
     publishedAt: "2026-11-11T10:00:00+05:00",
     content: `From Karachi's humidity to Lahore's dry June heat, our summers are tough on perfume. Warm skin makes fragrance evaporate faster, and sweat can change how it smells. The good news: a few habits make a real difference.
@@ -163,7 +160,7 @@ A perfume left in a hot car or on a sunny dressing table loses quality quickly. 
     title: "Oud: The Story Behind Perfumery's Most Treasured Note",
     excerpt:
       "Deep, smoky and unforgettable, oud has been prized for centuries. Here is where it comes from and how to wear it well.",
-    coverImage: OUD_NOIR,
+    coverImage: "/images/site/blog-oud.jpg",
     tags: ["Ingredients", "Oud"],
     publishedAt: "2026-11-07T10:00:00+05:00",
     content: `Few ingredients carry as much history and emotion as oud. In our part of the world it is the scent of celebrations, Jummah, weddings and special guests.
@@ -199,7 +196,7 @@ Explore our oriental and oud-led fragrances in the [men's collection](/shop/men)
     title: "Seasonal Scents: What to Wear in Summer and Winter",
     excerpt:
       "The same perfume can feel perfect in December and too heavy in June. Here is how to build a simple seasonal rotation.",
-    coverImage: "/259.webp",
+    coverImage: "/images/site/blog-seasonal.jpg",
     tags: ["Guides", "Seasons"],
     publishedAt: "2026-11-03T10:00:00+05:00",
     content: `Temperature changes how a fragrance behaves. Heat makes scent rise and project, while cold air keeps it close to the skin. That is why it helps to choose differently through the year.
@@ -243,7 +240,7 @@ You don't need a huge collection. Three bottles cover the whole year comfortably
     title: "A Beginner's Guide to Perfume Layering",
     excerpt:
       "Layering lets you create a scent that is uniquely yours. Start with these simple rules and combinations.",
-    coverImage: "/1_08ff09db-b9b0-4781-8774-8c5872176160_360x.webp",
+    coverImage: "/images/site/blog-layering.jpg",
     tags: ["Tips", "Layering"],
     publishedAt: "2026-10-29T10:00:00+05:00",
     content: `Layering means wearing two (or more) fragrances together to create something new. It is a long tradition in Middle Eastern and South Asian perfumery, where attars, bakhoor and sprays are often combined.
@@ -280,7 +277,7 @@ Two layers are plenty. Use fewer sprays of each than you normally would, since t
     title: "How to Store Perfume So It Stays Fresh",
     excerpt:
       "Light, heat and air are perfume's biggest enemies. Store your bottles well and they will smell beautiful for years.",
-    coverImage: "/11.webp",
+    coverImage: "/images/site/blog-store.jpg",
     tags: ["Tips", "Care"],
     publishedAt: "2026-10-24T10:00:00+05:00",
     content: `A well-made fragrance can last for years, but only if it is stored properly. Poor storage can make a perfume smell sour, flat or metallic long before the bottle is empty.
@@ -322,7 +319,7 @@ Some people keep perfume in the refrigerator. It is not necessary and repeated t
     title: "Gifting Perfume for Eid and Weddings",
     excerpt:
       "Perfume is one of the most personal and loved gifts. Here is how to choose the right one for Eid, mehndi, baraat and beyond.",
-    coverImage: "/hero-section/s5.webp",
+    coverImage: "/images/site/blog-gifting.jpg",
     tags: ["Gifting", "Occasions"],
     publishedAt: "2026-10-19T10:00:00+05:00",
     content: `Fragrance has always been part of our celebrations, from attar on Eid morning to the scent of roses and motia at weddings. A good perfume makes a thoughtful, elegant gift.
@@ -361,7 +358,7 @@ A perfume in its box with a handwritten note feels personal. Mention why you cho
     title: "Where to Apply Perfume (and Where Not To)",
     excerpt:
       "Where you spray matters as much as what you spray. Pulse points, clothing and a few spots to avoid.",
-    coverImage: "/3_4a5e3cd4-c4da-4955-a739-3dcdebf6f303_360x.webp",
+    coverImage: "/images/site/blog-where-to-apply.jpg",
     tags: ["Tips", "Beginners"],
     publishedAt: "2026-10-14T10:00:00+05:00",
     content: `The right placement helps your fragrance develop naturally and last longer, without overwhelming people around you.
@@ -404,7 +401,7 @@ After a while you stop noticing your own perfume. This is normal and does not me
     title: "Floral, Woody, Oriental, Fresh: Fragrance Families Explained",
     excerpt:
       "Fragrance families are the easiest way to understand what you like. A quick tour of the main families you will see in our store.",
-    coverImage: "/hero-section/s4.webp",
+    coverImage: "/images/site/blog-families.jpg",
     tags: ["Fragrance Basics"],
     publishedAt: "2026-10-09T10:00:00+05:00",
     content: `Every fragrance in our store is labelled with a family. Once you know which families you enjoy, choosing a new perfume becomes much easier.
@@ -450,7 +447,7 @@ Use the **Fragrance Family** filter on our [shop pages](/shop) to see every frag
     title: "Choosing an Office-Friendly Fragrance",
     excerpt:
       "Smell great at work without filling the room. How to pick and wear a fragrance that is professional and pleasant.",
-    coverImage: "/259.webp",
+    coverImage: "/images/site/blog-office.jpg",
     tags: ["Guides", "Everyday"],
     publishedAt: "2026-10-04T10:00:00+05:00",
     content: `Offices are shared, often air-conditioned spaces. The right fragrance leaves a good impression; the wrong one can give colleagues a headache.
