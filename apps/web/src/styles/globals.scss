@@ -6388,8 +6388,32 @@ body {
     > * { pointer-events: auto; }
   }
 
+  .slide .slide-bg-image picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  // Small laptops: the container margin is narrower than the side arrow
+  // (left: 36px, 52px wide), so push the copy clear of it.
+  @media (min-width: 992px) and (max-width: 1399px) {
+    .slide .slide-text { padding-left: 64px; }
+  }
+
   // Tablet & mobile: one row under the copy — arrow · dots · arrow.
   @media (max-width: 991px) {
+    // Portrait banner: keep the bottle (low in the frame) in view, and darken
+    // the top where the copy sits instead of the left side.
+    .slide .slide-bg-image img { object-position: center bottom !important; }
+    .slide::after {
+      background: linear-gradient(
+        to bottom,
+        rgba(10, 10, 10, 0.55) 0%,
+        rgba(10, 10, 10, 0.35) 45%,
+        rgba(10, 10, 10, 0.05) 75%,
+        rgba(10, 10, 10, 0.25) 100%
+      );
+    }
     .slide .container { align-items: flex-start; padding-top: 12vh; }
     .slide .slide-text { padding: 0 8px; }
 

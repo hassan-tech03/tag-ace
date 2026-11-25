@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
@@ -37,6 +37,25 @@ function CarouselControls({ prevClass, nextClass, dotsClass, label }) {
         </svg>
       </button>
     </div>
+  );
+}
+
+// Art-directed hero image. Below 992px the copy sits at the top, so phones
+// get a portrait banner and tablets a wider one, both with the bottle low in
+// the frame; desktop gets the wide banner with the bottle on the right. The
+// browser downloads only the source that matches.
+function HeroPicture({ slide, priority }) {
+  const common = { alt: '', sizes: '100vw', priority };
+  const srcSet = (src, width, height) => getImageProps({ ...common, src, width, height }).props.srcSet;
+  const { props: imgProps } = getImageProps({ ...common, src: slide.image, width: 2880, height: 1400 });
+  return (
+    <picture>
+      <source media="(max-width: 576px)" srcSet={srcSet(slide.mobileImage, 1080, 1440)} sizes="100vw" />
+      <source media="(max-width: 991px)" srcSet={srcSet(slide.tabletImage, 1600, 1400)} sizes="100vw" />
+      <source srcSet={srcSet(slide.image, 2880, 1400)} sizes="100vw" />
+      {/* eslint-disable-next-line jsx-a11y/alt-text */}
+      <img {...imgProps} className="hero-img" />
+    </picture>
   );
 }
 
@@ -125,7 +144,9 @@ export default function Home() {
   const slides = [
     {
       id: 1,
-      image: '/hero-section/s1_8f554bb3-d45a-45f9-8c3e-cd63a7ebe0b2.webp',
+      image: '/hero-section/banner-noir.webp',
+      mobileImage: '/hero-section/banner-noir-mobile.webp',
+      tabletImage: '/hero-section/banner-noir-tablet.webp',
       subtitle: 'UNVEIL YOUR SCENT',
       title: 'Finest Perfumes',
       title2: 'Shop For Women',
@@ -134,7 +155,9 @@ export default function Home() {
     },
     {
       id: 2,
-      image: '/hero-section/s4.webp',
+      image: '/hero-section/banner-amber.webp',
+      mobileImage: '/hero-section/banner-amber-mobile.webp',
+      tabletImage: '/hero-section/banner-amber-tablet.webp',
       subtitle: 'TIMELESS ELEGANCE',
       title: 'Fragrance For',
       title2: 'Every Occasion',
@@ -143,7 +166,9 @@ export default function Home() {
     },
     {
       id: 3,
-      image: '/hero-section/s5.webp',
+      image: '/hero-section/banner-onyx.webp',
+      mobileImage: '/hero-section/banner-onyx-mobile.webp',
+      tabletImage: '/hero-section/banner-onyx-tablet.webp',
       subtitle: 'FRAGRANCES DEFINE YOU',
       title: 'Explore Your',
       title2: 'Signature Scent',
@@ -252,14 +277,7 @@ export default function Home() {
             >
               {/* Background Image */}
               <div className="slide-bg-image">
-                <Image
-                  src={slide.image}
-                  alt=""
-                  fill
-                  sizes="100vw"
-                  priority={index === 0}
-                  style={{ objectFit: 'cover', objectPosition: 'center right' }}
-                />
+                <HeroPicture slide={slide} priority={index === 0} />
               </div>
 
               {/* Content Overlay */}
